@@ -1,14 +1,19 @@
 Containers are not virtual machines. You can understand them as boxes that isolates Unix processes. 
 Processes in containers are just processes in docker server - they use the same instance of Linux kernel.
 Containers are ephemeral- can be build and deleted very quickly, even after finish one task.
+One process for one container.
 
-Docker Compose - making local developer environments.
-Docker Machine
+Docker Machine - Creating Docker hosts in cloud. Standard docker commands will take effect in remote docerd.
+Docker Compose - Light orchestration. Connecting many containers in service (Wordpress + mySQL). Making local developer environments. Using yaml. Installed by pip.
+
 Docker Swarm
+
+Portainer - GUI for docker.
+Rancher - Kubernetes managment (pilot).
 _________________________________________________________________________
 
-docker version    #Show server 7 client versions
-docker info       #nfos about server
+docker version    #Show server & client versions
+docker info       #Infos about server
 _________________________________________________________________________
 
 Listing running containers:
@@ -20,6 +25,8 @@ docker ps -a
 docker container ls -a
 
 docker ps -a -l [VALUE]         #Searching for containers with given label
+
+docker port [NAME/ID]           #Will show container ports redirection
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 docker run = docker create + docker start
@@ -39,7 +46,9 @@ docker container run -d -p 8080:80 --name [NAME] [IMAGE_NAME]        #Without na
 --user [USERNAME]                #Container is working as a given user
 
 docker container run -d -p 3306:3306 --name MyMySQL --env MYSQL_ROOT_PASSWORD=13456 mysql
---env                            #environment variable
+--env                                #environment variable
+
+docker run --entrypoint /bin/bash    #starting container with different first command (entrypoint)
 
 docker run --rm -it ubuntu:latest    #Container will be removed after stop working
 docker run --help                    #Help for given command          
@@ -109,7 +118,7 @@ Docker is using bridge interface that connects docker0 virtual interface with ph
 Docker0 is using private subnet (free from host), contoainers get IPs from tis private subnet and can communicate each other. 
 Incoming traffic must be routed by proxy service. 
 
-Docker has internal DNS service (disabled in docker0).
+Docker has internal DNS service (disabled in docker0). Containers run with the same (added) network can communicate using their names.
 
 docker network ls                            #Listing docker networks
 docker network inspect [NET_NAME/ID]         #Show info about network
