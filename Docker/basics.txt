@@ -7,8 +7,8 @@ Docker Machine
 Docker Swarm
 _________________________________________________________________________
 
-docker version
-docker info
+docker version    #Show server 7 client versions
+docker info       #nfos about server
 _________________________________________________________________________
 
 Listing running containers:
@@ -41,12 +41,18 @@ docker container run -d -p 8080:80 --name [NAME] [IMAGE_NAME]        #Without na
 docker container run -d -p 3306:3306 --name MyMySQL --env MYSQL_ROOT_PASSWORD=13456 mysql
 --env                            #environment variable
 
-docker run -rm -it ubuntu:latest 
--rm                              #Container will be removed after stop working
+docker run --rm -it ubuntu:latest    #Container will be removed after stop working
+docker run --help                    #Help for given command          
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 Stop running container:
-docker container stop [NAME/ID]
+docker container stop [NAME/ID]                    #Docker sends SIGTERM signall
+-t 25                                              #If container will not response for SIGTERM, Docker will send SIGKILL after 25sec
+
+docker kill [NAME/ID]                              #Docker will send SIGKILL imidiately
+
+docker pause [NAME/ID]                             #Pausing container - docker will not allocate processor to process
+docker unpause [NAME/ID]
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 Starting not-running container:
@@ -60,10 +66,10 @@ Attaching detached (running) container:
 Removing container:
 docker container rm [-f] [NAME/ID]
 -f  (forced)
+
 docker rm -f $(docker ps -aq)       #Removes all containers
 
-Removing all containers:
-docker rm $(docker ps -aq) -f
+docker system prune -a              #Will destroy all containers, networks, images and cache
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 docker container update             #Updating container settings

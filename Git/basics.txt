@@ -1,6 +1,6 @@
 #CHECK KEYPAIR LOGGING!!!
 #CHECK STAGES
-#Make git remote repo of DevOps
+#GITHUB CLI
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 git config --global user.name 'użytkownik'
 git config --global user.email 'adres@email.pl'
@@ -26,14 +26,19 @@ git stash   -save changes withaout making commit (work in progress, but too earl
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Remote repositories:
 
+git remote add origin [LINK to REMOTE REPO]                     #connecting local repo with remote repo
+git remote add origin https://github.com/lukcic/devops.git
+
+git branch -M main                                              #rename branch to main (master is common used too)   
+
+git push -u origin main                                         #uploading changes (main branch) to remote repo 
+
+git push	                                                    #sending changes (updating) to remote repository
+
+git remote                                                      #lists remote repos
+
 git clone   -downloading (first time) remote repository to local disk, should be mde in destination flder
 git pull    -updating the newest changes from remote repository 
-
-git remote add origin [LINK to REMOTE REPO] -connecting local repo with remote repo
-git push -u origin master                   -uploading changes (master branch) to remote repo (origin)
-git push	-sending changes (updating) to remote  repository
-
-git remote -lists remote repos
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Branches:
