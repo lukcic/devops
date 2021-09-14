@@ -1,0 +1,20 @@
+Removing old Docker versions:
+sudo apt-get remove docker docker-engine docker.io   
+
+Installation in Ubuntu:
+curl https://get.docker.com | bash
+usermod -aG docker USER                 #add your user to "docker" group - no sudo needed
+newgrp docker                           #refreshing changes in group settings
+- - - - - - - - - - - - - - - - - - - - - - - -
+Ubuntu installation without script (from repo):
+
+sudo apt install apt-transport-https curl ca-certificates software-properties-common            #Install dependencies
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -                    #download repository keys, adding them to OS
+sudo apt-add-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"   #adding repository to sources.list
+sudo apt update
+sudo apt install docker-ce                                          #Docker Community Edition
+_________________________________________________________________________
+Testing:
+docker run -rm -ti ubuntu:latest /bin/bash
+
+- - - - - - - - - - - - - - - - - - - - - - - -

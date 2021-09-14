@@ -1,0 +1,17 @@
+List images:
+docker image ls [-a]
+docker images                   
+   --no-trunc  -full image id
+
+Downloading images:
+docker pull [image]:][tag]
+docker pull ubuntu:16.04
+
+Removing images:
+docker image rm [id/name]        #must be off, -f (force)
+_________________________________________________________________________
+We can check how given image was created:
+
+docker history [IMAGE]           #All comands used while building this image
+
+EXPOSE -will open public port

@@ -1,0 +1,47 @@
+#CHECK KEYPAIR LOGGING!!!
+#CHECK STAGES
+#Make git remote repo of DevOps
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+git config --global user.name 'użytkownik'
+git config --global user.email 'adres@email.pl'
+
+git init -initalizing repository in actual folder, makes .git directory
+
+git add [FILE]] -add file to index
+git add .	    -add all files to index
+git add *.html  -add all html files to index
+git rm --cached [FILE]	-deletes file from index
+
+.gitignore -here should be added files that have been not added to index (exclusions)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+git status  -check tree status
+git log     -list commits (--graph)
+
+git commit -saves changes to local repository, makes the snapshot of files
+-a    -add all changed & deleted files to stage (without new files)
+-m    -comment to commit
+
+git stash   -save changes withaout making commit (work in progress, but too early to commit)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Remote repositories:
+
+git clone   -downloading (first time) remote repository to local disk, should be mde in destination flder
+git pull    -updating the newest changes from remote repository 
+
+git remote add origin [LINK to REMOTE REPO] -connecting local repo with remote repo
+git push -u origin master                   -uploading changes (master branch) to remote repo (origin)
+git push	-sending changes (updating) to remote  repository
+
+git remote -lists remote repos
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Branches:
+git show-branch             -list branches in repository
+git branch [NEW_BRANCH]     -makes new branch
+git checkout [NEW_BRANCH]   -switch to given branch
+git merge [NEW_BRANCH]      -merge given branch with master (should be done on master)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+git --version			-show git version
+<readme.md> -readme file (markdown), description of remote repository

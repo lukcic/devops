@@ -1,0 +1,86 @@
+vagrant                 -list commands
+vagrant [COMMAND] -h    -shows help about given command (parameters)
+
+Ready boxes:
+https://vagrantcloud.com/search
+
+vagrant init username/box_name
+vagrant init bento/ubuntu-18.04
+
+vagrant up              -start/wake up vm
+vagrant ssh [HOSTNAME]  -connection to vm via ssh
+vagrant suspent         -suspenting the vm
+vagrant halt            -shutdown machines
+vagrant reload          -restart vm
+vagrant destroy         -delete vm
+
+vagrant status          -status of machine running in working dir
+bagrant global-status   -status of all vm
+   --prune  -clean old (deleted) vms
+
+vagrant validate  -validates the config file
+vagrant provision -provinsioning te running vm
+
+vagrant ssh-config    -shows the ssh config
+
+Vagrantfile for 1 vm:
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-18.04"
+  config.vm.hostname = "vm1"
+  config.vm.network "private_network", ip:  "192.168.11.11"
+
+  config.vm.synced_folder "../data", "/home/vagrant/data"
+  config.vm.provision "file", source: "file.txt", destination: "/home/vagrant/file.txt"   #copying files form host to vm 
+
+  config.vm.provider :virtualbox do |vb|                  # thats a loop, ends with "end"
+  vb.customize ["modifyvm", :id, "--memory", 1024]        # vb is a variable 
+  vb.customize ["modifyvm", :id, "--cpus", 2]
+  end
+end
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+sudo apt-get install virtualbox-guest-additions-iso         #instalation of virtualbox guest addons needed to synced_folders
+
+
+Vagrantfile for 3 vm:
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Vagrant.configure("2") do |config|
+
+  servers=[
+    {
+      :hostname => "Server1",
+      :box => "ubuntu/xenial64",
+      :ip => "192.168.11.21",
+      :ssh_port => "2221"
+    },
+    {
+      :hostname => "Server2",
+      :box => "ubuntu/xenial64",
+      :ip => "192.168.11.22",
+      :ssh_port => "2220"
+    },
+    {
+      :hostname => "Server3",
+      :box => "ubuntu/xenial64",
+      :ip => "192.168.11.33",
+      :ssh_port => "2223"
+    }
+  ]
+
+  servers.each do |machine|
+    config.vm.define machine[:hostname] do |node|
+      node.vm.box = machine[:box]
+      node.vm.hostname = machine[:hostname]
+      node.vm.network :private_network, ip: machine[:ip]
+      node.vm.network "forwarded_port", guest: 22, host: machine[:ssh_port], id: "ssh"
+      node.vm.provision "file", source: "./file.txt", destination: "/home/vagrant/file.txt"
+
+      node.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", 1500]
+      end
+    end
+  end
+end
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
