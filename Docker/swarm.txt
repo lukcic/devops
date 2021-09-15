@@ -1,0 +1,80 @@
+Docker Swarm (Rój) - Docker Orchestration module. Lighter than Kubernetes (orchestration smaller environments).
+
+Need Swarm master.
+
+docker swarm init       #Initialization of Swarm. 
+docker swarm join...    #Adding worker to swarm. Should be run on worker (new server). Command given after initialization on master. 
+docker swarm leave      #Leaving swarm
+
+docker node ls          #show all nodes in swarm
+
+service = container in swarm (may migrate)????????
+
+docker service create --replica 1 --name helloworld alpine ping google.com        #Service - task run on manager host or workers (replicable and scalable)
+
+docker service inspect [NAME\ID]    #Service inspection
+
+docker service ps       #Show services, or given service with [NAME/ID]
+docker ps               #The same??????
+
+docker service logs [NAME/ID]   #Show logs of service (container)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Swarm with compose:
+docker stack deploy --compose-file docker-compose.yml       #Running services from Docker Compose file
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ervice Scaling:
+More than 1 instance of aplication for fail immune.
+
+docker service scale helloworld=3   #Will create 3 instances of service (container?), for one on every node, named helloworld.1, helloworld.2 etc
+
+docker service update [OPTION] [PARAMETER] [NAME/ID]      #Changes in service, f.eg. changing image for running service (all instances)
+docker service update --image alpine:3.4 helloworld
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Constrains (ograniczenia):
+Services with given labels can be run on choosen nodes.
+
+docker node update --label-add super=true [NODE_ID]     #Adding label "super" to given node
+docker service update --constraint-add "node.labels.super == true" helloworld   #All running instances of service (containers) will dock on node with given label 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Constraints in Docker Compose file:
+
+deploy:
+  replicas: 2
+  placement:
+    constraints: [node.labels.super == true]
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Drain mode:
+Node may be turned off from swarm to eg. mainenance.
+
+docker node update --availability drain [NAME/ID]        # active | pause | drain 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Load balancing:
+Swwarm has included load balancer module.
+docker service create --name nginx --published=8080,target=80 --replicas 3 nginx    #Creating service with 3 instances of nginx, load balancing is working automatically. 
+
+HaProxy:
+sudo apt install haproxy
+
+edit /etc/haproxy/haproxy.cfg
+"""
+frontend http_front
+    bind *:80
+    stats uri /haproxy?stats
+    default_backend http_back
+backend http_back
+    balance roundrobin
+    server node1 192.168.1.29:8080 check
+    server node2 192.168.1.30:8080 check
+    server node3 192.168.1.31:8080 check
+"""
+service haproxy restart
+
+
+
+

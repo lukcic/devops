@@ -6,8 +6,6 @@ One process for one container.
 Docker Machine - Creating Docker hosts in cloud. Standard docker commands will take effect in remote docerd.
 Docker Compose - Light orchestration. Connecting many containers in service (Wordpress + mySQL). Making local developer environments. Using yaml. Installed by pip.
 
-Docker Swarm
-
 Portainer - GUI for docker.
 Rancher - Kubernetes managment (pilot).
 _________________________________________________________________________
