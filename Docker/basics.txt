@@ -67,7 +67,7 @@ docker container start [NAME/ID]
 - - - - - - - - - - - - - - - - - - - - - - - -
 
 Attaching detached (running) container:
-[winpty] docker container exec [-it] [NAME/ID] bash
+docker container exec [-it] [NAME/ID] bash
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Removing container:
@@ -89,27 +89,45 @@ docker run --restart="VALUE" [NAME]:[TAG]
 docker inspect [NAME/TAG]           #Show detailed info about container, works with containers, images, volumens and networks.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Interaction with running container:
+
 Docker exec:
 docker exec [NAME/TAG] [COMMAND]                                    # Will execute command in container (bash) terminal.
 docker exec -it -u root 6dg6dg7 /bin/bash                           # Will execute command as given user (--user root)
 docker exec -it -w / 6dg6dg7 ls                                     # -w / will change workdir to /
 docker exec -e TEST=true -it 6dg6dg7 /bin/bash -c 'echo $TEST'      #-c will send argument as string
 --privileged                                                        # will run container without some docker demons limitations, used for routing tables modifications, promiscious mode etc.
+
+nsenter (Namespace Enter)
+This Linux package give possibility to enter in any linux namespace. You can enter inside container even if it not responding (docke exec fails).
+
+sudi apt install util-linux
+docker run --rm -v /usr/local/bin:/target jpetazzo/nsenter #installation nsenter without package manager
+
+Connecting to container namespace:
+PID=$(docker inspect --format \{{.State.Pid\}} [CONTAINER_ID])      #Check linux PID of running container and assign it to PID variable 
+sudo nsenter --target $PID --mount --uts --ipc --net --pid          #Connect to namespace of given container
+
+the same effect:
+docker exec -it [CONTAINER_ID] /bin/bash
 _________________________________________________________________________
 
-Volumes:
-Filesystems managed by docker. 
+Filesystems:
+https://docs.docker.com/storage/volumes/
 
-docker volume create [NAME]      #Creating volume
-docker volume ls                 #Listing volumes
-
-docker volume inspect [NAME/ID]     #View info about volume
-
-docker run -v [HOST_VOLUME_PATH]:[CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]        #Running container with mounted volume. If host path ia absolute, then bindmount volume (need priviledges).
+Bind-mouted directories - used for provisioning files to container, but container cannot do any changes in host filesystem (takes a own copy). Need absolute host path when using -v.
+docker run -v [HOST_VOLUME_PATH]:[CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]        #
 docker container run -d -p 8080:80 -v $(pwd):/usr/share/nginx/html nginx      #Host path can be variable
 [CONTAINER_VOLUME_PATH]:ro                                                    #Read only volume
 
-docker run --tmpfs [CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]                      #Creating tempolary volume (files deleted while closing container), can be used with --read-only
+Volumes - special type of containers that are mounted in containers and data created by container is stored inside. Can be mouned using --mount or -v [VOLUME_NAME]:/PATH.
+docker volume create [VOLUME_NAME]  #Creating volume
+docker volume ls                    #Listing volumes
+docker volume inspect [NAME/ID]     #View info about volume
+
+docker run --mount source=[VOLUME_NAME],target=[PATH] [IMAGE][TAG]      #creating container with mounting exist volume 
+
+docker run --tmpfs [CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]                #Creating tempolary volume (files deleted while closing container), can be used with --read-only
 _________________________________________________________________________
 Docker network:
 Docker is using bridge interface that connects docker0 virtual interface with phisical host interface. 
