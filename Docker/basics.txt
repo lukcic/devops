@@ -92,11 +92,13 @@ docker inspect [NAME/TAG]           #Show detailed info about container, works w
 Interaction with running container:
 
 Docker exec:
+```shell
 docker exec [NAME/TAG] [COMMAND]                                    # Will execute command in container (bash) terminal.
 docker exec -it -u root 6dg6dg7 /bin/bash                           # Will execute command as given user (--user root)
 docker exec -it -w / 6dg6dg7 ls                                     # -w / will change workdir to /
 docker exec -e TEST=true -it 6dg6dg7 /bin/bash -c 'echo $TEST'      #-c will send argument as string
---privileged                                                        # will run container without some docker demons limitations, used for routing tables modifications, promiscious mode etc.
+--privileged
+```                                                        # will run container without some docker demons limitations, used for routing tables modifications, promiscious mode etc.
 
 nsenter (Namespace Enter)
 This Linux package give possibility to enter in any linux namespace. You can enter inside container even if it not responding (docke exec fails).
