@@ -98,11 +98,11 @@ docker exec -it -u root 6dg6dg7 /bin/bash                           # Will execu
 docker exec -it -w / 6dg6dg7 ls                                     # -w / will change workdir to /
 docker exec -e TEST=true -it 6dg6dg7 /bin/bash -c 'echo $TEST'      #-c will send argument as string
 --privileged
-```                                                        # will run container without some docker demons limitations, used for routing tables modifications, promiscious mode etc.
+```                                                     # will run container without some docker demons limitations, used for routing tables modifications, promiscious mode etc.
 
 nsenter (Namespace Enter)
 This Linux package give possibility to enter in any linux namespace. You can enter inside container even if it not responding (docke exec fails).
-
+``` shell
 sudi apt install util-linux
 docker run --rm -v /usr/local/bin:/target jpetazzo/nsenter #installation nsenter without package manager
 
