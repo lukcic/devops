@@ -23,6 +23,9 @@ git commit -saves changes to local repository, makes the snapshot of files
 -m    -comment to commit
 
 git stash   -save changes withaout making commit (work in progress, but too early to commit)
+
+git revert --no-commit 0766c053..HEAD           #Reverting changes to given commit. After this do commit.
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Remote repositories:
 
