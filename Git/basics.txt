@@ -1,55 +1,92 @@
 #CHECK KEYPAIR LOGGING!!!
-#CHECK STAGES
 #GITHUB CLI
+https://git-scm.com/book/en/v2
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 git config --global user.name 'użytkownik'
 git config --global user.email 'adres@email.pl'
 
-git init -initalizing repository in actual folder, makes .git directory
+git init                #initalizing repository in actual folder, makes .git directory
 
-git add [FILE]] -add file to index
-git add .	    -add all files to index
-git add *.html  -add all html files to index
-git rm --cached [FILE]	-deletes file from index
+git add [FILE]]         #add file to index
+git add .	            #add all files to index
+-p                      #particullary add changes from given file to commit (interactive)
+git rm --cached [FILE]	#remove file from index
 
-.gitignore -here should be added files that have been not added to index (exclusions)
+.gitignore              #here should be added files that have been not added to index (exclusions)
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-git status  -check tree status
-git log     -list commits (--graph)
+git status  #check tree status, this command always give advice what do to to rollback last changes
 
-git commit -saves changes to local repository, makes the snapshot of files
--a    -add all changed & deleted files to stage (without new files)
--m    -comment to commit
+git log     #list commits 
+--all       #show hidden commits
+--graph     #grapf view of forks
+--oneline   #short description
 
-git stash   -save changes withaout making commit (work in progress, but too early to commit)
+Staging area  #workplace, changes that are important, but no need commit yet
 
-git revert --no-commit 0766c053..HEAD           #Reverting changes to given commit. After this do commit.
+git commit  #saves changes to local repository, makes the snapshot of files
+-a          #add all changed & deleted files to stage (without new files)
+-m          #comment to commit
+
+git restore [FILENAME]      #delete changes in file to state from last commit
+git checkout [FILENAME]     #delete changes in file to state from last commit
+
+git checkout [COMMIT_ID]    #switch to given (past) commit, git log needs --all
+
+If you switch to early commit and make new commit, repo will fork. You need to make new brach, switch to master and merge new repo.
+If marging fails because of conflicts and you want to save changes from fork to master use:
+git checkout --path [FORK_BRANCH] [CONFLICTED_FILE]
+
+'''y - stage this hunk
+n - do not stage this hunk
+q - quit; do not stage this hunk nor any of the remaining ones
+a - stage this hunk and all later hunks in the file
+d - do not stage this hunk nor any of the later hunks in the file
+g - select a hunk to go to
+/ - search for a hunk matching the given regex
+j - leave this hunk undecided, see next undecided hunk
+J - leave this hunk undecided, see next hunk
+k - leave this hunk undecided, see previous undecided hunk
+K - leave this hunk undecided, see previous hunk
+s - split the current hunk into smaller hunks
+e - manually edit the current hunk
+? - print help
+'''
+Cherry pick - can take commit from forked branch (feature) to master:
+https://poznajgita.pl/jak-skopiowac-tylko-niektore-commity-z-feature-brancha-do-mastera-git-cherry-pick/
+
+git stash   #save changes without making commit (work in progress, but too early to commit), something like clipboard. Stashes can work like commits?
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Remote repositories:
 
-git remote add origin [LINK to REMOTE REPO]                     #connecting local repo with remote repo
-git remote add origin https://github.com/lukcic/devops.git
+master          #the newest (last) commit  
+head            #place in history (commit) where we are now
+origin          #origin = remote (on server)
+origin/master   #master (last) commit on remote server 
 
-git branch -M main                                              #rename branch to main (master is common used too)   
+git remote      #lists remote repos
+git clone       #downloading (first time) remote repository to local disk, should be mde in destination flder
+git pull        #updating the newest changes from remote repository 
+git push	    #sending changes (updating) to remote repository
+
+git remote add origin [LINK to REMOTE REPO]                     #connecting local repo with remote repo (must be created on server)
+git remote add origin https://github.com/lukcic/devops.git
 
 git push -u origin main                                         #uploading changes (main branch) to remote repo 
 
-git push	                                                    #sending changes (updating) to remote repository
-
-git remote                                                      #lists remote repos
-
-git clone   -downloading (first time) remote repository to local disk, should be mde in destination flder
-git pull    -updating the newest changes from remote repository 
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Branches:
-git show-branch             -list branches in repository
-git branch [NEW_BRANCH]     -makes new branch
-git checkout [NEW_BRANCH]   -switch to given branch
-git merge [NEW_BRANCH]      -merge given branch with master (should be done on master)
+git show-branch             #list branches in repository
+git branch [NEW_BRANCH]     #makes new branch
+git checkout [NEW_BRANCH]   #switch to given branch
+git checkuot master         #switch to master
+git merge [NEW_BRANCH]      #merge given branch with master (should be done on master)
+--abort                     #cancel merge if errors
+
+git branch -M main          #rename branch to main (master is common used too)   
+git mergetool               #tool for conflicted merges (2 person edited the same file)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-git --version			-show git version
-<readme.md> -readme file (markdown), description of remote repository
+git --version			    #show git version
+<readme.md>                 #readme file (markdown), description of remote repository
