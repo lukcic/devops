@@ -1,4 +1,4 @@
-Docker Swarm (Rój) - Docker Orchestration module. Lighter than Kubernetes (orchestration smaller environments).
+Docker Swarm (Rój) - Docker Orchestration module. Lighter than Kubernetes (orchestration for smaller environments).
 
 Need Swarm master.
 
@@ -24,7 +24,7 @@ Swarm with compose:
 docker stack deploy --compose-file docker-compose.yml       #Running services from Docker Compose file
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-ervice Scaling:
+Service Scaling:
 More than 1 instance of aplication for fail immune.
 
 docker service scale helloworld=3   #Will create 3 instances of service (container?), for one on every node, named helloworld.1, helloworld.2 etc
@@ -57,6 +57,7 @@ docker node update --availability drain [NAME/ID]        # active | pause | drai
 Load balancing:
 Swwarm has included load balancer module.
 docker service create --name nginx --published=8080,target=80 --replicas 3 nginx    #Creating service with 3 instances of nginx, load balancing is working automatically. 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 HaProxy:
 sudo apt install haproxy
@@ -74,6 +75,7 @@ backend http_back
     server node3 192.168.1.31:8080 check
 """
 service haproxy restart
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 

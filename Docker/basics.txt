@@ -3,9 +3,6 @@ Processes in containers are just processes in docker server - they use the same 
 Containers are ephemeral- can be build and deleted very quickly, even after finish one task.
 One process for one container.
 
-Docker Machine - Creating Docker hosts in cloud. Standard docker commands will take effect in remote docerd.
-Docker Compose - Light orchestration. Connecting many containers in service (Wordpress + mySQL). Making local developer environments. Using yaml. Installed by pip.
-
 Portainer - GUI for docker.
 Rancher - Kubernetes managment (pilot).
 _________________________________________________________________________
@@ -177,5 +174,24 @@ docker run --memory="200m"          #Limiting RAM memory to 200 MiB
 docker run --blkio-weight 300       #Limiting in/out disk operations
 docker run --blkio-weight-device "/dev/sda:10"  #Limiting io disk operations for given disk
 _________________________________________________________________________
+
+Opening docker as remote service in Ubuntu:
+su - root
+cd /etc/systemd/system
+mkdir docker.service.d
+cd docker.service.d
+vim override.conf
+'''
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
+'''
+fd means to use socket activation 
+cat /lib/systemd/system/docker.socket
+
+systemctl daemon-reload
+service docker restart
+
+netstat --listen
 
 
