@@ -38,9 +38,13 @@ volumes:
 '''
 docker-compose up               #will run service (containers) if docker-compose.yml file is present
 docker-compose -f [FILE.yml] up [OPTIONS]   #run with given file, can use -d and other docker parameters (options)
+-d                              #detached mode
 
 docker-compose ps           #list running containers in services
 docker-compose [COMPOSE_FILE.yml] ps           #list running containers in services
 
 docker-compose logs #wil show container logs
 docker-compose top  #top of running containers
+
+
+https://hub.docker.com/r/linuxserver/unifi-controller

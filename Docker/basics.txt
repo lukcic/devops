@@ -126,6 +126,7 @@ docker run --mount source=[VOLUME_NAME],target=[PATH] [IMAGE][TAG]      #creatin
 
 docker run --tmpfs [CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]                #Creating tempolary volume (files deleted while closing container), can be used with --read-only
 _________________________________________________________________________
+
 Docker network:
 Docker is using bridge interface that connects docker0 virtual interface with phisical host interface. 
 Docker0 is using private subnet (free from host), contoainers get IPs from tis private subnet and can communicate each other. 
@@ -144,7 +145,9 @@ docker run --network=none [IMEGE]:[TAG]            #Creating container without n
 
 Overlay - networks between many docker server demons.
 _________________________________________________________________________
+
 Statistics & processes:
+Docker stats give us information about containers usage of: cpu, mem, hdd io and network.
 
 docker stats #statistics of all containers
 docker container stats [NAME/ID]    #statiscics of given container (live)
@@ -153,7 +156,14 @@ docker container stats [NAME/ID]    #statiscics of given container (live)
 
 docker container top [NAME/ID]  #Shows processes running in container (the same process id are listed in host ps)
 _________________________________________________________________________     
+
 Logs:
+Docker by default use json-file mechanism to storing container logs. May be changed for given container or permanently. Docker can use ony one logging plugin at once.
+Available plugins: syslog, fluentd, journald, gelf, awslogs, splunk, etwlogs, gcplogs, logentries.
+
+docker run --log-driver=syslog [IMAGE]  #creating container with syslog connection, this disable docker logs command
+--log-opt syslog-address=udp://192.168.42.42:123 #sending logs to remote syslog server
+--log-driver=none       #disabling loginng mechanism
 
 docker logs [NAME/ID]   #Shows container logs
 -t   #shows logs with timestamps
@@ -161,7 +171,13 @@ docker logs [NAME/ID]   #Shows container logs
 --tail "10"   #Shows last 10 log lines, may be used with -f
 --since "2021-07-21T11:21:00"   #Shows logs from given timestamp
 --until "2021-07-21T21:21:00"   #Shows logs to givem timestamo. May be used with since.
+
+Alternatives:
+Daemon svlogd - installed inside of container can grab logs from stdout & stderr and send them to remote logging servers using udp.
+Syslog redirector - compiled app that grab stdout and stderr of one process from inside of container: https://github.com/spotify/syslog-redirector
+Logspout - container that connects with docker service and grabs logs from other containers: https://github.com/progrium/logspout
 _________________________________________________________________________
+
 Hardware limits:
 
 docker run --cpus="0.2"             #Limiting container to max 20% of processor
@@ -193,5 +209,6 @@ systemctl daemon-reload
 service docker restart
 
 netstat --listen
+_________________________________________________________________________
 
 

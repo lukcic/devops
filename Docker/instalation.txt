@@ -2,7 +2,7 @@ Removing old Docker versions:
 sudo apt-get remove docker docker-engine docker.io   
 
 Installation in Ubuntu:
-curl https://get.docker.com | bash
+curl https://get.docker.com | bash      #DO NOT DO THIS! First save script to file and then run it!
 usermod -aG docker USER                 #add your user to "docker" group - no sudo needed
 newgrp docker                           #refreshing changes in group settings
 - - - - - - - - - - - - - - - - - - - - - - - -
