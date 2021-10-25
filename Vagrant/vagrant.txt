@@ -15,13 +15,14 @@ vagrant reload          -restart vm
 vagrant destroy         -delete vm
 
 vagrant status          -status of machine running in working dir
-bagrant global-status   -status of all vm
+vagrant global-status   -status of all vm
    --prune  -clean old (deleted) vms
 
 vagrant validate  -validates the config file
 vagrant provision -provinsioning te running vm
 
-vagrant ssh-config    -shows the ssh config
+vagrant ssh-config              #shows the ssh config
+ssh vagrant@127.0.0.1 -p 2222   #manual connection with default vagrany vm
 
 Vagrantfile for 1 vm:
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

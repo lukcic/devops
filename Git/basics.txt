@@ -56,7 +56,10 @@ e - manually edit the current hunk
 Cherry pick - can take commit from forked branch (feature) to master:
 https://poznajgita.pl/jak-skopiowac-tylko-niektore-commity-z-feature-brancha-do-mastera-git-cherry-pick/
 
-git stash   #save changes without making commit (work in progress, but too early to commit), something like clipboard. Stashes can work like commits?
+git stash       #cut changes made from last commit to 'clipboard'
+git stash pop   #paste this changes (clear the clipboard)
+git stash apply #paste this changes (stay in clipboard)
+https://www.atlassian.com/git/tutorials/saving-changes/git-stash
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Remote repositories:

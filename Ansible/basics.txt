@@ -1,0 +1,65 @@
+https://docs.ansible.com/
+https://docs.ansible.com/ansible/latest/modules/modules_by_category.html
+
+Playbooks repository
+https://galaxy.ansible.com/
+
+Ansibl - fiction communication device, that can send information faster than light speed. 
+It was used in some books for remote steering of many spaceships in the same time.
+
+Ansible - configuration management:
+-installation software packages
+-making/changing configuration files
+-changing permissions
+-starting/restarting services
+on many servers at once.
+
+Server provisioning - running new instances of vms. 
+
+Deployment orchestration - making operatios in dedicated order on many remote servers. 
+
+Playbook (scenariusz) - .yml file (writed in yaml) with instructions to do for servers. 
+It`s agentless and use push method to send instructions.
+Ansible is connetcting with given hosts by SSH simultaneously and chesk the state of given instructions. 
+If they are not done, will do them (idempotention) in described order. Will not start operatation until last one is not done. 
+Ansible is using python and simplejson library, so it must be installed on servers.
+
+ansible-playbook playbook.yml   #running the playbook
+
+Ansible modules (apt, yum) are made for specific linux distibutions. 
+Ansible use roles and variables may be used in playbooks.
+
+Installation:
+pip install ansible
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Inventory file (hosts)                      #Servers must be specified in host file using their alias or group alias
+test_server ansible_host=127.0.0.1 
+ansible_port=2222
+
+ansible.cfg - default config file:          # Ansible is looking for configuration in:
+[defaults]                                  # 1) file definied in env variable: ANSIBLE_CONFIG
+inventory = hosts                           # 2) ansible.cfg file in working folder
+remote_user = vagrant                       # 3) ~/.ansible.cfg in user home directory
+private_key_file = ~/.ssh/keyfile.pem       # 4) /etc/ansible/ansible.cfg
+host_key_checking = False
+
+Testing:
+ansible [HOST_ALIAS] -m [MODULE_NAME]       # ansible command is used to run single command (without playbook)
+ansible testserver -m ping
+
+ansible [HOST_ALIAS] -i [INVENTORY_FILE] -m [MODULE_NAME]   # -i -define inventory file
+ansible testserver -i hosts -m ping -vvvv                   # -vvvv gives very veryvery verbose (detailed) info
+
+Modules:
+ansible [HOST_ALIAS] -m command -a [ARGS]                   # command module lets using bash command on server
+ansible testserver -m command -a uptime
+ansible testserver -a uptime                                # command is a default module, you can give only command as argument
+ansible testserver -a "ls -l"                               # if command includes white spaces, must be used with ""
+ansible testserver -b -a "halt"                             # -b -is used when command need sudo
+
+ansible testserver -b -m apt -a "name=nginx update_cache=yes"       # apt module usecase
+
+ansible testserver -b -m service -a "name=nginx state=restarted"    # service module usecase
+
+p.37
