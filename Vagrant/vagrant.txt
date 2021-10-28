@@ -9,7 +9,7 @@ vagrant init bento/ubuntu-18.04
 
 vagrant up              -start/wake up vm
 vagrant ssh [HOSTNAME]  -connection to vm via ssh
-vagrant suspent         -suspenting the vm
+vagrant suspent         -suspending the vm
 vagrant halt            -shutdown machines
 vagrant reload          -restart vm
 vagrant destroy         -delete vm
@@ -27,9 +27,11 @@ ssh vagrant@127.0.0.1 -p 2222   #manual connection with default vagrany vm
 Vagrantfile for 1 vm:
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-18.04"
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.box_download_insecure=true
   config.vm.hostname = "vm1"
   config.vm.network "private_network", ip:  "192.168.11.11"
+  config.vm.network "forwarded_port", guest: 80, host: 8080
 
   config.vm.synced_folder "../data", "/home/vagrant/data"
   config.vm.provision "file", source: "file.txt", destination: "/home/vagrant/file.txt"   #copying files form host to vm 
@@ -40,6 +42,7 @@ Vagrant.configure("2") do |config|
   end
 end
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+VM 3d Support:
 sudo apt-get install virtualbox-guest-additions-iso         #instalation of virtualbox guest addons needed to synced_folders
 sudo apt install nux-tools                                  #then run the /usr/lib/nux/unity_support_test -p to check 3d acceleration
 

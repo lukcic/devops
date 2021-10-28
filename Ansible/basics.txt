@@ -18,7 +18,7 @@ Server provisioning - running new instances of vms.
 
 Deployment orchestration - making operatios in dedicated order on many remote servers. 
 
-Playbook (scenariusz) - .yml file (writed in yaml) with instructions to do for servers. 
+Playbook (scenariusz) - .yml file (script writed in yaml) with instructions to do for servers. 
 It`s agentless and use push method to send instructions.
 Ansible is connetcting with given hosts by SSH simultaneously and chesk the state of given instructions. 
 If they are not done, will do them (idempotention) in described order. Will not start operatation until last one is not done. 
@@ -61,5 +61,6 @@ ansible testserver -b -a "halt"                             # -b -is used when c
 ansible testserver -b -m apt -a "name=nginx update_cache=yes"       # apt module usecase
 
 ansible testserver -b -m service -a "name=nginx state=restarted"    # service module usecase
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 p.37
