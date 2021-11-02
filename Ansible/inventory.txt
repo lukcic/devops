@@ -1,0 +1,179 @@
+Servers must be specified in inventory file (ewidencja) using their alias or group alias
+
+hosts: #simple textfile, its filename must be specified in ansible.cfg
+[ALIAS] [IP/NAME] [OPTIONS]                     
+testserver ansible_host=127.0.0.1 ansible_port=2222
+
+For managing only localhost, inventory file has only one line:
+localhost ansible_connection=local      #in this case ansible work on localhost directly (not by SSH)
+
+Inventory functional parameters:
+Name:                       Default value:      Description:    
+ansible_host                servername          server name or IP address
+ansible_port                22                  ssh port 
+ansible_user                root                ssh login
+ansible_password            None                ssh password
+ansible_connection          smart               connection metod, if local ssh client use ControlPersist function then ansible use ssh (smart), otherwise python module (Paramiko) 
+ansible_private_key_file    None                path to private key
+ansible_shell_type          sh                  shell to run commands on remote server (csh, fish, powershell)
+ansible_python_interpreter  /usr/bin/python     python interpreter path (Ansible do not use python3????)
+ansible_*_interprete        None                other languages interpreter (for modules writed in other languages, eg. ruby)
+
+Mapping default options:
+ANSIBLE.CFG         INVENTORY FILE:
+    remote_port          ansible_port
+    remote_user          ansible_user
+    private_key_file     ansible_private_key_file
+    executable           ansible_shell_type
+_______________________________________________________________________________
+Groups:
+
+In most cases Ansible is used to manage many servers (not one), that can be groupped.
+
+Ansible always generates group 'all':
+ansible all -a 'uname -a'
+ansible '*' -a 'uname -a'
+
+[GROUP_NAME]
+server1 ansible_host=127.0.0.1 ansible_port=2220
+server2 ansible_host=127.0.0.1 ansible_port=2221
+server3 ansible_host=127.0.0.1 ansible_port=2222
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Django inventory file:
+'''
+[production]
+lb_prod1.yourdomain.com
+web_prod1.yourdomain.com
+web_prod2.yourdomain.com
+web_prod3.yourdomain.com
+tasks_prod1.yourdomain.com
+tasks_prod2.yourdomain.com
+tasks_prod3.yourdomain.com
+rabbit_prod1.yourdomain.com
+db_prod1.yourdomain.com
+db_prod2.yourdomain.com
+
+[staging]
+web_tasks_staging.yourdomain.com
+rabbit_db_staging.yourdomain.com
+
+[vagrant] #servers in group must have unique IP or aliases
+web_vagrant ansible_host=127.0.0.1 ansible_port=2220
+tasks_vagrant ansible_host=127.0.0.1 ansible_port=2221
+rabbit_db_vagrant ansible_host=127.0.0.1 ansible_port=2222
+
+[load_balancer]
+lb_prod1.yourdomain.com
+
+[web]
+web_prod1.yourdomain.com
+web_prod2.yourdomain.com
+web_prod3.yourdomain.com
+web_tasks_staging.yourdomain.com
+web_vagrant
+
+[tasks]
+tasks_prod1.yourdomain.com
+tasks_prod2.yourdomain.com
+tasks_prod3.yourdomain.com
+web_tasks_staging.yourdomain.com
+tasks_vagrant
+
+[rabbitqm]
+rabbit_prod1.yourdomain.com
+rabbit_db_staging.yourdomain.com
+rabbit_db_vagrant
+
+[db]
+db_prod1.yourdomain.com
+db_prod2.yourdomain.com
+rabbit_db_staging.yourdomain.com
+rabbit_db_vagrant
+'''
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Variables in inventory file:
+[GROUPNAME:vars]    #defines that beloe vars are defined inly for given group
+
+Inventory file with vars:
+'''
+[all:vars]
+ntp_server=ntp.ubuntu.com
+
+[production:vars]
+db_primary_host=db_prod1.yourdomain.com
+db_primary_port=5432
+db_replica_host=db_prod2.yourdomain.com
+db_name=widget_production
+db_user=widgetuser
+db_password=pFmMxcyD;Fc6)6
+rabbitmq_host=rabbit_prod1.yourdomain.com
+rabbitmq_port=5672
+
+[staging:vars]
+db_primary_host=rabbit_db_staging.yourdomain.com
+db_primary_port=5432
+db_name=widget_staging
+db_user=widgetuser
+db_password=L@4Ryz8cRUXedj
+rabbitmq_host=rabbit_db_staging.yourdomain.com
+rabbitmq_port=5672
+
+[vagrant:vars]
+db_primary_host=rabbit_db_vagrant
+db_primary_port=5432
+db_name=widget_vagrant
+db_user=widgetuser
+db_password=password
+rabbitmq_host=rabbit_db_vagrant
+rabbitmq_port=5672
+'''
+Refering to variable: {{ db_primary_host }}
+
+Variables should be saved in separeted files: 
+'host_vars' file or
+'group_vars' file or
+'server_name' in 'host_vars' directory or 
+'group_name' in 'group_vars' directory.
+
+to more divided fragmentation:
+group_vars/[group_name1]/[group_name2]
+group_vars/production/db
+
+Variables may be saved as .yml file:
+group_vars.yml:
+'''
+db:
+    user: widgetuser
+    password: pFmMxcyD;Fc6)6
+    name: widget_production
+    primary:
+        host: db_prod1.yourdomain.com
+        port: 5432
+    replica:
+        host: db_prod2.yourdomain.com
+        port: 5432
+
+rabbitmq:
+    host: rabbit_prod1.yourdomain.com
+    port: 5672
+'''
+Refering to variable: {{ db_primary_host }} not {{ db.primary.host }} !!!
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Grups made from other groups:
+'''
+[django:children]           
+web
+tasks
+'''
+'childern' informs django that this group entries are other groups, not servers
+
+Numbering servers:
+'''
+[web]
+web_prod[1:3].yourdomain.com
+tasks_staging[a-z].yourdomain.com
+'''
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -1,0 +1,174 @@
+Dynamic inventory:
+If inventory file is executable, Ansible set it as dynamic inventory.
+
+Ansible provide ready dynamic inventory scripts in
+https://github.com/ansible/ansible in 'contrib/inventory' directory.
+
+To use normal and dynamic inventory symultaneously, make 'inventory' dir and save both files in it.
+ansible.cfg should have include entry:
+[defaults]
+inventory = inventory
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+add_host Ansible module:
+This module can add hosts to inventory while playbook is running. It used for creating virtual machines by Ansible.
+Host is added only while running playbook (inventory file is not modified).
+
+add_host name=hostname groups=web,staging myvar=myval
+
+'''
+---
+- name: Utworzenie maszyny wirtualnej Vagrant
+    hosts: localhost
+    vars:
+        box: trusty64
+tasks:
+    - name: Utworzenie pliku Vagrantfile
+        command: vagrant init {{ box }} creates=Vagrantfile   #creates=Vagrantfile -if vagrantfile is present, server has desirable state, and command module will not run again 
+    - name: Uruchomienie maszyny wirtualnej
+        command: vagrant up
+    - name: Dodanie maszyny do ewidencji
+    add_host: >
+        name=vagrant
+        ansible_host=127.0.0.1
+        ansible_port=2222
+        ansible_user=vagrant
+        ansible_private_key_file=/Users/lorin/.vagrant.d/
+        insecure_private_key
+    - name: Wykonanie operacji na maszynie
+        hosts: vagrant
+        become: yes
+        tasks:
+            # Tutaj jest lista zadań.
+    - ...
+'''
+
+In case that Ansible creates virtual machines, 2 playbooks should be used: one for creation (run on local machine) and second for managing created hosts (run on them). 
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+group_by Ansible module:
+This moduce creates groups while running playbook. It creates groups using 'facts' - variable assigned to server. 
+
+name: Creating groups based on Linux distributions.
+group_by: key={{ ansible_distribution }}
+
+'''
+---
+- name: Server grouping based on Linux distributions.
+    hosts: myhosts
+    gather_facts: True
+    tasks:
+    - name: Tworzenie grup według dystrybucji
+        group_by: key={{ ansible_distribution }}
+    - name: Wykonanie operacji na serwerach Ubuntu
+        hosts: Ubuntu
+        tasks:
+            - name: Instalacja htop
+                apt: name=htop
+                # …
+    - name: Wykonanie operacji na serwerach CentOS
+        hosts: CentOS
+        tasks:
+            - name: Instalacja htop
+                yum: name=htop
+    # …
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Dynamic inventory for vagrant:
+
+#!/usr/bin/env python
+# Przystosowana implementacja Marka Mandela.
+# https://github.com/ansible/ansible/blob/stable-2.1/contrib/inventory/vagrant.py
+# Licencja: GNU General Public License, Version 3 <http://www.gnu.org/licenses/>.
+
+import argparse
+import json
+import paramiko
+import subprocess
+import sys
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Skrypt ewidencyjny Vagrant")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--list', action='store_true')
+    group.add_argument('--host')
+    return parser.parse_args()
+
+def list_running_hosts():
+    cmd = "vagrant status --machine-readable"
+    status = subprocess.check_output(cmd.split()).rstrip()
+    hosts = []
+    for line in status.split('\n'):
+        (_, host, key, value) = line.split(',')[:4]
+        if key == 'state' and value == 'running':
+            hosts.append(host)
+    return hosts
+
+def get_host_details(host):
+    cmd = "vagrant ssh-config {}".format(host)
+    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+    config = paramiko.SSHConfig()
+    config.parse(p.stdout)
+    c = config.lookup(host)
+    return {'ansible_host': c['hostname'],
+        'ansible_port': c['port'],
+        'ansible_user': c['user'],
+        'ansible_private_key_file': c['identityfile'][0]}
+
+def main():
+    args = parse_args()
+    if args.list:
+        hosts = list_running_hosts()
+        json.dump({'vagrant': hosts}, sys.stdout)
+    else:
+        details = get_host_details(args.host)
+        json.dump(details, sys.stdout)
+    if __name__ == '__main__':
+        main()
+'''
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Dynamic inventory script must have 2 arguments:
+--host=<server_name>    -show detailed info about server
+--list                  -show groups
+
+Run dynamic inventory script to get info about host:
+./dynamic.py --host=vagrant2
+Result should be JSON object, where keys are variable names and values are values of this variables:
+'''
+{ "ansible_host": "127.0.0.1", "ansible_port": 2200, "ansible_user": "vagrant"}
+'''
+
+Run dynamic inventory script to get groups:
+./dynamic.py --list
+Result should be JSON object, where keys are group names and values are lists with server names:
+'''
+{"production": ["dolnoslaskie.wojewodztwo.pl", "kujawsko-pomorskie.wojewodztwo.pl",
+"lubelskie.wojewodztwo.pl", "lubuskie.wojewodztwo.pl",
+"lodzkie.wojewodztwo.pl", "malopolskie.wojewodztwo.pl",
+"mazowieckie.wojewodztwo.pl", "opolskie.wojewodztwo.pl",
+"podkarpackie.wojewodztwo.pl", "podlaskie.wojewodztwo.pl"],
+"staging": ["pomorskie.wojewodztwo.pl", "slaskie.wojewodztwo.pl"],
+"vagrant": ["vagrant1", "vagrant2", "vagrant3"],
+"lb": ["dolnoslaskie.wojewodztwo.pl"],
+"web": ["kujawsko-pomorskie.wojewodztwo.pl", "lubuskie.wojewodztwo.pl",
+"lodzkie.wojewodztwo.pl", "pomorskie.wojewodztwo.pl", "vagrant1"]
+"task": ["malopolskie.wojewodztwo.pl", "mazowieckie.wojewodztwo.pl",
+"pomorskie.wojewodztwo.pl", "vagrant2"],
+"rabbitmq": ["opolskie.wojewodztwo.pl", "slaskie.wojewodztwo.pl", "vagrant3"],
+"db": ["podkarpackie.wojewodztwo.pl", "podlaskie.wojewodztwo.pl", "vagrant3"]
+}
+'''
+
+--list argument of script may return JSON with _meta key with server vars:
+'''
+"_meta" :
+{ "hostvars" :
+"vagrant1" : { "ansible_host": "127.0.0.1", "ansible_port": 2222,
+"ansible_user": "vagrant"},
+"vagrant2": { "ansible_host": "127.0.0.1", "ansible_port": 2200,
+"ansible_user": "vagrant"},
+...
+}
+'''
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

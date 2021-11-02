@@ -14,42 +14,42 @@ Ansible - configuration management:
 -starting/restarting services
 on many servers at once.
 
-Server provisioning - running new instances of vms. 
+Installation:
+pip install ansible
 
+ansible --version   #checking version
+
+Server provisioning - running new instances of vms. 
 Deployment orchestration - making operatios in dedicated order on many remote servers. 
 
-Playbook (scenariusz) - .yml file (script writed in yaml) with instructions to do for servers. 
-It`s agentless and use push method to send instructions.
-Ansible is connetcting with given hosts by SSH simultaneously and chesk the state of given instructions. 
-If they are not done, will do them (idempotention) in described order. Will not start operatation until last one is not done. 
+Ansible by default use ssh client installed on host, python Paramiko module may be used too.
+
+Playbook (scenariusz) - .yml file, script writed in yaml (list of dictionaries) with instructions to do for servers. 
+Can be written in JSON format too. It`s agentless and use push method to send instructions.
+Ansible is connetcting with given hosts by SSH simultaneously and check the state of given instructions, if its already done, shows 'ok'. 
+If they are not done, will do them (idempotention) in described order and change status for 'changed'. Will not start operatation until last one is not done. 
 Ansible is using python and simplejson library, so it must be installed on servers.
 
+Playbok - [on server] - Action - Task - Module
+
 ansible-playbook playbook.yml   #running the playbook
+--start-at-task [NAME]          #will run playbook at given task (located by name)
+--list-tasks                    #show tasks that playbook includes
+
+#!/usr/bin/env ansible-playbook         #shebang to set in playbook file
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Testing connection:
+ansible [HOST_ALIAS] -m [MODULE_NAME]       # ansible command is used to run single command (without playbook)
+ansible testserver -m ping
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Modules are scripts installed with ansible to do given operations (file/dir creation, copying, installing).
 
 Ansible modules (apt, yum) are made for specific linux distibutions. 
 Ansible use roles and variables may be used in playbooks.
 
-Installation:
-pip install ansible
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Inventory file (hosts)                      #Servers must be specified in host file using their alias or group alias
-test_server ansible_host=127.0.0.1 
-ansible_port=2222
-
-ansible.cfg - default config file:          # Ansible is looking for configuration in:
-[defaults]                                  # 1) file definied in env variable: ANSIBLE_CONFIG
-inventory = hosts                           # 2) ansible.cfg file in working folder
-remote_user = vagrant                       # 3) ~/.ansible.cfg in user home directory
-private_key_file = ~/.ssh/keyfile.pem       # 4) /etc/ansible/ansible.cfg
-host_key_checking = False
-
-Testing:
-ansible [HOST_ALIAS] -m [MODULE_NAME]       # ansible command is used to run single command (without playbook)
-ansible testserver -m ping
-
-ansible [HOST_ALIAS] -i [INVENTORY_FILE] -m [MODULE_NAME]   # -i -define inventory file
-ansible testserver -i hosts -m ping -vvvv                   # -vvvv gives very veryvery verbose (detailed) info
+ansible-doc [MODULE]    -show help for given module
 
 Modules:
 ansible [HOST_ALIAS] -m command -a [ARGS]                   # command module lets using bash command on server
@@ -58,9 +58,61 @@ ansible testserver -a uptime                                # command is a defau
 ansible testserver -a "ls -l"                               # if command includes white spaces, must be used with ""
 ansible testserver -b -a "halt"                             # -b -is used when command need sudo
 
-ansible testserver -b -m apt -a "name=nginx update_cache=yes"       # apt module usecase
+ansible [HOST_ALIAS] -i [INVENTORY_FILE] -m [MODULE_NAME]   # -i -define inventory file
+ansible testserver -i hosts -m ping -vvvv                   # -vvvv gives very veryvery verbose (detailed) info
 
+ansible testserver -b -m apt -a "name=nginx update_cache=yes"       # apt module usecase
 ansible testserver -b -m service -a "name=nginx state=restarted"    # service module usecase
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-p.37
+Playbook web-tls.yml:
+
+---                                                                         #document beginning 
+- name: Konfiguracja serwera www na platformie Nginx z szyfrowaniem TLS     #name is displayed when playbook is running
+  hosts: webservers                                                         #servers group to configure                                         
+  become: True                                                              #if True, ansible will do all tasks as root (using sudo)
+  vars:                                                                     #vars , eg. {{ cert_file }}  will search for cert_file in vars section and paste it while running 
+          key_file: /etc/nginx/ssl/nginx.key                                #in older ansible version $ was used instead {{ }}
+          cert_file: /etc/nginx/ssl/nginx.crt
+          conf_file: /etc/nginx/sites-available/default
+          server_name: localhost
+  tasks:                                                                    #things to do (hosts and task element are obligatory), one action with few tasks
+    - name: Instalacja Nginx                                                #module arguments should use 'yes' or 'true'
+      apt: name=nginx update_cache=yes cache_valid_time=3600                #use apt module to update cache (apt update) and install nxing (apt install nginx)
+    - name: Tworzenie katalogów dla certyfikatów SSL
+      file: path=/etc/nginx/ssl state=directory                             #file module can change file/dir/link atributes 
+    - name: Kopiowanie klucza TLS
+      copy: src=files/nginx.key dest={{ key_file }} owner=root mode=600     #copy module will copy file from host to remote server
+      notify: Restart Nginx   
+    - name: Kopiowanie certyfikatu TLS
+      copy: src=files/nginx.crt dest={{ cert_file }} 
+      notify: Restart Nginx                                                 #notify: [handler_name] (powiadom), is sended to handler when ansible returns 'changed' in given task
+    - name: Kopiowanie pliku konfiguracyjnego Nginx 
+      template: src=templates/nginx.conf.j2 dest={{ conf_file }}            #this module creates files from template and copy it to server
+      notify: Restart Nginx
+    - name: Konfiguracja
+      file: dest=/etc/nginx/sites-enabled/default src={{ conf_file }} state=link
+      notify: Restart Nginx
+    - name: Kopiowanie index.html
+      template: src=templates/index.html.j2 dest=/usr/share/nginx/html/index.html mode=0644
+  handlers:                                                                 #handlers means procedures - just if statements (conditional instructions)
+    - name: Restart Nginx                                                   #like task, but it is runing only when another task send notification to handler
+      service: name=nginx state=restarted                                   #service module can manage linux services (start/stop/restart)
+
+In this case ansible will restart nginx (hander Restart Nginx) every time when task that include 'notify' instruction is runned (changed its state).
+Handlers are definied only once at the end of playbook.They are mostly used to restart services or servers.
+
+Vars {{ }} are used in .j2 and .yml files (.j2 means template written in Jinja2 language).
+
+_________________________________________________________________________
+Zmienne:
+alias ansible_host=ip zmienna=wartosc
+
+Mogą mieć wartości w postaci: true/false, ciagi znaków, listy lub slowniki. Mogą być zapisane w pliku ewidencyjnym lub osobnych plikach yml. Pliki ze zmiennymi serwerowymi zapisujemy w folderze host_vars a zmienne grupowe w folderze group_vars.
+
+Zmienne grupowe:
+[nazwagrupy:vars]
+nazwazmiennej=wartość (np nazwa serwera)
+_________________________________________________________________________
+
+p. 77
