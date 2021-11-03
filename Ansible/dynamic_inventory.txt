@@ -47,7 +47,7 @@ In case that Ansible creates virtual machines, 2 playbooks should be used: one f
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 group_by Ansible module:
-This moduce creates groups while running playbook. It creates groups using 'facts' - variable assigned to server. 
+This module creates groups while running playbook. It creates groups using 'facts' - variable assigned to server. 
 
 name: Creating groups based on Linux distributions.
 group_by: key={{ ansible_distribution }}
@@ -72,10 +72,10 @@ group_by: key={{ ansible_distribution }}
             - name: Instalacja htop
                 yum: name=htop
     # …
-
+'''
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Dynamic inventory for vagrant:
-
+'''
 #!/usr/bin/env python
 # Przystosowana implementacja Marka Mandela.
 # https://github.com/ansible/ansible/blob/stable-2.1/contrib/inventory/vagrant.py
