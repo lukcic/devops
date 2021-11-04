@@ -1,0 +1,28 @@
+YAML is configuration standard with key-value pairs. Uses identations (wcięcia). 2 spaces.
+Used in: Docker, Ansible, Kubernetes.
+
+Keys: value #keys -blue, values - orange. 
+Valueas may be the same as in python (str, int, floats, Boolean, lists (arrys), dictionaries).
+Yaml automatically detects data type. Quotation in string is needed only wteh integer must be used as string.
+Values may be nested (zagnieżdzony).
+
+---                           #start of yml file (optional)
+ name: 'DevOps Journey'
+ subscribers: 900
+ awesome: true
+ pi: 3.14159 
+ topics:                      #list - may be curled
+   - DevOps                   #every list element has a dash (-)
+   - Programming
+   - Linux
+   - IT Careers
+ Playlists:                   #dictionary - have elements, that have other elements in it
+    Docker Course:
+      link: https://www.youtube.com/watch?v=O-z_vUr53iU&list=PLnFWJCugpwfzyZ7NbYVyajGIVjEsZK5JT  
+      videos: 8
+    Ansible Course:
+      links: https://www.youtube.com/watch?v=KuiAiUyuDY4&list=PLnFWJCugpwfzTlIJ-JtuATD2MBBD7_m3u
+      videos: 8
+...                         #end of yml file (optional)
+
+
