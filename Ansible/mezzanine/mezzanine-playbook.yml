@@ -1,0 +1,158 @@
+---
+- name: Wdrożenie Mezzanine
+  hosts: web
+  vars:
+    user: "{{ ansible_user }}"
+    proj_app: mezzanine_example
+    proj_name: "{{ proj_app }}"
+    venv_home: "{{ ansible_env.HOME }}/.virtualenvs"
+    venv_path: "{{ venv_home }}/{{ proj_name }}"
+    proj_path: "{{ ansible_env.HOME }}/mezzanine/{{ proj_name }}"
+    settings_path: "{{ proj_path }}/{{ proj_name }}"
+    reqs_path: requirements.txt
+    manage: "{{ python }} {{ proj_path }}/manage.py"
+    live_hostname: 192.168.33.10.xip.io
+    domains:
+      - 192.168.33.10.xip.io
+      - www.192.168.33.10.xip.io
+    repo_url: git@github.com:ansiblebook/mezzanine_example.git
+    locale: en_US.UTF-8
+    # Poniższych zmiennych nie ma w pliku fabfile.py. Dodałem je dla wygody.
+    conf_path: /etc/nginx/conf
+    tls_enabled: True
+    python: "{{ venv_path }}/bin/python"
+    database_name: "{{ proj_name }}"
+    database_user: "{{ proj_name }}"
+    database_host: localhost
+    database_port: 5432
+    gunicorn_procname: gunicorn_mezzanine
+    num_workers: "multiprocessing.cpu_count() * 2 + 1"
+  vars_files:
+    - secrets.yml
+  tasks:
+    - name: Instalacja pakietów apt
+      apt: pkg={{ item }} update_cache=yes cache_valid_time=3600
+      become: True
+      with_items:
+        - git
+        - libjpeg-dev
+        - libpq-dev
+        - memcached
+        - nginx
+        - postgresql
+        - python-dev
+        - python-pip
+        - python-psycopg2
+        - python-setuptools
+        - python-virtualenv
+        - supervisor
+    - name: Utworzenie katalogu projektu
+      file: path={{ proj_path }} state=directory
+    - name: Utworzenie katalogu logs
+      file:
+        path: "{{ ansible_env.HOME }}/logs"
+        state: directory
+    - name: Sprawdzenie repozytorium na serwerze
+      git: repo={{ repo_url }} dest={{ proj_path }} accept_hostkey=yes
+    - name: Globalna instalacja pakietów Pythona za pomocą pip
+      pip: name={{ item }} state=latest
+      with_items:
+        - pip
+        - virtualenv
+        - virtualenvwrapper
+      become: True
+    - name: Konfiguracja ustawień regionalnych projektu
+      locale_gen: name={{ locale }}
+      become: True
+    - name: Utworzenie konta użytkownika bazy danych
+      postgresql_user:
+        name: "{{ database_user }}"
+        password: "{{ db_pass }}"
+      become: True
+      become_user: postgres
+    - name: Utworzenie bazy danych
+      postgresql_db:
+        name: "{{ database_name }}"
+        owner: "{{ database_user }}"
+        encoding: UTF8
+        lc_ctype: "{{ locale }}"
+        lc_collate: "{{ locale }}"
+        template: template0
+      become: True
+      become_user: postgres
+    - name: Sprawdzenie, czy istnieje ścieżka konfiguracyjna
+      file: path={{ conf_path }} state=directory
+      become: True
+    - name: Utworzenie certyfikatów TLS
+      command: >
+        openssl req -new -x509 -nodes -out {{ proj_name }}.crt
+        -keyout {{ proj_name }}.key -subj '/CN={{ domains[0] }}' -days 3650
+        chdir={{ conf_path }}
+        creates={{ conf_path }}/{{ proj_name }}.crt
+      become: True
+      when: tls_enabled
+      notify: Restart serwera Nginx
+    - name: Usunięcie domyślnego pliku konfiguracyjnego Nginx
+      file: path=/etc/nginx/sites-enabled/default state=absent
+      notify: Restart serwera Nginx
+      become: True
+    - name: Utworzenie pliku konfiguracyjnego Nginx
+      template: src=templates/nginx.conf.j2 dest=/etc/nginx/sites-available/mezzanine.conf
+      notify: Restart serwera Nginx
+      become: True
+    - name: Aktywacja pliku konfiguracyjnego Nginx
+      file:
+        src: /etc/nginx/sites-available/mezzanine.conf
+        dest: /etc/nginx/sites-enabled/mezzanine.conf
+        state: link
+      become: True
+      notify: Restart serwera Nginx
+    - name: Utworzenie pliku konfiguracyjnego Supervisor
+      template: src=templates/supervisor.conf.j2 dest=/etc/supervisor/conf.d/mezzanine.conf
+      become: True
+      notify: Restart menedżera Supervisor
+    - name: Instalacja zadania cron odczytującego Twitter
+      cron: name="poll twitter" minute="*/5" user={{ user }} job="{{ manage }} poll_twitter"
+    - name: Utworzenie pliku konfiguracyjnego Gunicorn
+      template: src=templates/gunicorn.conf.py.j2 dest={{ proj_path }}/gunicorn.conf.py
+    - name: Utworzenie pliku ustawień
+      template: src=templates/local_settings.py.j2 dest={{ settings_path }}/local_settings.py
+    - name: Instalacja pakietów z pliku requirements.txt
+      pip: requirements={{ proj_path }}/{{ reqs_path }} virtualenv={{ venv_path }}
+    - name: Instalacja wymaganych pakietów Pythona
+      pip: name={{ item }} virtualenv={{ venv_path }}
+      with_items:
+        - gunicorn
+        - setproctitle
+        - psycopg2
+        - django-compressor
+        - python-memcached
+    - name: Migracja w celu utworzenia bazy danych, zebranie statycznej treści
+      django_manage:
+        command: "{{ item }}"
+        app_path: "{{ proj_path }}"
+        virtualenv: "{{ venv_path }}"
+      with_items:
+        - migrate
+        - collectstatic
+    - name: Nadanie identyfikatora strony
+      script: scripts/setsite.py
+      environment:
+        PATH: "{{ venv_path }}/bin"
+        PROJECT_DIR: "{{ proj_path }}"
+        PROJECT_APP: "{{ proj_app }}"
+        WEBSITE_DOMAIN: "{{ live_hostname }}"
+    - name: Zdefiniowanie hasła administratora
+      script: scripts/setadmin.py
+      environment:
+        PATH: "{{ venv_path }}/bin"
+        PROJECT_DIR: "{{ proj_path }}"
+        PROJECT_APP: "{{ proj_app }}"
+        ADMIN_PASSWORD: "{{ admin_pass }}"
+  handlers:
+    - name: Restart menedżera Supervisor
+      supervisorctl: "name={{ gunicorn_procname }} state=restarted"
+      become: True
+    - name: Restart serwera Nginx
+      service: name=nginx state=restarted
+      become: True

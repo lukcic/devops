@@ -16,7 +16,7 @@ Values may be nested (zagnieżdzony).
    - Programming
    - Linux
    - IT Careers
- Playlists:                   #dictionary - have elements, that have other elements in it
+ Playlists:                   #dictionary - has elements, that has other elements in it
     Docker Course:
       link: https://www.youtube.com/watch?v=O-z_vUr53iU&list=PLnFWJCugpwfzyZ7NbYVyajGIVjEsZK5JT  
       videos: 8

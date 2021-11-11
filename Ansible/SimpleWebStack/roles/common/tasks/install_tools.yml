@@ -1,0 +1,6 @@
+- name: Install tools
+  apt: name={{ item }} state=latest
+  with_items:
+    - pydf
+    - tree
+    - open-vm-tools

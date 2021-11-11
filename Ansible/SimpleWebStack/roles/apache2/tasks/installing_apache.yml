@@ -1,0 +1,8 @@
+  - name: Installing Apache
+    apt: name=apache2 state=present update_cache=yes 
+  - name: Configuring ports
+    template: src=templates/ports.conf.j2 dest=/etc/apache2/ports.conf
+    notify: restart Apache2
+  - name: Configuring index.html
+    template: src=templates/index.html.j2 dest=/var/www/html/index.html 
+    notify: restart Apache2
