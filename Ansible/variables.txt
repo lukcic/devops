@@ -1,0 +1,114 @@
+VARABLES - 2 types
+
+
+1. User created vars {{ }} 
+They are used in .j2 and .yml files (.j2 means template written in Jinja2 language).
+Normal variables range is limited to given server - value is useable only for this server. 
+
+Vars may be saved in separated file, this files should be addressed in playbook:
+'''
+vars_files:
+- nginx.yml
+'''
+
+In case of problems, value of var can be displayed:
+'''
+- debug: var=variable_name
+'''
+
+Saving returned values to var:
+'''
+- name: Saving whoami value
+ command: whoami
+ register: login
+'''
+
+To register and display value of var use:
+'''
+- name: Displaying values returned by command module.
+  hosts: server1
+  tasks:
+    - name: Saving id command result.
+      command: id -un
+      register: login
+      ignore_errors: True     #do not sop next operations
+    - debug: var=login
+'''
+rc: 0 -taks succeed, 1- task failed (see stderr)
+
+If variables value is a dictionaty, for reffering to keys and values Ansible use Jinja2:
+ansible_eth1['ipv4']['address']
+ansible_eth1['ipv4'].address
+ansible_eth1.ipv4['address']
+ansible_eth1.ipv4.address
+
+Overriding vars:
+ansible-playbook example.yml -e 'greeting="Good morning!"'
+ansible-playbook exaplme.yml -e @greetvars.yml              #greetvars.yml: greetings: Hello!
+assignatoin from the commandline has the highest priority.
+
+Variables that are always available in playbook:
+-hostvars                   -dictionary, keys- server names, values- vars names combines with its values (dictionaries). for every server in group, ansible creates copy of group variable
+-inventory_hostname         -FQDN of server 
+-inventory_hostname_short   -server name without domain
+-group_names                -list of all groups that server belongs
+-groups                     -dictionary, keys-group names, values-lists of server names that belongs to given group
+-ansible_check_mode         -True if playbook is running in check mode (simulation?)
+-ansible_play_batch         -list of active (in group) server names
+-ansilbe_play_hosts         -list of all active servers (in this playbook)
+-ansible_version            -vesrion of ansible (dictionary)
+
+hostvars - is used to configure element with value that will be gather as fact from another server.
+For example, to configure (in www aplicatoin) ip address of db server use:
+{{ hostvars['db.example.com'].ansible_eth1.ipv4.address }}
+this variable will be changed to IP addres of db.example.com after gathering facts.
+
+inventory_hostname -this variable stores name or alias of current server,
+to display all variables for current server use:
+- debug: var=hostvars[inventory_hostname]
+
+groups- used to get other vars of servers group. To configure load balancer use:
+'''
+backend web-backend
+{% for host in groups.web %}
+ server {{ hostvars[host].inventory_hostname }} \
+ {{ hostvars[host].ansible_default_ipv4.address }}:80
+{% endfor %}
+'''
+it will be changed for:
+backend web-backend
+ server georgia.example.com 203.0.113.15:80
+ server newhampshire.example.com 203.0.113.25:80
+ server newjersey.example.com 203.0.113.38:80
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+2. FACTS - vars collected by Ansible, to handle information of server like cpu architecture, os type, IP, memoty etc.
+It may be used as normal vars. 
+
+Display server os type:
+'''
+- name: Display server os type
+  hosts: all
+  gather_facts: True
+  tasks:
+    - debug: var=ansible_distribution
+ '''
+
+List of facts:
+https://github.com/lorin/ansible-quickref/blob/master/facts.rst
+
+Setup module:
+ansible testserver -m setup   #will return dictionary (JSON) 'ansible_facts' that includes detailed dictionaries with testserver facts
+-a 'filter=[fact_name]'       #will show details of given fact
+ansible testserver -m setup -a 'filter=ansible_eth*'
+
+Many Ansible modules return facts, when they are used, there`s no need to register variables (it is done automatically).
+
+Local facts
+May be saved in /etc/ansible/facts.d/filename.fact:
+[group]
+fact=value
+
+Facts stored in this files can be acessed by ansible_local variable:
+{{ ansible_local.filename.group.fact }}

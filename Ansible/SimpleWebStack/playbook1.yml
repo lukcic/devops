@@ -6,15 +6,18 @@
     http_welcome_msg: "Hello world!"
   roles:
     - common
-    - apache2  
+    - apache2
+  tags: web_tag  
   
 - hosts: webstack
   become: True
   roles:
     - common
+  tags: webstack_tag
 
 - hosts: proxy
   become: yes
   roles:
     - common
     - nginx
+  tags: proxy_tag
