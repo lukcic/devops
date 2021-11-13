@@ -58,7 +58,7 @@ Variables that are always available in playbook:
 -ansilbe_play_hosts         -list of all active servers (in this playbook)
 -ansible_version            -vesrion of ansible (dictionary)
 
-hostvars - is used to configure element with value that will be gather as fact from another server.
+HISTVARS - is used to configure element with value that will be gather as fact from another server.
 For example, to configure (in www aplicatoin) ip address of db server use:
 {{ hostvars['db.example.com'].ansible_eth1.ipv4.address }}
 this variable will be changed to IP addres of db.example.com after gathering facts.
