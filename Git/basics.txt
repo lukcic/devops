@@ -29,6 +29,8 @@ git commit  #saves changes to local repository, makes the snapshot of files
 -a          #add all changed & deleted files to stage (without new files)
 -m          #comment to commit
 
+git commit superskrypt.sh -m "Ulepszenie skryptu" #git commit with given filename will ignore other files in commit
+
 git restore [FILENAME]      #delete changes in file to state from last commit
 git checkout [FILENAME]     #delete changes in file to state from last commit
 
@@ -93,3 +95,23 @@ git mergetool               #tool for conflicted merges (2 person edited the sam
 
 git --version			    #show git version
 <readme.md>                 #readme file (markdown), description of remote repository
+
+
+Domyślna nazwa pierwszej gałęzi w nowym repozytorium to „master”. Większość
+projektów programistycznych używa tej domyślnej nazwy dla głównej linii rozwojowej,
+chociaż niektóre mogą nie mieć w ogóle głównej gałęzi. Główna gałąź jest zazwyczaj
+zarządzana w taki sposób, aby zawierała aktualny, ale działający kod; najnowsze
+prace rozwojowe odbywają się gdzie indziej. Najnowsze zatwierdzenia w gałęzi
+głównej określane są mianem czubka (ang. tip) lub głowy (ang. head).
+
+
+W serwisie GitHub rozwidlenie (ang. fork) to migawka repozytorium wykonana w określonym
+punkcie czasu. Rozwidlenia zdarzają się wtedy, gdy użytkownik nie ma uprawnień
+do modyfikowania głównego repozytorium, ale chce dokonać zmian w celu przyszłej
+integracji z pierwotnym projektem lub stworzyć całkowicie oddzielną ścieżkę rozwojową.
+
+Próbując zlokalizować lub zaktualizować oprogramowanie, często natrafisz na repozytorium
+GitHub lub GitLab. Upewnij się, że trafiłeś na repozytorium trunk (z ang. trzon), a nie na
+czyjeś rozwidlenie. Poszukaj odwołania oznaczonego jako „forked from” (rozwidlone z) i podążaj
+za nim.
+

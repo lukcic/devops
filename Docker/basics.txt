@@ -30,7 +30,9 @@ Running containers:
 docker container run -it -p 80:80 nginx
 -it                              #Interactive mode with tty. Interactive - stdin will be open, tty -pseudoterminal. 
 -p 80:80     --public 80:80      #Host port, container port
--P                               #All ports all published
+-P                               #Publish service on random port (docker proxy)
+
+docker run -dt ubuntu            #detached with terminal in bckground (will no exit)
 
 docker container run -d -p 8080:80 --name [NAME] [IMAGE_NAME]        #Without name parameter docker will assign random name
 -d                               #detach (running in background) 
@@ -63,6 +65,10 @@ Starting not-running container:
 docker container start [NAME/ID]
 - - - - - - - - - - - - - - - - - - - - - - - -
 
+Restarting container
+
+docker restart [NAME/ID]                        #restarting container
+
 Attaching detached (running) container:
 docker container exec [-it] [NAME/ID] bash
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -72,18 +78,21 @@ docker container rm [-f] [NAME/ID]
 -f  (forced)
 
 docker rm -f $(docker ps -aq)       #Removes all containers
-
 docker system prune -a              #Will destroy all containers, networks, images and cache
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-docker container update             #Updating container settings
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Updating containers:
 
-docker run --restart="VALUE" [NAME]:[TAG]
-#Restarting container by scheduler, values: no, always, on-failure i unless-stopped. Container will restart after crash.
+docker container update                     #Updating container settings
+
+docker run --restart="VALUE" [NAME]:[TAG]   #Restarting container after crash (or server restart), values: no, always, on-failure i unless-stopped. 
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Getting container information:
 
 docker inspect [NAME/TAG]           #Show detailed info about container, works with containers, images, volumens and networks.
+--format='{{.VARIABLE}}'            #Getting value of given docker inspect attribute (variable): docker inspect --format='{{.DockerVersion}}' NAME
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Interaction with running container:
@@ -98,7 +107,7 @@ docker exec -e TEST=true -it 6dg6dg7 /bin/bash -c 'echo $TEST'      #-c will sen
 nsenter (Namespace Enter)
 This Linux package give possibility to enter in any linux namespace. You can enter inside container even if it not responding (docke exec fails).
 
-sudi apt install util-linux
+sudo apt install util-linux
 docker run --rm -v /usr/local/bin:/target jpetazzo/nsenter #installation nsenter without package manager
 
 Connecting to container namespace:
@@ -125,25 +134,7 @@ docker volume inspect [NAME/ID]     #View info about volume
 docker run --mount source=[VOLUME_NAME],target=[PATH] [IMAGE][TAG]      #creating container with mounting exist volume 
 
 docker run --tmpfs [CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]                #Creating tempolary volume (files deleted while closing container), can be used with --read-only
-_________________________________________________________________________
 
-Docker network:
-Docker is using bridge interface that connects docker0 virtual interface with phisical host interface. 
-Docker0 is using private subnet (free from host), contoainers get IPs from tis private subnet and can communicate each other. 
-Incoming traffic must be routed by proxy service. 
-
-Docker has internal DNS service (disabled in docker0). Containers run with the same (added) network can communicate using their names.
-
-docker network ls                            #Listing docker networks
-docker network inspect [NET_NAME/ID]         #Show info about network
-
-docker network create [NETWORK_NAME]                     #Creating new docker network
-docker run -it --netowrk=[NETWORK_NAME] [IMAGE]:[TAG]    #Creating container connected to given network
-
-docker run --network=host [IMAGE]:[TAG]            #Connecting created cotainer to host network - all ports the same as host
-docker run --network=none [IMEGE]:[TAG]            #Creating container without network (secure option)
-
-Overlay - networks between many docker server demons.
 _________________________________________________________________________
 
 Statistics & processes:
@@ -176,6 +167,7 @@ Alternatives:
 Daemon svlogd - installed inside of container can grab logs from stdout & stderr and send them to remote logging servers using udp.
 Syslog redirector - compiled app that grab stdout and stderr of one process from inside of container: https://github.com/spotify/syslog-redirector
 Logspout - container that connects with docker service and grabs logs from other containers: https://github.com/progrium/logspout
+
 _________________________________________________________________________
 
 Hardware limits:
@@ -189,26 +181,11 @@ docker run --memory="200m"          #Limiting RAM memory to 200 MiB
 
 docker run --blkio-weight 300       #Limiting in/out disk operations
 docker run --blkio-weight-device "/dev/sda:10"  #Limiting io disk operations for given disk
+
 _________________________________________________________________________
 
-Opening docker as remote service in Ubuntu:
-su - root
-cd /etc/systemd/system
-mkdir docker.service.d
-cd docker.service.d
-vim override.conf
-'''
-[Service]
-ExecStart=
-ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
-'''
-fd means to use socket activation 
-cat /lib/systemd/system/docker.socket
+Linking containers:
 
-systemctl daemon-reload
-service docker restart
-
-netstat --listen
-_________________________________________________________________________
-
+docker run -dt --name mysql_client --link mysql_server:mysql_client ubuntu
+#will link server`s IP adress in clients /etc/host to communicate with it 
 

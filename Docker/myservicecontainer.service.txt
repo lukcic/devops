@@ -1,0 +1,40 @@
+#/etc/systemd/system/myservicecontainer.service:
+#Container must have '--restart always'
+
+[Unit]      #definitions of service metadata and relations with Linux
+Description=My first container as a service
+After=docker.service
+Wants=network-online.target docker.socket
+Requires=docker.socket
+
+[Service]
+Restart=Always
+ExecStart=/usr/bin/docker start -a my_ubuntu
+ExecStop=/usr/bin/docker stop -t 10 my_ubuntu
+
+[Install]
+WantedBy=multi-user.target
+
+#sudo systemctl start myservicecontainer.service
+#sudo systemctl enable myservicecontainer.service
+
+_________________________________________________________________________
+
+Opening docker as remote service in Ubuntu:
+su - root
+cd /etc/systemd/system
+mkdir docker.service.d
+cd docker.service.d
+vim override.conf
+'''
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
+'''
+fd means to use socket activation 
+cat /lib/systemd/system/docker.socket
+
+systemctl daemon-reload
+service docker restart
+
+netstat --listen

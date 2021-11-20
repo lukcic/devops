@@ -1,15 +1,53 @@
 List images:
+
 docker image ls [-a]
 docker images                   
-   --no-trunc  -full image id
+--no-trunc  -full image id
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Serching for docker images:
+docker search 'name'    
+docker search --filter is-officiall=true 'name'    #official images
+docker search -filter stars=500 'name'             #images with given amount of stars
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Downloading images:
-docker pull [image]:][tag]
-docker pull ubuntu:16.04
+docker pull [image]:][tag]                         #docker pull ubuntu:16.04
+--disale-content-trust                             #disable contnt veryfication
+-q -quiet
+-a -all images of given name                       #docker pull -a ubuntu
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Removing images:
 docker image rm [id/name]        #must be off, -f (force)
-______________________________________________________________________________________________________________________________________________________________________________________
+docker rmi [IMAGE_NAME]          #will remove image
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Tagging images:
+docker tag [IMAGE_NAME]:[TAG] [MY_NAME]:[MY_TAG]
+docker tag mongo:3.0 myimage:latest
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Creating image from working container
+docker commit [CONIATNER_NAME] [IMAGE_NAME]     #will save container state (all changees made in interactive mode) as docker image 
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Saving and loading images from/to files (saved state tec)
+
+docker image save -o [FILENAME.tar] [IMAGE_NAME]      #will compress image to tar file - may be moved to another host
+docker save [IMAGE_NAME] | gzip -c > [FILE.tar.gz]    #saving to compressed file
+
+docker image load -i [IMAGE_FILE.tar]                 #will load image from given file
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Check how given image was created:
+
+docker history [IMAGE]           #All comands used while building this image
+________________________________________________________________________________________________________________________________________________________________________________
 Creating images - Dockerfile
 
 Directives (layers):
@@ -42,32 +80,24 @@ COPY [FILE_FROM_HOST] [PATH_IN_CONTAINER]       #Copying files from host
 ADD [URL] [PATH_IN_CONTAINER]                   #Downloading files from internet. Can unzip archives too. 
 
 Image must be build from own folder, because while building image, all files (contex) will be added to image.
-docker build .                #building image from Dockerfile in working directory
--t [TAG]                      #tag -name of the builded container
---no-cache=true               #always rebuild image layers (cache off)
---build-arg version=3.5       #Build args may be used while building 
+docker build .                                  #building image from Dockerfile in working directory
+-t [TAG]                                        #tag -name of the builded container
+--no-cache=true                                 #always rebuild image layers (cache off)
+--build-arg version=3.5                         #Build args may be used while building 
 
-Saving images to files:
-docker save [IMAGE_NAME] | gzip -c > [FILE.tar.gz]
 
-Creating image from working container:
-docker commit [CONTAINER_NAME/ID] [IMAGE_NAME]
 
-Tagging images:
-docker tag [IMAGE_NAME]:[TAG] [MY_NAME]:[MY_TAG]
-docker tag mongo:3.0 myimage:latest
-______________________________________________________________________________________________________________________________________________________________________________________
-Check how given image was created:
+________________________________________________________________________________________________________________________________________________________________________________
+Sending image to Docker Hub:                       #Docker hub - 1 private repo, unlimited public repos. 
 
-docker history [IMAGE]           #All comands used while building this image
-______________________________________________________________________________________________________________________________________________________________________________________
-Docker hub - 1 private repo, unlimited public repos. 
+docker login                                       #login succeed
+docker login --username=[USER]
 
-Sending image to Docker Hub:
-docker build -t [USERNAME]/[IMAGE_NAME]:[TAG] . 
-docker login
 docker push [USERNAME]/[IMAGE_NAME] 
 
+docker build -t [USERNAME]/[IMAGE_NAME]:[TAG] .    #if 
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Downloading image from Docker Hub:
 docker pull [USERNAME]/[IMAGE_NAME] 
 
