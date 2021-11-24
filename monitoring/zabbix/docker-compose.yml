@@ -1,7 +1,5 @@
 version: '3.3' 
 
-mysql_pass: dupa1234
-
 services:
   mysql_zabbix:   
     image: mysql:5.7
@@ -10,8 +8,8 @@ services:
     restart: always
     networks:
       - zabbix
-    environment:
-      MYSQL_ROOT_PASSWORD: "{{mysql_pass}}""
+    env_file:
+      - ./secrets.env
   server_zabbix:  
     depends_on:
       - mysql_zabbix
@@ -21,11 +19,11 @@ services:
     restart: always
     networks:
       - zabbix
+    env_file:
+      - ./secrets.env 
     environment:
       DB_SERVER_HOST: mysql_zabbix
-      MYSQL_USER: root
-      MYSQL_PASSWORD: "{{mysql_pass}}""
-      ZBX_DBTLSCONNECT: required
+      ZBX_DBTLSCONNECT: REQUIRED
   web_zabbix:
     depends_on:
       - server_zabbix
@@ -36,10 +34,10 @@ services:
     restart: always
     networks:
       - zabbix
+    env_file:
+      - ./secrets.env
     environment:
       DB_SERVER_HOST: mysql_zabbix
-      MYSQL_USER: root
-      MYSQL_PASSWORD: "{{mysql_pass}}""
       ZBX_SERVER_HOST: server_zabbix
       PHP_TZ: "Europe/Warsaw"
       ZBX_DB_ENCRYPTION: True
