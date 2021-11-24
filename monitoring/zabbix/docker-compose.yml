@@ -1,0 +1,52 @@
+version: '3.3' 
+
+mysql_pass: dupa1234
+
+services:
+  mysql_zabbix:   
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+    networks:
+      - zabbix
+    environment:
+      MYSQL_ROOT_PASSWORD: "{{mysql_pass}}""
+  server_zabbix:  
+    depends_on:
+      - mysql_zabbix
+    image: zabbix/zabbix-server-mysql:ubuntu-5.4-latest
+    ports:
+      - "10500:10500"
+    restart: always
+    networks:
+      - zabbix
+    environment:
+      DB_SERVER_HOST: mysql_zabbix
+      MYSQL_USER: root
+      MYSQL_PASSWORD: "{{mysql_pass}}""
+      ZBX_DBTLSCONNECT: required
+  web_zabbix:
+    depends_on:
+      - server_zabbix
+    image: zabbix/zabbix-web-nginx-mysql:ubuntu-5.4-latest
+    ports:
+      - "7777:8080"
+      - "7443:8443"
+    restart: always
+    networks:
+      - zabbix
+    environment:
+      DB_SERVER_HOST: mysql_zabbix
+      MYSQL_USER: root
+      MYSQL_PASSWORD: "{{mysql_pass}}""
+      ZBX_SERVER_HOST: server_zabbix
+      PHP_TZ: "Europe/Warsaw"
+      ZBX_DB_ENCRYPTION: True
+volumes:
+  db_data:
+networks:
+  zabbix:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1450

@@ -40,7 +40,7 @@ docker container run -d -p 8080:80 --name [NAME] [IMAGE_NAME]        #Without na
 -w [DIR]                         #Change working directory of container
 --hostname="VALUE"               #Creating own hostname for container
 --read-only=true                 #Read only container - processes inside container cannot write on container filesystem. Used with mounted volume for logs (for example)
---user [USERNAME]                #Container is working as a given user
+--user [USERNAME]                #Container is working as a given user, '-u 0' will works too
 
 docker container run -d -p 3306:3306 --name MyMySQL --env MYSQL_ROOT_PASSWORD=13456 mysql
 --env                                #environment variable

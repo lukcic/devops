@@ -35,7 +35,7 @@ docker commit [CONIATNER_NAME] [IMAGE_NAME]     #will save container state (all 
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Saving and loading images from/to files (saved state tec)
+Saving and loading images from/to files (saved state etc)
 
 docker image save -o [FILENAME.tar] [IMAGE_NAME]      #will compress image to tar file - may be moved to another host
 docker save [IMAGE_NAME] | gzip -c > [FILE.tar.gz]    #saving to compressed file
@@ -66,25 +66,48 @@ EXPOSE 80/tcp                                   #In this container port 80 will 
 
 ENV title="Hello world"                         #Export given environment variable in container
 ENV FLASK_APP=/main.py
+ENV USERNAME=ubuntu
 
-USER [USERNAME]                                 #user must present in container system - use RUN useradd before
+RUN useradd -ms /bin/bash $USERNAME             #creating non-root user, -m -home directory, -s [SHELL]
+
+USER ${USERNAME}                                #will login to given account after run; will take username from env 
 
 WORKDIR [PATH]                                  #set working directory before running commands
 
-ENTRYPOINT [COMMAND, ARGUMENTS]                 #First process (command) that starts just after building container
+ENTRYPOINT [COMMAND, ARGUMENTS]                 #First process (command) that starts just after building container, not ignore running parameters (CMD ignore)
 ENTRYPOINT ["flask", "run", "-h", "0.0.0.0", "-p", "80"]       #Will run: flask run -h 0.0.0.0 -p 80
 
 CMD [ARGUMENTS]                                 #Will run command or add given arguments to container entrypoint (the same as args after image name in run command)
+CMD ["-h","0.0.0.0","-p","80"]                  #arguments send to ENTRYPOINT if: ENTRYPOINT ["flask", "run"]
 
 COPY [FILE_FROM_HOST] [PATH_IN_CONTAINER]       #Copying files from host
 ADD [URL] [PATH_IN_CONTAINER]                   #Downloading files from internet. Can unzip archives too. 
 
 Image must be build from own folder, because while building image, all files (contex) will be added to image.
+
 docker build .                                  #building image from Dockerfile in working directory
 -t [TAG]                                        #tag -name of the builded container
 --no-cache=true                                 #always rebuild image layers (cache off)
---build-arg version=3.5                         #Build args may be used while building 
+--build-arg version=3.5                         #Build args may be used while building, if more arguments then always --build-arg 
 
+docker build -t mynewflaskapp --build-arg USER=localadmin . 
+
+RUN - is running command while building
+CMD - is running command inside builded container 
+ENTRYPOINT - first command that runs after starting container (docker rum = docker create + docker start)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+This construction will build 2 images that interact while building
+
+FROM gcc:4.9 as builder
+WORKDIR /myapp
+COPY Hello.c .
+RUN gcc -o myappindocker Hello.c
+
+FROM ubuntu:latest as 
+WORKDIR /myexec
+COPY --from=builder /myapp .
+CMD ["./myappindocker"]
 
 
 ________________________________________________________________________________________________________________________________________________________________________________

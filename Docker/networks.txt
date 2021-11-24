@@ -20,9 +20,12 @@ docker network ls                            #Listing docker networks
 docker network inspect [NET_NAME/ID]         #Show info about network
 
 docker network create [NETWORK_NAME]                     #Creating new docker network
+docker network create --driver bridge --subnet 192.168.3.1/24 --gateway 192.168.3.254 -name docker_isolated  
+
 docker run -it --network=[NETWORK_NAME] [IMAGE]:[TAG]    #Creating container connected to given network
-
-
+docker run -it --network=docker_isolated --ip 192.168.3.30 ubuntu    #Creating container connected to given network
 docker run --network=none [IMEGE]:[TAG]            #Creating container without network (secure option)
 
-Overlay - networks between many docker server demons.
+docker network disconnect [NETWORK_NAME] [CONTAINER_NAME]       #disconnection network from container
+
+docker network prune #deletes all created networks

@@ -84,6 +84,8 @@ git push -u origin main                                         #uploading chang
 Branches:
 git show-branch             #list branches in repository
 git branch [NEW_BRANCH]     #makes new branch
+git branch -d [BRANCH_NAME] #deletes local branch, if not merged use -D
+git push origin --delete [BRANCH_NAME]  #deletes remote branch
 git checkout [NEW_BRANCH]   #switch to given branch
 git checkuot master         #switch to master
 git merge [NEW_BRANCH]      #merge given branch with master (should be done on master)

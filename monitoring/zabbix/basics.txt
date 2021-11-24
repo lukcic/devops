@@ -1,0 +1,29 @@
+Documentation:
+https://www.zabbix.com/documentation/current/manual
+
+Link http://zabbix-server-ip/zabbix
+Username: Admin
+Password: zabbix
+
+Docker images:
+https://hub.docker.com/r/zabbix/zabbix-server-mysql
+https://hub.docker.com/r/zabbix/zabbix-web-nginx-mysql/
+
+
+For monitoring docker containers:
+usermod -aG docker zabbix       #give zabbix_user access to docker files 
+
+Add host template in web panel:
+-Docker by Zabbix agent 2
+
+
+https://www.tecmint.com/install-and-configure-zabbix-monitoring-on-debian-centos-rhel/
+
+https://www.tecmint.com/configure-zabbix-to-send-email-alerts-to-gmail/
+
+https://www.tecmint.com/install-and-configure-zabbix-agents-on-centos-redhat-and-debian/
+
+https://www.tecmint.com/install-zabbix-agent-and-add-windows-host-to-zabbix-monioring/
+
+
+

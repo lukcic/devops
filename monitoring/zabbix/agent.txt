@@ -1,0 +1,55 @@
+Agent2 installation:
+
+----------- On Ubuntu 20.04 ----------- 
+sudo wget https://repo.zabbix.com/zabbix/5.4/ubuntu/pool/main/z/zabbix-release/zabbix-release_5.4-1+ubuntu20.04_all.deb
+sudo dpkg -i zabbix-release_5.4-1+ubuntu20.04_all.deb
+sudo apt update
+sudo apt install zabbix-agent2
+
+----------- On RHEL-based Distro ----------- 
+sudo rpm -Uvh https://repo.zabbix.com/zabbix/5.4/rhel/8/x86_64/zabbix-release-5.4-1.el8.noarch.rpm
+sudo dnf update
+sudo dnf install zabbix-agent
+
+----------- On Debian 11 ----------- 
+sudo wget https://repo.zabbix.com/zabbix/5.4/debian/pool/main/z/zabbix-release/zabbix-release_5.4-1%2Bdebian11_all.deb
+sudo dpkg -i zabbix-release_5.4-1%2Bdebian11_all.deb
+sudo apt update
+sudo apt install zabbix-agent2
+
+----------- On Debian 10 ----------- 
+sudo wget https://repo.zabbix.com/zabbix/5.4/debian/pool/main/z/zabbix-release/zabbix-release_5.4-1%2Bdebian10_all.deb
+sudo dpkg -i zabbix-release_5.4-1%2Bdebian10_all.deb
+sudo apt update
+sudo apt install zabbix-agent2
+
+
+Agent config file:
+/etc/zabbix/zabbix_agent2.conf
+
+Entries needed:
+Server=zabbix-server-IP
+ServerActive=zabbix-server-IP   #for active checks
+Hostname=Monitoreh_hostname     #must equal hostname i web interface
+
+
+Restart agent service:
+sudo systemctl restart zabbix-agent2
+sudo systemctl enable zabbix-agent2
+systemctl status zabbix-agent2
+
+
+
+Open port 10050 on firewall:
+
+----------- On UFW Firewall ----------- 
+sudo ufw allow 10050/tcp
+sudo ufw reload
+
+----------- On Firewalld ----------- 
+sudo firewall-cmd --add-port=10050/tcp --permanent
+sudo firewall-cmd --reload
+
+
+Agent log:
+tail -f /var/log/zabbix/zabbix_agent2.log
