@@ -1,0 +1,19 @@
+version: '3.3' #version of compose api
+ 
+services:
+    db:     #container to database
+        image: mysql:5.7
+        container_name: db
+        volumes:
+            - db_data:/var/lib/mysql
+        restart: always
+    wordpress:  #ontainer for wodpress
+        depends_on: #will run after db
+            - db
+        image: wordpress:latest
+        container_name: wordpress
+        ports:
+            - "8000:80"
+        restart: always
+volumes:
+    db_data:

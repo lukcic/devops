@@ -8,10 +8,10 @@ services:
     restart: always
     networks:
       - zabbix
-    env_file:
-      - ./secrets.env
+    environment:
+      MYSQL_ROOT_PASSWORD: dupa1234
   server_zabbix:  
-    depends_on:
+    depends_on: #will run after db
       - mysql_zabbix
     image: zabbix/zabbix-server-mysql:ubuntu-5.4-latest
     ports:
@@ -19,11 +19,11 @@ services:
     restart: always
     networks:
       - zabbix
-    env_file:
-      - ./secrets.env 
     environment:
       DB_SERVER_HOST: mysql_zabbix
-      ZBX_DBTLSCONNECT: REQUIRED
+      MYSQL_USER: root
+      MYSQL_PASSWORD: dupa1234
+      ZBX_DBTLSCONNECT: required
   web_zabbix:
     depends_on:
       - server_zabbix
@@ -34,10 +34,10 @@ services:
     restart: always
     networks:
       - zabbix
-    env_file:
-      - ./secrets.env
     environment:
       DB_SERVER_HOST: mysql_zabbix
+      MYSQL_USER: root
+      MYSQL_PASSWORD: dupa1234
       ZBX_SERVER_HOST: server_zabbix
       PHP_TZ: "Europe/Warsaw"
       ZBX_DB_ENCRYPTION: True

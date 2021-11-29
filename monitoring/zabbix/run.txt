@@ -1,0 +1,5 @@
+docker run --name zabbix-mysql -e MYSQL_ROOT_PASSWORD=password123 -d mysql:5.7
+
+docker run --name zabbix-server -e DB_SERVER_HOST="zabbix-mysql" -e MYSQL_USER="root" -e MYSQL_PASSWORD="password123" -e ZBX_DBTLSCONNECT="required" -d --network="zabbix" -p 10050:10050 zabbix/zabbix-server-mysql:ubuntu-5.4-latest
+
+docker run --name zabbix-web -e DB_SERVER_HOST="zabbix-mysql" -e MYSQL_USER="root" -e MYSQL_PASSWORD="password123" -e ZBX_SERVER_HOST="zabbix-server" -e PHP_TZ="Europe/Warsaw" -e ZBX_DB_ENCRYPTION="true" -d -p 8080:8080 -p 8443:8443 --network=zabbix zabbix/zabbix-web-nginx-mysql:ubuntu-5.4-latest

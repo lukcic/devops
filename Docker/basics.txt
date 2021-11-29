@@ -76,9 +76,12 @@ docker container exec [-it] [NAME/ID] bash
 Removing container:
 docker container rm [-f] [NAME/ID]
 -f  (forced)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Cleaning host:
 
-docker rm -f $(docker ps -aq)       #Removes all containers
-docker system prune -a              #Will destroy all containers, networks, images and cache
+docker rm -f $(docker ps -aq)               #Removes all containers
+docker volume rm $(docker volume ls -q)     #Removes all volumes
+docker system prune -a                      #Will destroy all containers, networks, images and cache
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Updating containers:
@@ -118,23 +121,47 @@ the same effect:
 docker exec -it [CONTAINER_ID] /bin/bash
 _________________________________________________________________________
 
-Filesystems:
-https://docs.docker.com/storage/volumes/
+Volumes - special type of directories that are managed by docker engine and mounted inside containers. Data created by container are stored inside volume. 
+Can be mouned using --mount or -v [VOLUME_NAME]:/PATH.
 
-Bind-mouted directories - used for provisioning files to container, but container cannot do any changes in host filesystem (takes a own copy). Need absolute host path when using -v.
-docker run -v [HOST_VOLUME_PATH]:[CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]        #
-docker container run -d -p 8080:80 -v $(pwd):/usr/share/nginx/html nginx      #Host path can be variable
-[CONTAINER_VOLUME_PATH]:ro                                                    #Read only volume
+Docker images create two types of volumes:
+Persistent - after container stops data are stored (mysql)
+Empheral - deletes data after container stop (ubuntu)
 
-Volumes - special type of containers that are mounted in containers and data created by container is stored inside. Can be mouned using --mount or -v [VOLUME_NAME]:/PATH.
-docker volume create [VOLUME_NAME]  #Creating volume
+docker volume create [VOLUME_NAME]  #Creating local volume
 docker volume ls                    #Listing volumes
 docker volume inspect [NAME/ID]     #View info about volume
 
-docker run --mount source=[VOLUME_NAME],target=[PATH] [IMAGE][TAG]      #creating container with mounting exist volume 
+docker run -it -v /[PATH_IN_CONTAINER] [IMAGE][TAG]                             #running container with volume creation (random name)
+docker run --name [NAME] -v [VOLUME_NAME]:/[PATH_IN_CONTAINER] [IMAGE][TAG]     #running container with mounting existed volume
+docker run --mount source=[VOLUME_NAME],target=[PATH] [IMAGE][TAG]              #creating container with mounting exist volume (00mount need existed volume)
+
+Host path that volumes are stored locally:
+/var/lib/docker/volumes
+Docker use volumes drivers to store volumes in remote directories.
+
+Read only volume:
+-v [VOLUME_NAME]:/[PATH_IN_CONTAINER]:ro     
 
 docker run --tmpfs [CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]                #Creating tempolary volume (files deleted while closing container), can be used with --read-only
 
+Plugins:
+docker container run --name [NAME] --mount type=volume,volume-driver=[DRIVER_FULL_NAME],source=[VOLUME_NAME],destination=[PATH_IN_CONTAINER] [IMAGE]:[TAG]
+#creating container with cration volume using plugin
+
+https://docs.docker.com/storage/volumes/
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Bind-mouted directories - it`s not a volume. 
+Used for mounting hosts files or directories into container. BM dirs are not managed by docker engine. 
+Container cannot do any changes in host filesystem (takes a own copy)??????
+Need absolute host path, where volume needs name or empty sign (docker will create volume).
+
+docker run -v [HOST_VOLUME_PATH]:[CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]        #-v will create dirs
+docker container run -d -p 8080:80 -v $(pwd):/usr/share/nginx/html nginx      #Host path can be variable
+
+docker run -it --name example --mount type=bind,source="$(pwd)"/test,target=/data_from_host [IMAGE]:[TAG]    
 _________________________________________________________________________
 
 Statistics & processes:
