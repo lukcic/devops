@@ -1,0 +1,139 @@
+Unix & Linux p.325
+
+Documentation:
+https://docs.aws.amazon.com
+
+IAM (Identity and Access Management)
+-zarzadzanie uzytkownikami i grupami dostępu
+
+AWS Course:
+https://explore.skillbuilder.aws/learn/public/learning_plan/view/85/devops-engineering-learning-plan?lp=cta&cta=intro
+
+.aws/credentials file (used in Ansible, awscli):
+[default]
+AWS_ACCESS_KEY_ID=[VALUE]
+AWS_SECRET_ACESS_KEY=[VALUE]
+
+
+
+Role??
+
+VPC - virtual private cloud
+
+ACL - Network access list (firewall) for subnet, read from lower to higher number
+
+
+AMI - Amazon Machine Images (obrazy)
+
+Security group - networking (firewall) for ec2 instance (like os firewall, Network ACL is fos subnet)
+
+Ec2 pricing
+on demand - rozliczanie minutowe
+
+reserved - oplata z gory, deklaracja czasu, duze rabaty
+
+spot? - aukcja, deklarujemy ile chcemy zapłacić za kolejny miesiac. jezeli nie wystarzy maszyna jest kasowana
+used to jenkins lub teamcity 
+
+AWS CloudFormation - Like terraform?
+AWS OpsWorks - like Ansible
+AWS Cloud9 - cloud IDE (VS Code)
+AWS CodeBuild - like Jenkins (AWS CodeBuild is a fully managed build service that automatically compiles source code, runs tests, and produces software packages. )
+AWS CodeCommit - like GitHub
+AWS CodePipeline - like Jenkins (AWS CodePipeline is a continuous delivery service that enables you to model, visualize, and automate the steps required to release your software. )
+AWS CodeDeploy - Deplying automation
+Amazon Elastic Container service (Amazon ECS) - like Kubernetes
+AWS Cloud Development Kit (AWS CDK)  - programming framework for creating IaaC. AWS CDK is a compiler that compiles your source code into an AWS CloudFormation template. 
+
+Monitoring:
+AWS X-Ray is a distributed tracing system. It helps you analyze and debug your distributed applications, such as those built using microservices, or serverless architecture. It provides an end-to-end view of requests as they travel through your application, and shows a map of your application`s underlying components.
+Amazon CloudWatch is a monitoring and management service that provides data and actionable insights for AWS, hybrid, and on-premises applications and infrastructure resources. With CloudWatch, you can track resources and application performance, collect and monitor log files, troubleshoot, and set alarm notifications.
+AWS Config is a service that enables you to assess, audit, and evaluate the configurations of your AWS resources. AWS Config continuously monitors and records your AWS resource configurations. It enables you to automate the evaluation of recorded configurations against desired configurations. 
+AWS CloudTrail is a service that enables governance, compliance, operational auditing, and risk auditing of your AWS account. With CloudTrail, you can log, continuously monitor, and retain account activity related to actions across your AWS infrastructure. CloudTrail provides event history of your AWS account activity, including actions taken through the AWS Management Console, AWS SDKs, command line tools, and other AWS services. This event history simplifies security analysis, resource change tracking, and troubleshooting. In addition, you can use CloudTrail to detect unusual activity in your AWS accounts. These capabilities help simplify operational analysis and troubleshooting.
+
+
+EBS - local storage (volumes and snapshots)
+
+S3 simple storage service
+
+S3 bucket miejsce gdzie przechowujemy foldery i pliki (S3 objects) 
+
+Bucket - główny folder
+Podkatalogi - foldery
+Obiekty
+
+Pliki przechowujemy w regionie najbliższym nam (klientowi) fizycznie (latency). 
+
+Zazwyczaj wymagany ten sam region co ec2. 
+
+Klasy obiektów, różna cena zależna od czasu dostępu, czasu niedostępności, Ilości replikacji. Klasa pliku /folderu może być zmieniona w każdej chwili. 
+
+Klasa standard - najdroższa. 
+
+Lifecycles - automatyczna migracja obiektu do innej klasy lub jego usunięcie. 
+
+Zasady mogą być stosowane do całego bucket, folderów lub obiektów. Zasadę po utworzeniu trzeba aktywować. 
+
+Wersjonowanie - włączane z poziomu bucketu, nie można wyłączyć (jedynie zawiesic). Wersjonowanie odnosi sie do adresow url plikow. 
+
+
+AWS CLI!!!
+Certyfikacja AWS
+
+BOTO3 - API do AWSa
+
+RDS - SQL relacyjna Relational Database Service (rows and columns)
+Amazon Aurora - compatible with MySQL & PostgreSQL (engine choose)
+Mariadb
+PostgresQL
+Oracle
+MS SQL
+
+Must create a subnte group and choose subnet for db and vpc.
+
+DynamoDB - NoSQL (no engine choose) key:value like json
+MongoDB
+Cassandra
+
+MySQL Workbench
+Connection to mySQL over ssh
+ 
+SNS -Simple Notification service
+Publisher - komunikacja 
+Subscriber - webserwisy, które informuja o zdarzeniu
+
+Tutaj sie konfiguruje rodzaje powiadomien i odbiorcow.
+
+Topic - label, grupa ktora definiuje nasze endpointy w wiadomosci definiowanej
+Subscription - miejsce gdzie ma wyslac wiadomosc (email, telefon)
+Publisher - czlowiek ,alar, event ktory generuje lub zbiera to co ma byc wyslane
+
+CloudWatch
+Usługa, ktora pozwala monitorowwac wszystkie usługi (zasoby) AWS w czasie rzeczywistym. Metryki mozna katalogowac oraz wychwytywac punkty do powiadomień. 
+
+CloudWatch moze rozszerzyc parametry wirtualki EC2 w razie wystąpienia większego obciążenia. 
+
+Opłaty sa zależne od regionu.
+
+Dashbord - cos jak grafana? Wykresy zuzycia CPU itp.
+
+Alarms - powiadomienia do SNS
+
+CloudTrail - serwis, ktory sprawdza kto wykonal jakie czynnosci na koncie AWS. AWS Account Audit.
+
+Autoscaling - free
+
+Route 53 - dns, domeny, health check
+
+Cloud Front - pliki statyczne content do stron (works in all regions)
+
+Lambda - wykonywanie naszego kodu (funkcji) na infrastrukturze AWS, płacimy tylko za każdorazowe użycie kodu
+Function will start when:
+-message came to queue
+-new object in bucket
+-http request came
+
+
+Paas - run your code on cloud infrastructure
+Google app Engine
+Elastic Beanstalk (AWS)

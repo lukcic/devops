@@ -1,0 +1,50 @@
+Cloud Deveopment Kit - SDK for creating AWS apps (from resources). 
+
+By default use TypeScript and translate commands to other programming languages using JSii.
+Resources written in CDK are transferred to AWS CloudFormation do deploy as real IaaC infrastructure (synthesation). 
+
+
+Installation:   
+npm install -g aws-cdk
+cdk --version
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+AWS CDK Demonstration 
+
+mkdir CDKPrimer
+cd CDKPrimer
+
+cdk init --language typescript      #initialize your AWS CDK project by running the init command in the terminal.
+
+npm install @aws-cdk/aws-ec2 @aws-cdk/aws-ecs @aws-cdk/aws-ecs-patterns     #Install the AWS Construct Library modules for Amazon Elastic Compute Cloud (Amazon EC2) and Amazon ECS
+
+Open the file cdk-primer-stack.ts in the /lib directory. Add the following Amazon ECS and Amazon EC2 AWS Construct Library module imports to the cdk-primer-stack.ts file.
+
+import * as ec2 from "@aws-cdk/aws-ec2";
+import * as ecs from "@aws-cdk/aws-ecs";
+import * as ecs_patterns from "@aws-cdk/aws-ecs-patterns";
+
+Under the comment that indicates where stack resources are included, add these lines of code, and then save the cdk-primer-stack.ts file:
+
+    const vpc = new ec2.Vpc(this, "MyVpc", {maxAzs: 2});
+
+    const cluster = new ecs.Cluster(this, "MyCluster", {vpc: vpc});
+
+      new ecs_patterns.ApplicationLoadBalancedFargateService(this, "MyFargateService", {
+
+          cluster: cluster,
+
+          taskImageOptions: { image: ecs.ContainerImage.fromRegistry("amazon/amazon-ecs-sample") },
+
+          publicLoadBalancer: true
+
+  });
+
+cdk synth   #Synthesize the code into an AWS CloudFormation template using the the cdk synth command. Synthesized templates are located within the cdk.out directory. 
+
+cdk deploy  #Deploy the stack. Log in to the AWS Management Console and search for CloudFormation. Choose CdkPrimerStack, and then select Resources to view the deployed resources.
+
+cdk destroy #To remove all resources created in the stack, run the following command in the terminal:
+
+

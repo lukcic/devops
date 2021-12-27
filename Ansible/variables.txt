@@ -1,6 +1,5 @@
 VARABLES - 2 types
 
-
 1. User created vars {{ }} 
 They are used in .j2 and .yml files (.j2 means template written in Jinja2 language).
 Normal variables range is limited to given server - value is useable only for this server. 
@@ -35,6 +34,35 @@ To register and display value of var use:
     - debug: var=login
 '''
 rc: 0 -taks succeed, 1- task failed (see stderr)
+
+When usage:   #Vim will be installed only if sspass instalation succeed, if not will be skipped.s
+'''
+- name: Install sshpass
+  apt:
+    name: sshpass
+    state: present
+  register: myvar 
+- debug:
+    var: myvar
+
+- name: Install vim
+  apt: 
+    name: vim
+    state: present
+  when: registered.failed == false
+'''
+
+Prompt - aks user to type file location:
+'''
+vars_prompt:
+  - name: location
+    prompt: "Location of file to save:"   
+    private: yes                        #show what user writes
+    encrypt: "sha256_crypt"             #encrypt input
+    confirm: yes                        #input must be write second time
+'''
+#dest: "{{ location }}"
+
 
 If variables value is a dictionaty, for reffering to keys and values Ansible use Jinja2:
 ansible_eth1['ipv4']['address']

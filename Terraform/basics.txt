@@ -1,0 +1,71 @@
+https://learn.hashicorp.com/terraform?utm_source=terraform_io
+
+Infrastructure as a Cloud (IaaC) in Terraform:
+-infrastructure can be deployed on multiple cloud providers
+-human readable configuration
+-state allows to track changes in infrastructure
+-configuration can be managed using version control
+
+Terraform plugins to magage different cloud operators are called providers.
+Resources are individual units of inftastructure (VMs, provate networks etc.).
+Terraform configurations are called modules. Configuration language is declarative - describes desired state of resource. 
+Providers calculate dependencies between resources and create or destroy needed.
+
+Scope       - identify the infrastructure for your project
+Author      - write the config
+Initialize  - installing plugins
+Plan        - preview the changes
+Apply       - make the planned changes
+
+Terraform keeps state of infrastructure in state file. This file is udes to determine changes to do.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Installation in Ubuntu:
+sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+sudo apt-get update && sudo apt-get install terraform
+
+terraform -install-autocomplete
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Firsth module:
+
+main.tf:
+
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 2.15.0"
+    }
+  }
+}
+
+provider "docker" {}
+
+resource "docker_image" "nginx" {
+  name         = "nginx:latest"
+  keep_locally = false
+}
+
+resource "docker_container" "nginx" {
+  image = docker_image.nginx.latest
+  name  = "tutorial"
+  ports {
+    internal = 80
+    external = 8000
+  }
+}
+
+
+terraform init          #initialize the project, which downloads a plugin that allows Terraform to interact with Docker.
+
+terraform apply         #Provision the NGINX server container with apply. When Terraform asks you to confirm, type yes and press ENTER.
+docker ps               #Run docker ps to view the NGINX container running in Docker via Terraform.
+terraform destroy       #To stop the container and destroy the resources created in this tutorial, run terraform destroy. When Terraform asks you to confirm, type yes and press ENTER.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+https://learn.hashicorp.com/tutorials/terraform/aws-build?in=terraform/aws-get-started

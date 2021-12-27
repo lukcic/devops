@@ -1,0 +1,21 @@
+
+Installation:
+sudo python -m pip install awscli
+aws configure
+
+aws help
+
+Config file:
+~/.aws/config 
+
+aws ec2 describe-instances 
+--output json|text|table
+--query 'Reservations[].Instances[].InstanceId'     - Will show only given objects (instance id`s)
+--query 'Reservations[].Instances[].Placement.AvailabilityZone'
+
+Creditentials file:
+~/.aws/credentials
+%UserProfile%\.aws\credentials
+
+
+

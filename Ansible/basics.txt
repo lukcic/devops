@@ -1,5 +1,6 @@
 https://docs.ansible.com/
 https://docs.ansible.com/ansible/latest/modules/modules_by_category.html
+https://docs.ansible.com/ansible/latest/user_guide/
 
 Playbooks repository
 https://galaxy.ansible.com/
@@ -137,7 +138,7 @@ Ansible galaxy:
 ansible-galaxy init roles/apache2     #creating role apache2
 
 
-
+ec2_module
 
 
 p. 89
