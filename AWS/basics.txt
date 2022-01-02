@@ -14,7 +14,7 @@ https://explore.skillbuilder.aws/learn/public/learning_plan/view/85/devops-engin
 AWS_ACCESS_KEY_ID=[VALUE]
 AWS_SECRET_ACESS_KEY=[VALUE]
 
-
+Amazon Resource Names (ARNs) - name of resource (VM) given after creation
 
 Role??
 

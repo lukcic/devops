@@ -27,9 +27,27 @@ sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(l
 sudo apt-get update && sudo apt-get install terraform
 
 terraform -install-autocomplete
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Usage:
+
+terraform init          #initialize the project, which downloads a plugin that allows Terraform to interact with Docker.
+
+terraform fmt           #check and correct formatting of terraform file
+
+terraform validate      #check and correct syntax of terraform file
+
+terraform apply         #Provision the NGINX server container with apply. When Terraform asks you to confirm, type yes and press ENTER.
+-var "instance_name=myOwnName"  # overriding variable
+
+terraform show          #inspect created resources
+
+terrafrom output        #returns values of output variables saved in cofiguration
+
+terraform destroy       #To stop the container and destroy the resources created in this tutorial, run terraform destroy. When Terraform asks you to confirm, type yes and press ENTER.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Firsth module:
+First module:
 
 main.tf:
 
@@ -59,13 +77,25 @@ resource "docker_container" "nginx" {
 }
 
 
-terraform init          #initialize the project, which downloads a plugin that allows Terraform to interact with Docker.
-
-terraform apply         #Provision the NGINX server container with apply. When Terraform asks you to confirm, type yes and press ENTER.
+terraform init            
+terraform apply         
 docker ps               #Run docker ps to view the NGINX container running in Docker via Terraform.
-terraform destroy       #To stop the container and destroy the resources created in this tutorial, run terraform destroy. When Terraform asks you to confirm, type yes and press ENTER.
+terraform show          
+terraform destroy       
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Terrafrom registry:
+https://registry.terraform.io   # Here are definitions of terraform providers
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Terraform state:
+terraform.tfstate - in this file terraform stores state of created infrastructure. 
+Has sensitive data, so should be managed as a secret.
 
-https://learn.hashicorp.com/tutorials/terraform/aws-build?in=terraform/aws-get-started
+terraform state         # advanced state management
+terraform state list    # list resources handle by state file
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+https://learn.hashicorp.com/collections/terraform/cli

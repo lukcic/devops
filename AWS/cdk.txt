@@ -47,4 +47,9 @@ cdk deploy  #Deploy the stack. Log in to the AWS Management Console and search f
 
 cdk destroy #To remove all resources created in the stack, run the following command in the terminal:
 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+The core components that power AWS CDK applications are composed of apps, stacks, and constructs.
+
+Construct - main building block used to form stacks and apps. 
+It represents cloud component (eg. Amazon VPC endpoint) and encapsulate elements that CloudFormation needs to create this component. 
