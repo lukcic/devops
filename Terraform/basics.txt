@@ -99,3 +99,4 @@ terraform state list    # list resources handle by state file
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 https://learn.hashicorp.com/collections/terraform/cli
+https://learn.hashicorp.com/collections/terraform/configuration-language

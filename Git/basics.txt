@@ -3,15 +3,21 @@
 https://git-scm.com/book/en/v2
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-git config --global user.name 'użytkownik'
+git config --global user.name 'użytkownik'          #global - for all repos
 git config --global user.email 'adres@email.pl'
 
-git init                #initalizing repository in actual folder, makes .git directory
+vim ~/.gitconfig
+[credential]   
+    helper = osxkeychain    # apple safe
+[diff]
+    tool = bc3
+[merge]
+    tool = bc3
 
-git add [FILE]]         #add file to index
-git add .	            #add all files to index
--p                      #particullary add changes from given file to commit (interactive)
-git rm --cached [FILE]	#remove file from index
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+git init                #initalizing repository in actual folder, makes .git directory
+git init [DIRECTORY]    #git will create a new DIRECTORY and initiaze repo in it
 
 .gitignore              #here should be added files that have been not added to index (exclusions)
 
@@ -23,13 +29,39 @@ git log     #list commits
 --graph     #grapf view of forks
 --oneline   #short description
 
-Staging area  #workplace, changes that are important, but no need commit yet
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Staging area  #POCZEKALNIA workplace, changes that are important, but no need commit yet
+
++ WORK_DIR
+|            
+|  git add
+|
++ STAGING AREA  +
+                |
+   git commit   |
+                |
+    REPOSITORY  +
+
+git add [FILE]          #add file to staging area (index)
+git add .	            #add all files to index
+-p                      #particullary add changes from given file to commit (interactive)
+git rm --cached [FILE]	#remove file from index
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+git diff                #differences between actual state and last add (staged area)
+git diff --staged       #differences between last commit and last add (staged area)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 git commit  #saves changes to local repository, makes the snapshot of files
 -a          #add all changed & deleted files to stage (without new files)
 -m          #comment to commit
 
 git commit superskrypt.sh -m "Ulepszenie skryptu" #git commit with given filename will ignore other files in commit
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 git restore [FILENAME]      #delete changes in file to state from last commit
 git checkout [FILENAME]     #delete changes in file to state from last commit
