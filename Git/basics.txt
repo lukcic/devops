@@ -1,8 +1,12 @@
 #CHECK KEYPAIR LOGGING!!!
 #GITHUB CLI
+#git commands visual 
 https://git-scm.com/book/en/v2
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+CONFIG - configure environment
+
 git config --global user.name 'użytkownik'          #global - for all repos
 git config --global user.email 'adres@email.pl'
 
@@ -16,20 +20,35 @@ vim ~/.gitconfig
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+INIT - initialize repository
+
 git init                #initalizing repository in actual folder, makes .git directory
 git init [DIRECTORY]    #git will create a new DIRECTORY and initiaze repo in it
 
 .gitignore              #here should be added files that have been not added to index (exclusions)
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+STATUS - checking changes
+
 git status  #check tree status, this command always give advice what do to to rollback last changes
 
 git log     #list commits 
 --all       #show hidden commits
 --graph     #grapf view of forks
 --oneline   #short description
+--stat      #file stats in every commit
+--patch     #show diff in git log
+
+git log --online -3             #show only last 3 commit messages
+git log --since="2020-01-01"    #show changes since given date, passible option "2 days ago"
+git log --until="2020-01-01"    #show changes until given date
+
+git log --grep="Terraform"      #use grep for filtering commits (CAUSE Sensitive)
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+ADD - adding files to staging area (index)
 
 Staging area  #POCZEKALNIA workplace, changes that are important, but no need commit yet
 
@@ -43,63 +62,124 @@ Staging area  #POCZEKALNIA workplace, changes that are important, but no need co
                 |
     REPOSITORY  +
 
-git add [FILE]          #add file to staging area (index)
-git add .	            #add all files to index
--p                      #particullary add changes from given file to commit (interactive)
+git add [FILE]          # add file to staging area (index)
+git add .	            # add all files to index
+-p                      # particullary add changes from given file to commit (interactive)
+
+git reset [FILE]        # remove file from cache (index)
+
 git rm --cached [FILE]	#remove file from index
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-git diff                #differences between actual state and last add (staged area)
-git diff --staged       #differences between last commit and last add (staged area)
+DIFF - comparing changes
+
+git diff                                #differences between actual state and last add (staged area)
+git diff --staged                       #differences between last commit and last add (staged area), alias --cached
+git diff [FILE]                         #differences in only given file
+git diff [COMMIT_ID] [FILE]             #differences in file compared to some old commit, if "/dev/null", then this file wasn`t present in this commit
+git diff [COMMIT_1] [COMMIT_2] [FILE]   #differences between 2 commits
+
+git diff HEAD~2                         # show differences between now and state 2 commits ago
+
+git show HEAD~2                         # will show 
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+COMMIT - saving changes
+
 git commit  #saves changes to local repository, makes the snapshot of files
--a          #add all changed & deleted files to stage (without new files)
+-a          # add all changed & deleted files to stage (without new files)
 -m          #comment to commit
 
 git commit superskrypt.sh -m "Ulepszenie skryptu" #git commit with given filename will ignore other files in commit
 
+git commit --interactive    #interactive mode
+
+git commit --amend          # redo last commit, if eg. new file wasn`t added to index or description must be changed
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-git restore [FILENAME]      #delete changes in file to state from last commit
+RESET - remove commits, better do not use with pushed commits
+
+git reset [COMMIT_ID]   # remove commits after given id, deletes commit and changes from staging, changes will stay in WORKDIR
+--soft                  # will remove only commit, changes stays in staging
+--hard                  # will remove all: commit, stage and changes from WORKDIR, this option DELETES changes and cannot be UNDONE!!!
+
+git reset HEAD~2        # go two commits backwards (default 1) 
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+REVERT - creates new commit that invert changes from given commit. Effect like in reset but without changes in repo history.
+Used for removing commits that were pushed to remote repo.
+
+git revert HEAD         # undo changes from last commit (create new commit that invert changes)
+git revert [COMMIT_ID]
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+CHECKOUT - undo changes, switching between branches, switch back directory to past time - detached HEAD (tryb oderwanej głowy)
+
+git checkout [FILE]         # undo changes in file (to last commit???)
+
+git checkout [COMMIT_ID]    #switch to given (past) commit, git log needs --all, otherwise will show past state
+git checkuot master         #switch to most actual state
+
+If you switched to past commit and make new commit, repo will fork. You need to make new brach, switch to master and merge new repo.
+
+git checkout -b [NEW_BRANC_NAME]        #creating new branch while in past commit
+
 git checkout [FILENAME]     #delete changes in file to state from last commit
 
-git checkout [COMMIT_ID]    #switch to given (past) commit, git log needs --all
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-If you switch to early commit and make new commit, repo will fork. You need to make new brach, switch to master and merge new repo.
-If marging fails because of conflicts and you want to save changes from fork to master use:
-git checkout --path [FORK_BRANCH] [CONFLICTED_FILE]
+BRANCHES - forks of code, used to work with new features without changing production code
 
-'''y - stage this hunk
-n - do not stage this hunk
-q - quit; do not stage this hunk nor any of the remaining ones
-a - stage this hunk and all later hunks in the file
-d - do not stage this hunk nor any of the later hunks in the file
-g - select a hunk to go to
-/ - search for a hunk matching the given regex
-j - leave this hunk undecided, see next undecided hunk
-J - leave this hunk undecided, see next hunk
-k - leave this hunk undecided, see previous undecided hunk
-K - leave this hunk undecided, see previous hunk
-s - split the current hunk into smaller hunks
-e - manually edit the current hunk
-? - print help
-'''
-Cherry pick - can take commit from forked branch (feature) to master:
-https://poznajgita.pl/jak-skopiowac-tylko-niektore-commity-z-feature-brancha-do-mastera-git-cherry-pick/
+git show-branch             # list branches in repository
+git branch                  # show current branch
+git branch -M main          # rename branch to main (master is common used too) 
 
-git stash       #cut changes made from last commit to 'clipboard'
-git stash pop   #paste this changes (clear the clipboard)
-git stash apply #paste this changes (stay in clipboard)
-https://www.atlassian.com/git/tutorials/saving-changes/git-stash
+git branch [NEW_BRANCH]     # creates new branch
+git checkout [NEW_BRANCH]   # switch to given branch
+git checkuot main|master    # switch to master
+
+git checkout -n [NEW_BRANCH]    # create and switch to new branch
+
+git branch -d [BRANCH_NAME]             # deletes local branch, if not merged use -D
+git push origin --delete [BRANCH_NAME]  # deletes remote branch
+
+git merge [NEW_BRANCH]      # merge given branch with master (should be done on master), creates new commit id?????
+--abort                     # cancel merge if errors
+
+Fast forward - fast move indicator to forward branch without changes in files structure 
+git mergetool [FILE]        # tool for conflicted merges (2 person edited the same file)
+
+After resolving merge issues file must be added to index again, and commit must be done.
+
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+REBASE - method for merging branches by changing base. Rebase changes "parent" of commit. 
+
+Will remove fork with adding all changes from branch to master. 
+git rebase master   # done on branch, will take changes from branch and merge every single commit (from branch) with master to make flat structure
+
+Merge must be done at the end?????
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+CHERRY-PICK -can take commit from forked branch (feature) to master. Commit will be copied with new id.
+
+Used when bugfix is done on feature branch instead master (main).
+git cherry-pick [COMMIT_ID]     # done on master, id must be from feature branch
+
+https://poznajgita.pl/jak-skopiowac-tylko-niektore-commity-z-feature-brancha-do-mastera-git-cherry-pick/
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Remote repositories:
 
 master          #the newest (last) commit  
-head            #place in history (commit) where we are now
+head            #place in history (commit) where we are now (state of working directory)
 origin          #origin = remote (on server)
 origin/master   #master (last) commit on remote server 
 
@@ -113,23 +193,19 @@ git remote add origin https://github.com/lukcic/devops.git
 
 git push -u origin main                                         #uploading changes (main branch) to remote repo 
 
-Branches:
-git show-branch             #list branches in repository
-git branch [NEW_BRANCH]     #makes new branch
-git branch -d [BRANCH_NAME] #deletes local branch, if not merged use -D
-git push origin --delete [BRANCH_NAME]  #deletes remote branch
-git checkout [NEW_BRANCH]   #switch to given branch
-git checkuot master         #switch to master
-git merge [NEW_BRANCH]      #merge given branch with master (should be done on master)
---abort                     #cancel merge if errors
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-git branch -M main          #rename branch to main (master is common used too)   
-git mergetool               #tool for conflicted merges (2 person edited the same file)
+REFLOG - log that tracks operations of indicators change (HEAD, branches)
+
+Used to check point-in-time indicator with given changes. Indicator can be used with git reset:
+git reset --hard HEAD@{31}      #will bring back state 31 changes ago (relative to HEAD)
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 git --version			    #show git version
 <readme.md>                 #readme file (markdown), description of remote repository
 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Domyślna nazwa pierwszej gałęzi w nowym repozytorium to „master”. Większość
 projektów programistycznych używa tej domyślnej nazwy dla głównej linii rozwojowej,
@@ -148,4 +224,36 @@ Próbując zlokalizować lub zaktualizować oprogramowanie, często natrafisz na
 GitHub lub GitLab. Upewnij się, że trafiłeś na repozytorium trunk (z ang. trzon), a nie na
 czyjeś rozwidlenie. Poszukaj odwołania oznaczonego jako „forked from” (rozwidlone z) i podążaj
 za nim.
+
+
+
+
+
+If marging fails because of conflicts and you want to save changes from fork to master use:
+git checkout --path [FORK_BRANCH] [CONFLICTED_FILE]
+
+
+git restore [FILENAME]      #delete changes in file to state from last commit
+
+'''y - stage this hunk
+n - do not stage this hunk
+q - quit; do not stage this hunk nor any of the remaining ones
+a - stage this hunk and all later hunks in the file
+d - do not stage this hunk nor any of the later hunks in the file
+g - select a hunk to go to
+/ - search for a hunk matching the given regex
+j - leave this hunk undecided, see next undecided hunk
+J - leave this hunk undecided, see next hunk
+k - leave this hunk undecided, see previous undecided hunk
+K - leave this hunk undecided, see previous hunk
+s - split the current hunk into smaller hunks
+e - manually edit the current hunk
+? - print help
+'''
+
+
+git stash       #cut changes made from last commit to 'clipboard'
+git stash pop   #paste this changes (clear the clipboard)
+git stash apply #paste this changes (stay in clipboard)
+https://www.atlassian.com/git/tutorials/saving-changes/git-stash
 
