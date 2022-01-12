@@ -3,24 +3,91 @@ Unix & Linux p.325
 Documentation:
 https://docs.aws.amazon.com
 
-IAM (Identity and Access Management)
--zarzadzanie uzytkownikami i grupami dostępu
+______________________________________________________________________________________________________________
 
-AWS Course:
-https://explore.skillbuilder.aws/learn/public/learning_plan/view/85/devops-engineering-learning-plan?lp=cta&cta=intro
+IAM (Identity and Access Management)            #https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html
+-management of users and their permissions
+-IAM users that not separated account but users with own creditentials inside root account
+-AIM groups - set permission to groups, users can be in many groups, users inhertes permissons from group and can have own permissions
+
+IAM Policies - created to give permissions for users, groups and roles:
+-Managed (independent, can be attached to multiple users), AWS managed and customer managed
+-Inline (created by you, set (embeded) to single user, group or role)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Amazon Resource Names (ARN) - unique name of resource (eg. VM) given after creation
+
+arn:[PARTITION]:[SERVICE]:[REGION]:[ACCOUNT_ID]:[RESOURCE_TYPE]/[RESOURCE]
+arn:aws:iam:123456789012:user/Bob       # iam use global region (aws-us-gov)
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+IAM JSON Policy elements:
+https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements.html
+
+{
+    "Version" : "2012-10-17"    # older (default) version "2008-10-17"
+    "Statement" : [             # required, main element for policy 
+        {
+            "Principal" : {"AWS":["arn:aws:iam:12345678912:root"]}
+            "Effect" : "Allow",                             # allow or deny
+            "Action" : "["s3":"PutObject"]",                # what wil be allow or deny, "NotAction" - matches everythong without given value
+            "Resource" : "arn:aws:s3:::examplebucket/*",    # what the "Statement" covers (ARN), "NotResource" - matches everyting excluding given value
+            
+            "Sid" : "AllowFullAccessToAllAWSResorces",                      # Statement id (Optional), must be unique in policy
+            "Condition" : {"IpAddress":{"aws:sourceIp":"192.0.2.0/24"}}     # Optional, specify when policy is affect - condition (boolean) must be fully (equal, less then etc)
+        }
+    ]
+}
+
+Policies can be resource-based (eg. particular EC2 vm) or identity-based (eg. user).
+
+Policy logic:
+-is is only one deny - answer deny
+-if is only one allow - answer allow
+-if there is no allow - answer deny
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+IAM Role - similar to user (has permission policy) but not specified person. For everyone who needs it (temporary creditentials). 
+Trust policy - who can assume the role (principal element). May it be service (EC2) or user or account. Action: "sts:AssumeRole"
+
+"Principal" : {"AWS":["arn:aws:iam:12345678912:root"]}      #inside statement
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 .aws/credentials file (used in Ansible, awscli):
 [default]
 AWS_ACCESS_KEY_ID=[VALUE]
 AWS_SECRET_ACESS_KEY=[VALUE]
 
-Amazon Resource Names (ARNs) - name of resource (VM) given after creation
-
-Role??
+______________________________________________________________________________________________________________
 
 VPC - virtual private cloud
 
-ACL - Network access list (firewall) for subnet, read from lower to higher number
+Virtual, private network that uses the same concepts as on premise networking.
+Allows of control of network config (IP subnets, routing tables, access lists). 
+Ability to isolate and expose resources inside VPC. 
+Sevral layers of controls. Services inherit security from VPC. 
+
+Services are deployed in VPC.
+Multiple VPCs per account. 
+VPCs lives within (w ramach) a region and has own addressing (eg. 10.0.0./16)
+
+-Availability zones - on-premise datacenters within one region.
+-Subnets - divides VPC. Public (connected to IGW) and private (connected to NAT). Used for connecting Availibility Zones. Must be a aubset of the core VPC subnet.
+-Route tables - used to control traffic out of subnets. 
+-Internet Gateway (IGW) - allows access to internet from VPC.
+-Virtual Private Gateway (VGW) - VPN gateway
+-NAT Gateway - allows private subnet resources access to internet
+-Security group - firewall attached to resource (EC2 VM)
+-Network ACcess List (NACL) - firewall for subnets, read from lower to higher number (stateless)
+
+______________________________________________________________________________________________________________
+
+
 
 
 AMI - Amazon Machine Images (obrazy)

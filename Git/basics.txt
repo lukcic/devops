@@ -10,6 +10,8 @@ CONFIG - configure environment
 git config --global user.name 'użytkownik'          #global - for all repos
 git config --global user.email 'adres@email.pl'
 
+git config --global alias.[st] status       # create alias for status (st) 
+
 vim ~/.gitconfig
 [credential]   
     helper = osxkeychain    # apple safe
@@ -17,15 +19,23 @@ vim ~/.gitconfig
     tool = bc3
 [merge]
     tool = bc3
+[alias]
+    st = status             # creating aliases
+    glog = log --all --oneline --graph
+    flog = !git log --oneline | grep        # ! means run as bash script 
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 INIT - initialize repository
 
-git init                #initalizing repository in actual folder, makes .git directory
-git init [DIRECTORY]    #git will create a new DIRECTORY and initiaze repo in it
+git init                # initalizing repository in actual folder, makes .git directory
+git init [DIRECTORY]    # git will create a new DIRECTORY and initiaze repo in it
 
-.gitignore              #here should be added files that have been not added to index (exclusions)
+.gitignore              # here should be added files that have been not added to index (exclusions), may be in every subdirectory
+**/*.txt                # exclude txt files from all subdirectories 
+.git/info/exclude       # excludes for user, this file will not be sent to repo
+
+https://gitignore.io    # online generator for given technology
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -139,6 +149,7 @@ git branch                  # show current branch
 git branch -M main          # rename branch to main (master is common used too) 
 
 git branch [NEW_BRANCH]     # creates new branch
+-vv                         # show all branches (with remote)
 git checkout [NEW_BRANCH]   # switch to given branch
 git checkuot main|master    # switch to master
 
@@ -155,15 +166,29 @@ git mergetool [FILE]        # tool for conflicted merges (2 person edited the sa
 
 After resolving merge issues file must be added to index again, and commit must be done.
 
+git log master..feature_brach   # differences (in commits) betwen two branches
+git log master..origin/master   # differences between local and remote
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-REBASE - method for merging branches by changing base. Rebase changes "parent" of commit. 
+REBASE - method for moving changes from one branch to another (merging branches) by changing base. Rebase changes "parent" of commit. 
 
 Will remove fork with adding all changes from branch to master. 
 git rebase master   # done on branch, will take changes from branch and merge every single commit (from branch) with master to make flat structure
 
-Merge must be done at the end?????
+git rebase -i master # rebase in iteractive mode
+
+Methods:
+pick - redo commit in new base
+reword - redo commit in new base with new commit message
+edit -redo commit in new base but with new changes
+squash - chase (scalić) changes with last commit 
+fixup - chase changes with last commit - only changes in code (without commit message)
+exec -run script for this change (run tests while copying commit, be sure that code is sompiling)
+drop - drop changes 
+
+
+git rebase --continue   # continue rebase after solving conflict
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -178,20 +203,37 @@ https://poznajgita.pl/jak-skopiowac-tylko-niektore-commity-z-feature-brancha-do-
 
 Remote repositories:
 
-master          #the newest (last) commit  
-head            #place in history (commit) where we are now (state of working directory)
-origin          #origin = remote (on server)
-origin/master   #master (last) commit on remote server 
+master          # the newest (last created) commit  
+head            # place in history (commit) where we are now (state of working directory)
+origin          # alias of default remote repo (may be more that origin)
+origin/master   # master (last) commit on default remote repo (on server) 
 
-git remote      #lists remote repos
-git clone       #downloading (first time) remote repository to local disk, should be mde in destination flder
-git pull        #updating the newest changes from remote repository 
-git push	    #sending changes (updating) to remote repository
+git remote      # show remote repo name
+-v              # show remote repo link
+git clone       # downloading (first time) remote repository to local disk, should be mde in destination direcotry
 
-git remote add origin [LINK to REMOTE REPO]                     #connecting local repo with remote repo (must be created on server)
+git fetch       # downloading changes from remote repo, without merging them witl local (main) branch, need merge after; safe because do not change our local copy 
+git log master..origin/master   # differences between local and remote (without merging)
+
+git pull        # updating the newest changes from remote repository and merging them with local branch (main) 
+--rebase        # pull = fetch + merge, rebase will do fetch + rebase (no merge commit)
+
+git push	    # sending changes (updating) to remote repository, without alias/branch will ude sefault (origin/main)
+
+git remote show origin      # check remote repo state
+
+git remote add [ALIAS] [LINK to REMOTE REPO]  #connecting local repo with remote repo (must be created on server)
 git remote add origin https://github.com/lukcic/devops.git
 
-git push -u origin main                                         #uploading changes (main branch) to remote repo 
+git push --set-upstream origin master       # creating master branch on remote repo and connect it with local master
+git push --set-uostream origin localBranch:remoteBranch     #connecting local branch with new remote branch (remote branch name can be modified) 
+
+git push origin master:master               # uploading changes to remote repo (full command)
+git push [ALIAS]                            # uploading changes to given remote repo (different than origin)    
+git push -u origin main                     # uploading changes (main branch) to remote repo 
+
+git remote rename [OLD_ALIAS] [NEW_ALIAS]   # rename remote repo
+git remote rm [ALIAS]                       # remove link to remote repo
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -202,9 +244,61 @@ git reset --hard HEAD@{31}      #will bring back state 31 changes ago (relative 
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+TAG - tagging commits 
+Will add tag to commit id. Full tags have additional description (different than commit message) and creation time. 
+Light tags are only aliases for commit id. 
+
+git tag                 # show tags
+-l [VALUE]              # filtering tags 
+git show [TAG_NAME]     # show changes in commit with given tag 
+
+git tag [TAG_NAME] [COMMIT_ID]     # creating light tag
+git tag -a [TAG_NAME] [COMMIT_ID]  # creating full tag
+
+git tag -d [TAG_NAME]   # remove tag
+
+git push origin [TAG_NAME]  # pushing tags to remote repo (git push doesn`t do this by default)
+git push --tags
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+STASH - saving changes to "clipboard". Used when work must be stopped but isn`t done (code doesn`t work). Stash - chowac na potem.
+
+git stash                       # cut changes made from last commit to 'clipboard'
+git stash save [MESSAGE]        # saving changes with description
+
+git stash list                  # show "clipboard"
+git stash show -p stash@{1}     # show changes in given stash (-p show code)
+
+git stash pop                   # paste this changes (clear the clipboard), id is needed when many stashes
+git stash apply stash@{1}       # paste this changes (stay in clipboard), id is needed when many stashes
+
+git drop stash@{1}              # delete stash 
+git stash clear                 # clear th 'clipboard'
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+PATCH -creating file (patch) with changes saved in commits
+
+git format-patch -1 [COMMIT_ID]     # creating patch file
+git apply [FILE]                    # applying patch
+--check                             # check before patch if format is correct
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 git --version			    #show git version
 <readme.md>                 #readme file (markdown), description of remote repository
 
+
+Trunk based development - main (trunk) branch is the most important, very small amount (or no) of feature branches (short lived). Merging the fastest as possible.
+Merged code must be very high quality.
+
+Branch per environment. Another branch for development, another for testing, another for staging and one for production.
+
+GIT Flow - the most complicated way. Master is used only for merging production code. 
+For working is uded branch "Develop" - need to create new branch from "Develop" work on it and all developers merged their changes to "Develop".
+From develop is created "release branch" that merged "good" quality code prepared for deploment (merging with master). 
+Release is used  for product stabilization (bugfixes, performance fixes). Makes "release candidate". 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Domyślna nazwa pierwszej gałęzi w nowym repozytorium to „master”. Większość
@@ -252,8 +346,6 @@ e - manually edit the current hunk
 '''
 
 
-git stash       #cut changes made from last commit to 'clipboard'
-git stash pop   #paste this changes (clear the clipboard)
-git stash apply #paste this changes (stay in clipboard)
-https://www.atlassian.com/git/tutorials/saving-changes/git-stash
+
+
 
