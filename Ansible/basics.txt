@@ -1,6 +1,8 @@
 https://docs.ansible.com/
 https://docs.ansible.com/ansible/latest/modules/modules_by_category.html
 https://docs.ansible.com/ansible/latest/user_guide/
+https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#host-variables
+https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html
 
 Playbooks repository
 https://galaxy.ansible.com/

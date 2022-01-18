@@ -13,8 +13,14 @@ git config --global user.email 'adres@email.pl'
 git config --global alias.[st] status       # create alias for status (st) 
 
 vim ~/.gitconfig
-[credential]   
-    helper = osxkeychain    # apple safe
+[user]
+    name = lukcic
+    email = lukcic@int.pl
+[credential]
+    helper = store
+    creditentialStore = gpg
+[core]
+    editor = vim
 [diff]
     tool = bc3
 [merge]
@@ -23,6 +29,9 @@ vim ~/.gitconfig
     st = status             # creating aliases
     glog = log --all --oneline --graph
     flog = !git log --oneline | grep        # ! means run as bash script 
+
+~/.git-credentials
+https://[USERNAME]:[TOKEN]@github.com
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -98,9 +107,9 @@ git show HEAD~2                         # will show
 
 COMMIT - saving changes
 
-git commit  #saves changes to local repository, makes the snapshot of files
+git commit  # saves changes to local repository, makes the snapshot of files
 -a          # add all changed & deleted files to stage (without new files)
--m          #comment to commit
+-m          # comment to commit
 
 git commit superskrypt.sh -m "Ulepszenie skryptu" #git commit with given filename will ignore other files in commit
 
@@ -129,36 +138,26 @@ git revert [COMMIT_ID]
 
 CHECKOUT - undo changes, switching between branches, switch back directory to past time - detached HEAD (tryb oderwanej głowy)
 
-git checkout [FILE]         # undo changes in file (to last commit???)
-
-git checkout [COMMIT_ID]    #switch to given (past) commit, git log needs --all, otherwise will show past state
-git checkuot master         #switch to most actual state
-
-If you switched to past commit and make new commit, repo will fork. You need to make new brach, switch to master and merge new repo.
-
-git checkout -b [NEW_BRANC_NAME]        #creating new branch while in past commit
-
-git checkout [FILENAME]     #delete changes in file to state from last commit
-
+git checkout [FILE]         # delete changes in file to state from last commit
+git checkout [COMMIT_ID]    #s witch to given (past) commit, git log needs --all, otherwise will show past state
+git checkout [NEW_BRANCH]   # switch to given branch
+-n                          # create branch and switch to it
+-b                          # creating new branch while in past commit, if you switched to past commit and make new commit, repo will fork. You need to make new brach, switch to master and merge new repo.  
+git checkuot main|master    # switch to master
+    
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 BRANCHES - forks of code, used to work with new features without changing production code
 
 git show-branch             # list branches in repository
 git branch                  # show current branch
-git branch -M main          # rename branch to main (master is common used too) 
-
-git branch [NEW_BRANCH]     # creates new branch
 -vv                         # show all branches (with remote)
-git checkout [NEW_BRANCH]   # switch to given branch
-git checkuot main|master    # switch to master
-
-git checkout -n [NEW_BRANCH]    # create and switch to new branch
-
+git branch -M main          # rename branch to main (master is common used too) 
+git branch [NEW_BRANCH]     # creates new branch
 git branch -d [BRANCH_NAME]             # deletes local branch, if not merged use -D
 git push origin --delete [BRANCH_NAME]  # deletes remote branch
 
-git merge [NEW_BRANCH]      # merge given branch with master (should be done on master), creates new commit id?????
+git merge [NEW_BRANCH]      # merge given branch with master (should be done on master), creates new commit id (merge commit)
 --abort                     # cancel merge if errors
 
 Fast forward - fast move indicator to forward branch without changes in files structure 
@@ -175,6 +174,7 @@ REBASE - method for moving changes from one branch to another (merging branches)
 
 Will remove fork with adding all changes from branch to master. 
 git rebase master   # done on branch, will take changes from branch and merge every single commit (from branch) with master to make flat structure
+git rebase --continue   # continue rebase after solving conflict
 
 git rebase -i master # rebase in iteractive mode
 
@@ -186,9 +186,6 @@ squash - chase (scalić) changes with last commit
 fixup - chase changes with last commit - only changes in code (without commit message)
 exec -run script for this change (run tests while copying commit, be sure that code is sompiling)
 drop - drop changes 
-
-
-git rebase --continue   # continue rebase after solving conflict
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

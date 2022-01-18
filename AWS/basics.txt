@@ -145,7 +145,6 @@ Wersjonowanie - włączane z poziomu bucketu, nie można wyłączyć (jedynie za
 
 
 AWS CLI!!!
-Certyfikacja AWS
 
 BOTO3 - API do AWSa
 

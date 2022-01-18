@@ -149,6 +149,13 @@ Plugins:
 docker container run --name [NAME] --mount type=volume,volume-driver=[DRIVER_FULL_NAME],source=[VOLUME_NAME],destination=[PATH_IN_CONTAINER] [IMAGE]:[TAG]
 #creating container with cration volume using plugin
 
+Backup volumes data:
+docker run --rm --volumes-from portainer -v $(pwd):/backup busybox tar cvf /backup/backup-poratiner-data.tar /data
+https://github.com/xcad2k/cheat-sheets/blob/main/infrastructure/docker.md
+
+Restore:
+docker run --rm --volumes-from [CONTAINER[] -v $(pwd):/backup busybox bash -c "cd [CONTAINERPATH] && tar xvf /backup/backup.tar --strip 1"
+
 https://docs.docker.com/storage/volumes/
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

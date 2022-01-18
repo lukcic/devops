@@ -12,3 +12,7 @@ Ansible is looking for configuration in:
 2) ansible.cfg file in working folder
 3) ~/.ansible.cfg in user home directory
 4) /etc/ansible/ansible.cfg
+
+Use if problems with sftp (sftp diabled on hosts sshd_config)
+[ssh_connection]
+scp_if_ssh=True

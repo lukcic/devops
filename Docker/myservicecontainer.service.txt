@@ -21,33 +21,24 @@ WantedBy=multi-user.target
 _________________________________________________________________________
 
 Opening docker as remote service in Ubuntu:
-su - root
-cd /etc/systemd/system
-mkdir docker.service.d
-cd docker.service.d
-vim override.conf
-'''
+
+Create daemon.json file in /etc/docker:
+{"hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]}
+Add /etc/systemd/system/docker.service.d/override.conf
+
 [Service]
 ExecStart=
-ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
-'''
-fd means to use socket activation 
-cat /lib/systemd/system/docker.socket
+ExecStart=/usr/bin/dockerd
+Reload the systemd daemon:
 
 systemctl daemon-reload
-service docker restart
+Restart docker:
 
-netstat --listen
+systemctl restart docker.service
 
+sudo ss -tulpn
 
-- - - - - - - - - - - - - - - - - - - - - - - 
 Connection to other host:
 docker -H tcp://[IP]:2375 ps
 
 Add cert connection
-
-On remote host:
-daemon.json:
-{
-    "hosts": [tcp://0.0.0.0:2375, "unix:///var/run/docker.sock"]
-}
