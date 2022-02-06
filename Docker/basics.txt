@@ -156,7 +156,7 @@ https://github.com/xcad2k/cheat-sheets/blob/main/infrastructure/docker.md
 Restore:
 docker run --rm --volumes-from [CONTAINER[] -v $(pwd):/backup busybox bash -c "cd [CONTAINERPATH] && tar xvf /backup/backup.tar --strip 1"
 
-https://docs.docker.com/storage/volumes/
+#https://docs.docker.com/storage/volumes/
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

@@ -1,0 +1,65 @@
+docker run -d -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:latest
+
+Configuring commit triggers:
+1. Push notofications from SCM to Jenkins server 
+System configuration - Manage Jenkins
+
+2. Jenkins checks for new commits in configured time intervals.
+Scan Multibranch Pipeline Triggers on Build configuration
+
+
+Webhook - url on Jenkins server on that jenkins is listening for push notofication from SCM (Source Code management system - GitHub, GitLab).
+http://localhost:8080/github-webhook
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Project types:
+-freestyle              - simple single tasks (eg. run tests)
+-pipeline               - whole delivery cycle (test, build, package, deploy)
+-multibrach pipeline    - pipeline for multiple branches
+
+Credentials scope:
+-global     - accessible everywhere across jenkins (build jobe, pipeline jobs etc)
+-system     - only on jenkins server, not visible for jenkins job (for jenkins server administrator)
+-project    - accessible only in given project
+
+Discover branches in multiple-branch pipeline:
+^dev|master|feature.*$      - java regex, dev or master or feature with any number (^$ - start and end of regex)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Simple Jenkinfsile (declarative pipeline):
+
+pipeline {
+    agent any       # where to execute, reserve build space on any available build node
+    stages {        # here the work happens
+        stage('Build') {
+            steps {
+                sh 'make'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'make test'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'deploy.sh'
+            }
+        }
+    }
+}
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Groovy script:
+
+stage('build') {
+    echo 'Building the application...'
+    script {
+        def test = 2 + 2 > 3 ? 'cool' : 'not cool'
+        echo test
+    }
+}
+
+node {
+    //groovy script
+}
