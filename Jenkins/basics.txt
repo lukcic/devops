@@ -8,7 +8,7 @@ System configuration - Manage Jenkins
 Scan Multibranch Pipeline Triggers on Build configuration
 
 
-Webhook - url on Jenkins server on that jenkins is listening for push notofication from SCM (Source Code management system - GitHub, GitLab).
+Webhook - url on Jenkins server on that jenkins is listening for push notofication from SCM (Source Code Management system - GitHub, GitLab).
 http://localhost:8080/github-webhook
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -63,3 +63,5 @@ stage('build') {
 node {
     //groovy script
 }
+
+D:\QSync\Kursy\DevOps\Jenkins\Nana\Complete Jenkins Pipeline Tutorial _ Jenkinsfile explained (720p).mp4

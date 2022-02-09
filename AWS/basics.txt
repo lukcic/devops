@@ -3,6 +3,13 @@ Unix & Linux p.325
 Documentation:
 https://docs.aws.amazon.com
 
+AWS.amazon.com/calculator
+
+Free tier - warstwa bezplatna
+
+AWS CLI!!!
+BOTO3 - API do AWSa
+
 ______________________________________________________________________________________________________________
 
 IAM (Identity and Access Management)            #https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html
@@ -49,6 +56,9 @@ Policy logic:
 -if is only one allow - answer allow
 -if there is no allow - answer deny
 
+AWS Policy generator:
+https://awspolicygen.s3.amazonaws.com/policygen.html
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 IAM Role - similar to user (has permission policy) but not specified person. For everyone who needs it (temporary creditentials). 
@@ -87,9 +97,6 @@ VPCs lives within (w ramach) a region and has own addressing (eg. 10.0.0./16)
 
 ______________________________________________________________________________________________________________
 
-
-
-
 AMI - Amazon Machine Images (obrazy)
 
 Security group - networking (firewall) for ec2 instance (like os firewall, Network ACL is fos subnet)
@@ -99,7 +106,7 @@ on demand - rozliczanie minutowe
 
 reserved - oplata z gory, deklaracja czasu, duze rabaty
 
-spot? - aukcja, deklarujemy ile chcemy zapłacić za kolejny miesiac. jezeli nie wystarzy maszyna jest kasowana
+spot? - Auction, we can declare the price that we can pay for compute and if our bid is eniugh we can use VM. Used for analytics etc. Large taska that doesn`t need to be done fast - cheeper is better.
 used to jenkins lub teamcity 
 
 AWS CloudFormation - Like terraform?
@@ -118,44 +125,95 @@ Amazon CloudWatch is a monitoring and management service that provides data and 
 AWS Config is a service that enables you to assess, audit, and evaluate the configurations of your AWS resources. AWS Config continuously monitors and records your AWS resource configurations. It enables you to automate the evaluation of recorded configurations against desired configurations. 
 AWS CloudTrail is a service that enables governance, compliance, operational auditing, and risk auditing of your AWS account. With CloudTrail, you can log, continuously monitor, and retain account activity related to actions across your AWS infrastructure. CloudTrail provides event history of your AWS account activity, including actions taken through the AWS Management Console, AWS SDKs, command line tools, and other AWS services. This event history simplifies security analysis, resource change tracking, and troubleshooting. In addition, you can use CloudTrail to detect unusual activity in your AWS accounts. These capabilities help simplify operational analysis and troubleshooting.
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+Storage:
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-EBS - local storage (volumes and snapshots)
-
-S3 simple storage service
-
-S3 bucket miejsce gdzie przechowujemy foldery i pliki (S3 objects) 
+S3 - Simple Storage Service (object)
+S3 bucket miejsce gdzie przechowujemy foldery i pliki (S3 objects). Bucket must be understood as a folder/directory. 
+Bucket names must be unique in worldwide range (DNS names). By default every bucket is private.
+Used for: web serving, content management, media, backups, data lake.
+Stored redundantly across multiple AZs. 
 
 Bucket - główny folder
 Podkatalogi - foldery
 Obiekty
 
 Pliki przechowujemy w regionie najbliższym nam (klientowi) fizycznie (latency). 
-
 Zazwyczaj wymagany ten sam region co ec2. 
 
 Klasy obiektów, różna cena zależna od czasu dostępu, czasu niedostępności, Ilości replikacji. Klasa pliku /folderu może być zmieniona w każdej chwili. 
 
-Klasa standard - najdroższa. 
+Klasa standard - najdroższa.
+Inteligent tiering
+Standard IA (IA - Infrequent Access)
+One zone IA
+Glacier
+
+Options
+-logging -S3 will log all access attempts. 
 
 Lifecycles - automatyczna migracja obiektu do innej klasy lub jego usunięcie. 
-
 Zasady mogą być stosowane do całego bucket, folderów lub obiektów. Zasadę po utworzeniu trzeba aktywować. 
 
-Wersjonowanie - włączane z poziomu bucketu, nie można wyłączyć (jedynie zawiesic). Wersjonowanie odnosi sie do adresow url plikow. 
+Versioning - S3 bucket will keep all versions of file if it was modified. Enabled in bucket options, cannot be disabled (only suspended).
+Versioning is reffering to file`s URLs.
 
+Transfer acceleration - pay for fastest tranfer of data withinh the bucket.
 
-AWS CLI!!!
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-BOTO3 - API do AWSa
+EBS - Elastic Block Storage (block)
+Local storage (volumes and snapshots). Persistant block volumes. Redundancy in availability zones. 
+Can be attached to one EC2 in single AZ. Used for: boot volumes, databases, log processing applications, data warehousing. 
+Stored redundantly in a singles AZs. 
 
-RDS - SQL relacyjna Relational Database Service (rows and columns)
-Amazon Aurora - compatible with MySQL & PostgreSQL (engine choose)
-Mariadb
-PostgresQL
-Oracle
-MS SQL
+Volume types:
+IOPS SSD (io1) -  higher i/o
+GP SSD (gp2) - general purpose SSD, lower price
+Throughput optimized HDD (st1) - frequntly accessed
+Cold HDD (sc1) - lowest cost 
 
-Must create a subnte group and choose subnet for db and vpc.
+SSD - transactional workloads (databases, boot volumes), hihets 
+HDD - Throughput intensive workloads (log processing)
+
+Data Lifecycle manager - schedule for snapshots rotation (cleanup)
+
+Elastic volumes - dynamicly increase capacity or performance
+
+Snapshots - backups, save point of time in S3 bucket (always incremental version of previous one). Can be copied across regions. 
+Initial snapshot should be saved as AMI (Amazon Machine Image) or stored in different bucket than other incremental snapshots.
+
+Optimizedd instances - EC2 fully use provisioned i/o
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+EFS - Elastic File System (file)
+Shared file storage (between many EC2s in different AZs). 
+Used for: web serving, content management, enterprise applications, media, home directories, database backups, developer tools, container storage, big data analysis.
+Stored redundantly across multiple AZs. 
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Glacier - Archieving data
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Storage Gateway
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+DATABASES:
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+RDS - Relational Database Service (relational, rows and columns)
+
+1. Amazon Aurora - compatible with MySQL & PostgreSQL (engine choose), much faster than them. 
+2. Mariadb
+3. PostgresQL
+4. Oracle
+5. MS SQL
+6. MySQL
+
+Must create a subnet group and choose subnet for db and vpc.
 
 DynamoDB - NoSQL (no engine choose) key:value like json
 MongoDB
@@ -163,7 +221,8 @@ Cassandra
 
 MySQL Workbench
 Connection to mySQL over ssh
- 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 SNS -Simple Notification service
 Publisher - komunikacja 
 Subscriber - webserwisy, które informuja o zdarzeniu
@@ -202,4 +261,4 @@ Function will start when:
 
 Paas - run your code on cloud infrastructure
 Google app Engine
-Elastic Beanstalk (AWS)
+Elastic Beanstalk (AWS) -deployin applications written in specific programming language (Java, Python, nodeJS etc.) Upload your code and ElasticBeanstalk do the rest. 
