@@ -77,6 +77,13 @@ ________________________________________________________________________________
 
 VPC - virtual private cloud
 
+Limitations:
+-5 VPCs per account
+-4 secondary IP ranges
+-200 subnets
+-5 elastic IP addresses
+-10 hardware VPN connections
+
 Virtual, private network that uses the same concepts as on premise networking.
 Allows of control of network config (IP subnets, routing tables, access lists). 
 Ability to isolate and expose resources inside VPC. 
@@ -92,33 +99,39 @@ VPCs lives within (w ramach) a region and has own addressing (eg. 10.0.0./16)
 -Internet Gateway (IGW) - allows access to internet from VPC.
 -Virtual Private Gateway (VGW) - VPN gateway
 -NAT Gateway - allows private subnet resources access to internet
--Security group - firewall attached to resource (EC2 VM)
--Network ACcess List (NACL) - firewall for subnets, read from lower to higher number (stateless)
+-Security group - firewall attached to resource (EC2 VM), statefull (allow outbound rules if inbound are allowed). By default everything is denied (cannot deny traffic from particular instance).
+-Network ACcess List (NACL) - firewall for subnets, reads from lower to higher number (stateless - both: inbound and outbound rules must be specified). Rules can be allow or deny. 
+-Peering connections - connect 2 VPCs together
+
+#Security group - networking (firewall) for ec2 instance (like os firewall, Network ACL is fos subnet)
+______________________________________________________________________________________________________________
+
+Route53 - Amazon DNS system.
+-Resolver
+-Trafiic Flow
+-Latency based routing
+-Geo & private DNS
+-DNS failover
+-Health check
+-Domain registration
+-ELB integration (Load Balancing)
+
+https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html
+https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-private.html
+______________________________________________________________________________________________________________
+
+CloudFront - Content Delivery Network (CDN). Low latency and higher transfer using multiple AWS phisical locations.
 
 ______________________________________________________________________________________________________________
 
-AMI - Amazon Machine Images (obrazy)
+ELB - Elastic Load Balancing
+It is configured from EC2 panel
 
-Security group - networking (firewall) for ec2 instance (like os firewall, Network ACL is fos subnet)
+Appication Load Balancer - HTTP and HTTPs traffic, provides advanced request routing 
+Network load balancer - load balance of TCP trafiic with extreme performance, operates on 4th layer (connections) 
+Classic Load Balancer - load balance across mltiple EC2 instnaces, operates on request and connection level (4th layer)
 
-Ec2 pricing
-on demand - rozliczanie minutowe
-
-reserved - oplata z gory, deklaracja czasu, duze rabaty
-
-spot? - Auction, we can declare the price that we can pay for compute and if our bid is eniugh we can use VM. Used for analytics etc. Large taska that doesn`t need to be done fast - cheeper is better.
-used to jenkins lub teamcity 
-
-AWS CloudFormation - Like terraform?
-AWS OpsWorks - like Ansible
-AWS Cloud9 - cloud IDE (VS Code)
-AWS CodeBuild - like Jenkins (AWS CodeBuild is a fully managed build service that automatically compiles source code, runs tests, and produces software packages. )
-AWS CodeCommit - like GitHub
-AWS CodePipeline - like Jenkins (AWS CodePipeline is a continuous delivery service that enables you to model, visualize, and automate the steps required to release your software. )
-AWS CodeDeploy - Deplying automation
-Amazon Elastic Container service (Amazon ECS) - like Kubernetes
-AWS Cloud Development Kit (AWS CDK)  - programming framework for creating IaaC. AWS CDK is a compiler that compiles your source code into an AWS CloudFormation template. 
-
+______________________________________________________________________________________________________________
 Monitoring:
 AWS X-Ray is a distributed tracing system. It helps you analyze and debug your distributed applications, such as those built using microservices, or serverless architecture. It provides an end-to-end view of requests as they travel through your application, and shows a map of your application`s underlying components.
 Amazon CloudWatch is a monitoring and management service that provides data and actionable insights for AWS, hybrid, and on-premises applications and infrastructure resources. With CloudWatch, you can track resources and application performance, collect and monitor log files, troubleshoot, and set alarm notifications.
@@ -221,9 +234,70 @@ Cassandra
 
 MySQL Workbench
 Connection to mySQL over ssh
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+AWS Management Tools:
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+CloudWatch - live monitoring service for all AWS resources.
+Metrics can be catalog or cached for notofications. CloudWatch can increase EC2 parameters when detects too high load (AutoScaling). 
+Payment depends of region.  
+
+Dashbord - graphs like Grafana
+Alarms - notifications to SNS
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+CloudTrail - Tracking users activity and API usage.
+Compliance auditing
+Operational troubleshooting
+Security analysis
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+AWS CloudFormation - Like terraform?
+
+Used for coding infrastructure, CloudFormation template language, JSON, YAML. Has reade templates for eg. Wordpress.
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Trusted Advisor - Automatic infrasturcture optimization
+
+Scans infrastructure, compares it with AWS best practices (in 5 categories) and provides recommanded actions:
+-cost optimization
+-performance
+-security
+-fault tolerance
+-servcie limits 
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+AWS Config
+Configuration changes - records and normalizes that changes
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+EC2 Systems Manager - Manage and operate resources at scale
+
+Create a groups of resources, visualize data, automate operational actions across groups.
+-run command
+-state manager
+-inventory
+-maintenance window
+-patch manager
+-automation
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+AWS Messaging Tools:
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 SNS -Simple Notification service
+
 Publisher - komunikacja 
 Subscriber - webserwisy, które informuja o zdarzeniu
 
@@ -233,24 +307,15 @@ Topic - label, grupa ktora definiuje nasze endpointy w wiadomosci definiowanej
 Subscription - miejsce gdzie ma wyslac wiadomosc (email, telefon)
 Publisher - czlowiek ,alar, event ktory generuje lub zbiera to co ma byc wyslane
 
-CloudWatch
-Usługa, ktora pozwala monitorowwac wszystkie usługi (zasoby) AWS w czasie rzeczywistym. Metryki mozna katalogowac oraz wychwytywac punkty do powiadomień. 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-CloudWatch moze rozszerzyc parametry wirtualki EC2 w razie wystąpienia większego obciążenia. 
+SQS - Simple Queue service
 
-Opłaty sa zależne od regionu.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Dashbord - cos jak grafana? Wykresy zuzycia CPU itp.
+SES
 
-Alarms - powiadomienia do SNS
-
-CloudTrail - serwis, ktory sprawdza kto wykonal jakie czynnosci na koncie AWS. AWS Account Audit.
-
-Autoscaling - free
-
-Route 53 - dns, domeny, health check
-
-Cloud Front - pliki statyczne content do stron (works in all regions)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Lambda - wykonywanie naszego kodu (funkcji) na infrastrukturze AWS, płacimy tylko za każdorazowe użycie kodu
 Function will start when:
@@ -262,3 +327,26 @@ Function will start when:
 Paas - run your code on cloud infrastructure
 Google app Engine
 Elastic Beanstalk (AWS) -deployin applications written in specific programming language (Java, Python, nodeJS etc.) Upload your code and ElasticBeanstalk do the rest. 
+
+
+
+Ec2 pricing
+on demand - rozliczanie minutowe
+
+reserved - oplata z gory, deklaracja czasu, duze rabaty
+
+spot? - Auction, we can declare the price that we can pay for compute and if our bid is eniugh we can use VM. Used for analytics etc. Large taska that doesn`t need to be done fast - cheeper is better.
+used to jenkins lub teamcity 
+
+
+AMI - Amazon Machine Images (obrazy)
+
+
+AWS OpsWorks - like Ansible, use chef??
+AWS Cloud9 - cloud IDE (VS Code)
+AWS CodeBuild - like Jenkins (AWS CodeBuild is a fully managed build service that automatically compiles source code, runs tests, and produces software packages. )
+AWS CodeCommit - like GitHub
+AWS CodePipeline - like Jenkins (AWS CodePipeline is a continuous delivery service that enables you to model, visualize, and automate the steps required to release your software. )
+AWS CodeDeploy - Deplying automation
+Amazon Elastic Container service (Amazon ECS) - like Kubernetes
+AWS Cloud Development Kit (AWS CDK)  - programming framework for creating IaaC. AWS CDK is a compiler that compiles your source code into an AWS CloudFormation template. 

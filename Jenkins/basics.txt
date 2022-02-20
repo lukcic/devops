@@ -28,29 +28,94 @@ Discover branches in multiple-branch pipeline:
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 Simple Jenkinfsile (declarative pipeline):
+Easy to start, predefinied structure, 
 
-pipeline {
+def gv              # defining variable to store groovy script
+pipeline {          # must be top-level
     agent any       # where to execute, reserve build space on any available build node
+
+    environment {   # definition of user environment variables
+        NEW_VERSION = "1.3.0"
+        SERVER_CREDENTIALS = credentials('credentialId')        # binding definied in Jenkins credentials to env, needs "Credential Binding" plugin 
+    }
+
+    parameters {    # defining parameters for given build, 3 types, used with "when {expression}", in GUI use "Build with parameters"
+        string(name: 'VERSION', defaultValue: '', description: 'version to deploy on prod')
+        choice(name: 'VERSION', choices: ['1.1.0', '1.2.0', '1.3.0'], description: '')
+        booleanParam(name: 'executeDeploy', defaultValue: true, description: '')
+    }
+
     stages {        # here the work happens
         stage('Build') {
             steps {
                 sh 'make'
+                echo "building version ${NEW_VERSION}"  # using user definied variable, in groovy "" must be used
+                script {
+                    # using groovy script inside simple Jenkinsfile
+                    gv = load. "script.groovy"
+                    ''' # inside of file script.groovy
+                    def buildApp() {
+                        echo 'building the aplication...'
+                    }
+
+                    return this
+                    '''
+                    gv.buildApp()     # using function from loaded script
+                }
             }
         }
+
         stage('Test') {
+            when {  # do the stage if expression is true
+                expression {
+                    BRANCH_NAME == 'dev'    # do stage 'test' steps only on branch called 'dev'
+                    BRANCH_NAME == 'dev' || BRANCH_NAME == 'master' # or
+                    BRANCH_NAME == 'dev' && CODE_CHANGES = true     # && and, do steps only on branch 'dev' and only if code changes    
+                }
+            }
             steps {
                 sh 'make test'
             }
         }
+
         stage('Deploy') {
+            when {
+                expression {
+                    params.executeDeploy == true
+                }
+            }
+
             steps {
+                echo "deploying version ${params.VERSION}"
                 sh 'deploy.sh'
+                withCredentials([usernamePassword(credentials: 'credentialId', usernameVariable: USER, passwordVariable: PWD)]) {
+                    # using Jenkins stored credentials in scope of this stage
+                    sh "some script ${USER} ${PWD}"
+                }
             }
         }
     }
+
+    post {          # ececute some logic after all stages were executed
+        always {
+            # this will always be executed, whatever build succed or failed
+            # used to send email with build status
+        }
+        success {
+            # this will be done if build is green
+        }
+        failure {
+            # this will be done if build is red
+        }
+    }
 }
+
+JENKINS environment variable:
+https://localhost:8080/env-vars.html
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-Groovy script:
+Groovy scripted:
+High fexibility, harder to start.
 
 stage('build') {
     echo 'Building the application...'
