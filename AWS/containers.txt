@@ -1,0 +1,49 @@
+Container Orchestration:
+-how to manage running containers?
+-how much resources on host are still available?
+-on which host schedule next container?
+-are containers crashed or running?
+-how to restart crashed containers?
+-How to remove unused replicas?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+ECS - Elastic Container Service
+ECS cluster - contain all services
+ECS use ec2 instances connected to ECS cluster by container runtime and ECS agent (control plane communication). 
+Still need to manage virtula machines:
+-ec2 must be created manually and joind to ECS cluster
+-you have to check if there are free resources before deploying new container
+-manage OS
+-full access to your infrastructure!
+
+ECS Fargate (serverless):
+-manage containers
+-manage virtual machines (hosts) infrastructure too (no need to create them)
+
+ECS with Fargate:
+-no need to provision and manage virtual machines
+-all on demand
+-runs only as much resources as you need
+-you pay only for needed resources
+-elastic (scale up and down)
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+EKS - Elastic Kubernetes Service
+
+-alternative to ECS
+-compatilbe with open source Kubernetes (same K8s API)
+
+EKS cluster - control plane (K8s master) are deployed and managed by EKS.
+Master nodes and ecds are replicated across Availability Zones.
+Compute fleet - worker nodes. 
+
+EKS with EC2 - you have to manage infrastructure to worer nodes. 
+EKS with nodegroup - will creates manage EC2 instances, but must be confiured.
+EKS with Fargate - fully managed worker nodes and control plane.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+ECR - Elastic container Registry
+Repository for container images, alternatve to DockerHub or Nexus. 

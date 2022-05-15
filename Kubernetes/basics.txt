@@ -1,0 +1,38 @@
+Container Orchestration:
+-how to manage running containers?
+-how much resources on host are still available?
+-on which host schedule next container?
+-are containers crashed or running?
+-how to restart crashed containers?
+-How to remove unused replicas?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Basic infrastructure:
+1. Master node (at least 1):
+-API server (entrypoint to the k8s cluster). It is a container.
+-controller manager 
+-scheduler - decided where to deploy container
+-etcd - key-value storage, handle state of nodes and containers, snapshots may be used
+-virtual network
+
+
+2. Worker nodes (kubelet process running)
+-more resources than master to handle containers
+
+POD - the wrapper (opakowanie) of container. The smallest unit to configure and interact with.
+Usually one pod per application, each pod got its own IP address. 
+Pods communicate each other using internal network (auto-configured). 
+Pods are empheral, can be deleted as a containers. 
+
+Service - IP address of pods, used to communicte (IPs of pods changes) and loadbalancer.
+
+Master
+multiple Worker nodes - multiple pods - multiple containers.
+
+
+Control of Kubernetes:
+-cli (kubectl)
+-UI
+-API
+
+Kubernetes configuration (yaml) is declarative. 
