@@ -1,15 +1,124 @@
-docker run -d -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home jenkins/jenkins:latest
+Installation:       # https://www.jenkins.io/download/
+-install openjdk:   # https://www.jenkins.io/doc/book/installing/linux/
+sudo apt install openjdk-11-jdk
+# sudo apt install openjdk-11-jre
+java -version
+
+-add keys for repo:
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+
+-add keys
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee  /etc/apt/sources.list.d/jenkins.list > /dev/null
+
+-install Jenkins:
+sudo apt-get update && sudo apt-get install jenkins -y
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Docker run:
+docker run -d --name jenkins -p 6969:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home  --restart=always jenkins/jenkins:lts-jdk11
+____________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+Restarting Jenkins:
+http://ipaddress:port/restart
+
+____________________________________________________________________________________________________________________________________________________________________________________________________________________________
+AGENTS:
+Jenkins agents can be:
+A) standalone Linux VMs that can create containers (if docker is installed),
+B) docker containers built from "docker:dind" image, that can create containers inside of them. 
+
+
+A. Creating and connecting agents as Linux VMs:
+
+1. Disable jobs running on controller (local executors):
+Manage jenkins - Confogure system:
+- "# of executors": 0
+- set labels: "controller"
+- usage: Only build jobs with matching label
+
+2. Install java on agent
+sudo apt install openjdk-11-jre
+
+3. Install docker on agent.
+
+4. Jenkins - Manage Jenkins - Manage Nodes and Clouds - New Node (permanent agent)
+- remote root dircetory: /home/ubuntu/jenkins
+- labels: "linux"
+- usage: only jobs with label
+- launch method: launch agents via ssh (add key)
+- availability: Keep this agent online as much as possile
+
+Testing:
+- create a test job (pipeline)
+- pipeline script:
+
+"""
+pipeline {
+    agent {label "linux"}
+    stages {
+        stage("Hello") {
+            steps {
+                sh """docker info"""
+            }
+        }
+    }
+}
+"""
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+B. Creating and connecting agents as Docker containers:
+
+Creating docker host (worker):
+docker run --name jenkins-docker -d --network jenkins --network-alias docker --volume jenkins-data:/var/jenkins_home -p 2376:2376 -p 3000:3000 docker:dind 
+
+Optional:
+--env DOCKER_TLS_CERTDIR=/certs 
+--volume jenkins-docker-certs:/certs/client
+--storage-driver overlay2 (after IMAGE name:tag)
+
+Creating Jenkins host (controller):
+docker run --name jenkins-blueocean -d --network jenkins --env DOCKER_HOST=tcp://docker:2376 -p 8080:8080 -p 50000:50000 --volume jenkins-data:/var/jenkins_home --volume "$HOME":/home myjenkins-blueocean:2.332.1-1
+
+Optional:
+--env DOCKER_CERT_PATH=/certs/client 
+--env DOCKER_TLS_VERIFY=1
+--volume jenkins-docker-certs:/certs/client:ro
+
+Image for Jenking controller with Docker-cli:
+"""
+FROM jenkins/jenkins:2.332.1-jdk11
+USER root
+RUN apt-get update && apt-get install -y lsb-release
+RUN curl -fsSLo /usr/share/keyrings/docker-archive-keyring.asc \
+  https://download.docker.com/linux/debian/gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) \
+  signed-by=/usr/share/keyrings/docker-archive-keyring.asc] \
+  https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+RUN apt-get update && apt-get install -y docker-ce-cli
+USER jenkins
+RUN jenkins-plugin-cli --plugins "blueocean:1.25.3 docker-workflow:1.28"
+"""
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+
+____________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
 Configuring commit triggers:
 1. Push notofications from SCM to Jenkins server 
 System configuration - Manage Jenkins
 
-2. Jenkins checks for new commits in configured time intervals.
-Scan Multibranch Pipeline Triggers on Build configuration
-
-
 Webhook - url on Jenkins server on that jenkins is listening for push notofication from SCM (Source Code Management system - GitHub, GitLab).
 http://localhost:8080/github-webhook
+
+2. Jenkins checks for new commits in configured time intervals.
+"Scan Multibranch Pipeline Triggers" on Build configuration:
+
+H/5 * * * *     # every 5minutes
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -19,7 +128,7 @@ Project types:
 -multibrach pipeline    - pipeline for multiple branches
 
 Credentials scope:
--global     - accessible everywhere across jenkins (build jobe, pipeline jobs etc)
+-global     - accessible anywhere across jenkins (build jobe, pipeline jobs etc)
 -system     - only on jenkins server, not visible for jenkins job (for jenkins server administrator)
 -project    - accessible only in given project
 
@@ -96,7 +205,7 @@ pipeline {          # must be top-level
         }
     }
 
-    post {          # ececute some logic after all stages were executed
+    post {          # execute some logic after all stages were executed
         always {
             # this will always be executed, whatever build succed or failed
             # used to send email with build status
@@ -129,4 +238,16 @@ node {
     //groovy script
 }
 
-D:\QSync\Kursy\DevOps\Jenkins\Nana\Complete Jenkins Pipeline Tutorial _ Jenkinsfile explained (720p).mp4
+____________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+Monitoring Jenkins using Prometheus & Grafana:
+
+1. Install Prometheus etrics plugin in Jenkins.
+2. Chnage settings in Dashbord - Manage Jenkins - Configure system - Prometheus: Collecting metrics period in time etc.
+3. Check metrics: http://localhost:8080/prometheus
+4. Install Prometheus server and add config:
+- job_name: 'jenkins'
+    metrics_path: /prometheus/
+    static_configs:
+    - targets: ['192.168.254.50:6969']
+5. Import Grafana dashbord (eg. 9964)

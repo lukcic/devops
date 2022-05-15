@@ -2,7 +2,8 @@ Networks types:
 -bridge -isolated (from host) network for containers
 -host -network for containers without isolation (host IP)
 -overlay -for docker Swarm (more than one daemons), communication between container without routing
--MacVLAN -mac for container (looks like phisical device in network)
+-MacVLAN -different mac for every container (looks like phisical device in network), container obtains IP from network DHCP server or static
+-IPVLAN -similar to MacVLAn but uses the same MAC for all containers in network (phisical switch limitations by security reasons)
 -None -no networking
 
 Host Network
@@ -29,3 +30,14 @@ docker run --network=none [IMEGE]:[TAG]            #Creating container without n
 docker network disconnect [NETWORK_NAME] [CONTAINER_NAME]       #disconnection network from container
 
 docker network prune #deletes all created networks
+
+--network jenkins       
+--network-alias docker  # Makes the Docker in Docker container available as the hostname docker within the jenkins network.
+
+MacVLAN network with one IP address in range (from docker host network) attached to ens18 phisical NIC:
+docker network create -d macvlan --subnet 192.168.0.0./24 --gateway 192.168.0.1 --ip-range 192.168.0.253/32 -o parent=ens18 custommacvlan
+
+
+
+
+https://github.com/nicolaka/netshoot

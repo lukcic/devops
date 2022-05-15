@@ -1,0 +1,81 @@
+https://www.jenkins.io/doc/book/pipeline/docker/
+
+
+Docker on Jenkins agents:
+
+1. Install "docker pipeline" plugin on controller.
+
+2. Set agent as "docker" in pipeline:
+
+pipeline {
+    agent {
+        docker {
+            image 'node:16-alpine'
+            label 'linux'      
+        }
+    }
+    stages {
+        stage('Test') {
+            steps {
+                sh 'node --version'
+            }
+        }
+    }
+}
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Configure Docker agents in stage levels:
+
+pipeline {
+    agent none
+    stages {
+        stage('Back-end') {
+            agent {
+                docker {
+                    image 'maven:3.8.1-adoptopenjdk-11'
+                    label 'linux'
+                }
+            }
+            steps {
+                sh 'mvn --version'
+            }
+        }
+        stage('Front-end') {
+            agent {
+                docker {
+                    image 'node:16.13.1-alpine'
+                    label 'linux'
+                }
+            }
+            steps {
+                sh 'node --version'
+            }
+        }
+    }
+}
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Configure Docker agents in stage levels:
+
+pipeline {
+    agent { dockerfile true }
+    stages {
+        stage('Test') {
+            steps {
+                sh 'node --version'
+                sh 'svn --version'
+            }
+        }
+    }
+}
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Dockerfile in GIT repo:
+'''
+FROM node:16.13.1-alpine
+
+RUN apk add -U subversion
+'''

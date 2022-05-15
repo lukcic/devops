@@ -222,4 +222,17 @@ Linking containers:
 
 docker run -dt --name mysql_client --link mysql_server:mysql_client ubuntu
 #will link server`s IP adress in clients /etc/host to communicate with it 
+_________________________________________________________________________
+
+docker:dind
+Docker-in-Docker, also known as DinD, is just what it says: running Docker inside a Docker container.
+This implies that the Docker instance inside the container would be able to build containers and also run them.
+
+Used in:
+Continuous Integration (CI) pipeline
+Sandboxed Docker environments
+
+DinD in CI pipelines is the most common use case. It shows up when a Docker container is tasked with building or running Docker containers. For example, in a Jenkins pipeline, the agent may be a Docker container tasked with building or running other Docker containers. This requires Docker in Docker.
+But CI is not the only use case. Another common use case is developers that want to play around with Docker containers in a sandboxed environment, isolated from their host environment where they do real work. In this case Docker-in-Docker is a great solution.
+
 
