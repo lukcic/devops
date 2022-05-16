@@ -3,6 +3,13 @@
 #git commands visual 
 https://git-scm.com/book/en/v2
 
+
+They are two different symbolic names that can point to different things. refs/heads/master is a branch in your working copy named master. Frequently that is a tracking branch of refs/remotes/origin/master because origin is the default name for the remote created by git clone and its primary branch is usually also named master.
+You can see the difference between them with git rev-list refs/heads/master..refs/remotes/origin/master which will be empty if they are the same and will otherwise list the commits between them.
+
+git rev-list
+git rev-parse HEAD # will return full hash of current commit (HEAD)
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 CONFIG - configure environment
