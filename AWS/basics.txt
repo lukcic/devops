@@ -11,6 +11,13 @@ AWS CLI!!!
 BOTO3 - API do AWSa
 resource groups! using tags (tag editor)
 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Amazon Resource Names (ARN) - unique name of resource (eg. VM) given after creation
+
+arn:[PARTITION]:[SERVICE]:[REGION]:[ACCOUNT_ID]:[RESOURCE_TYPE]/[RESOURCE]
+arn:aws:iam:123456789012:user/Bob       # iam use global region (aws-us-gov)
+
 ______________________________________________________________________________________________________________
 
 IAM (Identity and Access Management)            #https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html
@@ -22,15 +29,9 @@ IAM Policies - created to give permissions for users, groups and roles:
 -Managed (independent, can be attached to multiple users), AWS managed and customer managed
 -Inline (created by you, set (embeded) to single user, group or role)
 
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+Policy generator:
+https://awspolicygen.s3.amazonaws.com/policygen.html
 
-Amazon Resource Names (ARN) - unique name of resource (eg. VM) given after creation
-
-arn:[PARTITION]:[SERVICE]:[REGION]:[ACCOUNT_ID]:[RESOURCE_TYPE]/[RESOURCE]
-arn:aws:iam:123456789012:user/Bob       # iam use global region (aws-us-gov)
-
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 IAM JSON Policy elements:
 https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements.html

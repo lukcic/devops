@@ -1,0 +1,127 @@
+JSON - JavaScript Object Notation
+
+Ajax -send data client-server without refreshing page in browser.
+
+Numbers     - no difference int or floats
+Strong      - must be in ""
+Boolean     - True or False
+Array       - ordered list of values []
+Object      - unordered collection of key/value pairs
+Null        - empty value
+
+JSON syntax rules:          jsonlint.com
+-key/value pairs - {"key":"value"} 
+-must use above datatypes
+-filetype .json
+-MIME type is "Application/json"
+
+Simple example - person:
+{
+    "name":"Lukasz Cichecki",       
+    "age": 35,
+    "address": {                        // dictionary in dictionary
+        "street":"Graniczna",
+        "city":"Wroclaw"
+    },
+    "childern":["Zuzanna","Lodi"]       // [] - array (list) of strings
+}
+______________________________________________________________________________________________________________________________
+______________________________________________________________________________________________________________________________
+
+ Differences between JS Object and JSON:
+
+ var person = {         // Thiis is JS Obcject, not valid JSON
+     name: "Lukasz",
+     age: 35
+ }
+
+console.log(person);            // Will return whole object
+console.log(person.name);       // Will return Lukasz
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+ var person = {        
+     name: "Lukasz",
+     age: 35,
+     email(){
+         return 'lukasz@gmail.com'    
+     }
+ }
+
+console.log(person.email());    // Will return lukasz@gmail.com
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Convert JS Object to JSON:
+
+ var person = {         
+     name: "Lukasz",
+     age: 35
+ }
+
+person = JSON.stringify(person);
+console.log(person);                // Will return valid JSON object {"name":"Lukasz", "age": 35}
+
+colsole.log(person.name);           // Will return "Undefinied", must be converted to JS Object using JSON.parse
+person = JSON.parse(person);
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Accessing more deep elements:
+
+var person = {
+    name: "Lukasz Cichecki",       
+    age: 35,
+    address:{                           // dictionary in dictionary
+        street: "Graniczna",
+        city: "Wroclaw"
+    },
+    childern:["Zuzanna","Lodi"]         // [] - array (list) of strings
+}
+
+console.log(person.address.street);     // Will return Graniczna
+console.log(person.choldren[0]);        // Will return Zuzanna
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Array of objects [ {}, {}, {} ]:
+
+var people = [
+    {
+        name: "Lukasz",
+        age: 35
+    },
+    {
+        name: "Aneta",
+        age: 35
+    },
+    {
+        name: "Zuzanna",
+        age: 9
+    }
+]
+
+console.log(people[0]);         //will return whole object {name: "Lukasz", age: 35}
+console.log(people[0].age);      //will return 35
+
+for(var i = 0;i < people.lenght;i++){   // Print all person data
+    console.log(people[i].name);
+    console.log(people[i].age);
+}
+
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Using data in HTML:
+
+<body>
+    <ul id="people"></ul>
+</body>
+
+var output = '';
+for(var i = 0;i < people.lenght;i++){   // Print all person data
+    output += '<li>'+people[i].name+'</li>'
+}
+document.getElementById('people').innerHTML = output;
+
+// Will create unordered list with names in body of page.
+

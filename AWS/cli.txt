@@ -18,4 +18,34 @@ Creditentials file:
 %UserProfile%\.aws\credentials
 
 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+https://docs.aws.amazon.com/cli/latest/userguide/cli-services-s3-commands.html
+
+S3
+aws s3 ls                                   # list buckets
+aws s3 ls s3://bucket1                      # list content of bucket
+
+aws s3 cp <source> <target>
+aws s3 cp s3://bucket1/file.txt s3://bucket2        # will copy all objects from 1 bucket to 2
+
+aws s3 sync s3://bucket1 s3://bucket2               # sync files between 2 buckets
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+Localstack
+
+http://docs.localstack.cloud/integrations
+
+Installation using Python:
+python -m pip install localstack==0.9.0
+localstack start
+
+Running in a docker container:
+docker run --rm -it -p 4566:4566 -p4571:4571 localstack/localstack
+
+aws --endpoint-url=http://localhost:4566 s3api list-buckets
+
+Terraform config:
+https://docs.localstack.cloud/integrations/terraform/
 

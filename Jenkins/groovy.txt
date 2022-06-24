@@ -1,0 +1,8 @@
+            environment {
+                //AWS_ACCESS_KEY_ID = credentials("${secretsAWS[DEPLOYMENT_TARGET].access_key ?: secretsAWS["development"].access_key}")
+                //AWS_SECRET_ACCESS_KEY = credentials("${secretsAWS[DEPLOYMENT_TARGET].secret_access_key ?: secretsAWS["development"].secret_access_key}")
+                AWS_SECRET_ACCESS_KEY = credentials("${secretsAWS[DEPLOYMENT_TARGET]?.access_key ?: secretsAWS["development"].access_key}") // ? before . checks if object is null or not, if is not null then return value, if null then return ELSE value
+                AWS_SECRET_ACCESS_KEY = credentials("${secretsAWS[DEPLOYMENT_TARGET]?.secret_access_key ?: secretsAWS["development"].secret_access_key}") // ? before . checks if object is null or not, if is not null then return value, if null then return ELSE value
+                AWS_REGION = 'eu-central-1'
+                S3_BUCKET = "${s3buckets["${DEPLOYMENT_TARGET}"]}"
+            }

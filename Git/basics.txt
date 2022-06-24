@@ -94,7 +94,7 @@ git add .	            # add all files to index
 
 git reset [FILE]        # remove file from cache (index)
 
-git rm --cached [FILE]	#remove file from index
+git rm --cached [FILE]	# remove file from index
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -134,6 +134,12 @@ git reset [COMMIT_ID]   # remove commits after given id, deletes commit and chan
 
 git reset HEAD~2        # go two commits backwards (default 1) 
 
+Squashing multiple commits into 1:
+git reset --soft [COMMIT_ID]  #all chenges will stays in workdir
+git add -u
+git commit --amend
+git push --force-with-lease
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 REVERT - creates new commit that invert changes from given commit. Effect like in reset but without changes in repo history.
@@ -148,8 +154,8 @@ CHECKOUT - undo changes, switching between branches, switch back directory to pa
 git checkout [FILE]         # delete changes in file to state from last commit
 git checkout [COMMIT_ID]    #s witch to given (past) commit, git log needs --all, otherwise will show past state
 git checkout [NEW_BRANCH]   # switch to given branch
--n                          # create branch and switch to it
--b                          # creating new branch while in past commit, if you switched to past commit and make new commit, repo will fork. You need to make new brach, switch to master and merge new repo.  
+-b                          # create branch and switch to it
+
 git checkuot main|master    # switch to master
     
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
