@@ -1,0 +1,2 @@
+Lambda deploying without admin priviledges:
+https://www.qloudx.com/delegate-aws-iam-user-and-role-creation-without-giving-away-admin-access/

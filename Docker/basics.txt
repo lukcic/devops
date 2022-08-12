@@ -83,6 +83,7 @@ docker rm -f $(docker ps -aq)               #Removes all containers
 docker volume rm $(docker volume ls -q)     #Removes all volumes
 docker system prune -a                      #Will destroy all containers, networks, images and cache
 
+https://bulldogjob.pl/readme/jak-odzyskac-przestrzen-dyskowa-zajeta-przez-dockera
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Updating containers:
 
@@ -154,9 +155,9 @@ docker run --rm --volumes-from portainer -v $(pwd):/backup busybox tar cvf /back
 https://github.com/xcad2k/cheat-sheets/blob/main/infrastructure/docker.md
 
 Restore:
-docker run --rm --volumes-from [CONTAINER[] -v $(pwd):/backup busybox bash -c "cd [CONTAINERPATH] && tar xvf /backup/backup.tar --strip 1"
+docker run --rm --volumes-from [CONTAINER] -v $(pwd):/backup busybox bash -c "cd [CONTAINERPATH] && tar xvf /backup/backup.tar --strip 1"
 
-#https://docs.docker.com/storage/volumes/
+#https://docs.docker.com/storage/volumes
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 

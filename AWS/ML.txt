@@ -1,0 +1,13 @@
+1. Recognition - recognition objects from photos and videos
+2. Transcribe - convert speech to text
+3. Polly - convert text to speech
+4. Lex - ASR, technology used in Alexa
+5. Conect - vurtual contact centet
+6. Comprehend - understanding intensions in text
+7. Translate - like Google Translator
+8. Sage Maker - building ML models
+9. Kendra - search service, answears questions from text 
+10. Personalize - personal buying recomendation
+11. Forecast - create forecasting 
+12. Textract - OCR app
+

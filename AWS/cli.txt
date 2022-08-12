@@ -49,3 +49,10 @@ aws --endpoint-url=http://localhost:4566 s3api list-buckets
 Terraform config:
 https://docs.localstack.cloud/integrations/terraform/
 
+
+SQS:
+aws sqs receive-message --queue-url https://sqs.eu-central-1.amazonaws.com/747617426770/swo-logs-elk --attribute-names All --message-attribute-names All --max-number-of-messages 10
+
+
+Check user:
+aws sts get-caller-identity

@@ -24,11 +24,13 @@ Opening docker as remote service in Ubuntu:
 
 Create daemon.json file in /etc/docker:
 {"hosts": ["tcp://0.0.0.0:2375", "unix:///var/run/docker.sock"]}
+
 Add /etc/systemd/system/docker.service.d/override.conf
 
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd
+
 Reload the systemd daemon:
 
 systemctl daemon-reload
@@ -42,3 +44,28 @@ Connection to other host:
 docker -H tcp://[IP]:2375 ps
 
 Add cert connection
+
+
+
+Amazon Linux:
+Edit /usr/lib/systemd/system/docker.service:
+change:
+ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock $OPTIONS $DOCKER_STORAGE_OPTIONS $DOCKER_ADD_RUNTIMES
+
+to:
+ExecStart=/usr/bin/dockerd -H fd:// -H=tcp://0.0.0.0:2375 $OPTIONS $DOCKER_STORAGE_OPTIONS $DOCKER_ADD_RUNTIMES
+
+sudo systemctl daemon-reload
+sudo systemctl restart docker.service
+
+Protecting docker socket by TLS:
+https://docs.docker.com/engine/security/protect-access/
+
+1. Generate certificates.
+https://github.com/AlexisAhmed/DockerSecurityEssentials/blob/main/Docker-TLS-Authentication/secure-docker-daemon.sh
+
+2. Replace line in /usr/lib/systemd/system/docker.service:
+ExecStart=/usr/bin/dockerd --tlsverify --tlscacert=/usr/share/portainerTLS/ca.pem --tlscert=/usr/share/portainerTLS/server-cert.pem --tlskey=/usr/share/portainerTLS/server-key.pem -H fd:// -H=tcp://0.0.0.0:2375 $OPTIONS $DOCKER_STORAGE_OPTIONS $DOCKER_ADD_RUNTIMES
+restart docker.service
+
+3. Add cert and key file (client) in Portainer Environment settings 

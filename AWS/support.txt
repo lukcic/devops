@@ -1,0 +1,37 @@
+1. Basic
+- 7 x TrustedAdvisor
+- wihtout contact - doccumentation and community
+- Personal Health Dashbord
+
+2. Developer > 29 $ or 3%
+- 7x TrustedAdvisor
+- 1 primary contct in unlimited cases (email)
+- general <24h, disturbed system <12
+
+3. Bussiness > 100 $ or 10-3% monthly charge
+- Full TrustedAdvisor + suport API
+- 24x7 phone and other unlimited contacts
+- Infrastructure Management for additional fee
+- general <24h, disturbed system <12, disturbed prod system <4, prod system down <1
+
+4. Enterpreise on ramp > 5000$ or 10-3% monthly charge
+- Full TrustedAdvisor
+- 24x7 phone unlimited contact
+- TAMs (Technical Account Managers)
+- Concierge Suport Team (billing, account best practicies)
+- Infrastructure management
+- down critical system < 30 min
+
+5. Enterprise > 15 000 or 10-3% monthly charge
+- Full TrustedAdvisor
+- 24x7 phone unlimited contact
+- designated! TAM (Technical Account Manager)
+- Concierge Suport Team (billing, account best practicies)
+- Infrastructure Management
+- down critical system <15 min
+
+- general guidance <24
+- disturbed system <12
+- disturbed prod system <4
+- down prod system <1
+- down critical system <30 min, <15 min

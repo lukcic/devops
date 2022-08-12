@@ -1,0 +1,13 @@
+Password recovery:
+https://techexpert.tips/elasticsearch/elasticsearch-password-recovery/
+
+CloudFront logs:
+https://github.com/aws-samples/amazon-cloudfront-log-analysis/blob/master/lab2-elk-cloudfront-log-analysis/README.md
+
+https://phoenixnap.com/kb/kibana-tutorial
+
+
+https://logz.io/learn/docker-monitoring-elk-stack/
+
+
+https://www.gooksu.com/2021/09/fleet-server-with-elasticsearch-in-docker-container/

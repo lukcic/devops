@@ -6,14 +6,30 @@ Normal variables range is limited to given server - value is useable only for th
 
 Vars may be saved in separated file, this files should be addressed in playbook:
 '''
-vars_files:
-- nginx.yml
+---
+- hosts: all
+  become: yes
+  vars_files:
+  - ansible_vars.yml
+  tasks:
 '''
 
 In case of problems, value of var can be displayed:
 '''
-- debug: var=variable_name
-'''
+  - name: Task name
+    ansible.builtin.uri:
+      url: "https://some.url"
+      method: POST
+      body_format: json
+      body: 
+      return_content: yes
+    register: token_raw
+  - debug: var=token_raw.json.value
+  '''
+
+Write returned stdout value to file:
+  - local_action: copy content="{{ token_raw.json.value }}" dest=../compose_service/.env
+
 
 Saving returned values to var:
 '''
@@ -140,3 +156,16 @@ fact=value
 
 Facts stored in this files can be acessed by ansible_local variable:
 {{ ansible_local.filename.group.fact }}
+
+Changing lines in var files:
+- name: Insert token to .env file
+  ansible.builtin.lineinfile:
+    path: /usr/share/elk/compose_service/.env
+    search_string: '^TOKEN='
+    line: "TOKEN={{ token_raw.json.value }}"
+
+
+Generating random string:
+  - name: Generate Fleet policy ID
+    set_fact:
+        policy_id: "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=8') }}"

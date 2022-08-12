@@ -4,6 +4,8 @@ https://docs.ansible.com/ansible/latest/user_guide/
 https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html#host-variables
 https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html
 
+https://www.redhat.com/sysadmin/developing-ansible-role
+
 Playbooks repository
 https://galaxy.ansible.com/
 
@@ -144,3 +146,8 @@ ec2_module
 
 
 p. 89
+
+
+Remembering pharaphrase:
+eval `ssh-agent`
+ssh-add ~/.ssh/bit-dev-key.pem

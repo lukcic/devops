@@ -4,7 +4,7 @@ Can be converted into HTML/XML.
 
 AutoOpen Markdown preview VS Code plugin-->
 
-
+\ - newline (set and the end)
 
 <!-- Headings -->
 

@@ -7,8 +7,7 @@ AWS.amazon.com/calculator
 
 Free tier - warstwa bezplatna
 
-AWS CLI!!!
-BOTO3 - API do AWSa
+BOTO3 - Python API do AWSa
 resource groups! using tags (tag editor)
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -353,3 +352,6 @@ AWS CodeDeploy - Deplying automation
 Amazon Elastic Container service (Amazon ECS) - like Kubernetes
 Amazon Elastic Container Registry - like DockerHub?
 AWS Cloud Development Kit (AWS CDK)  - programming framework for creating IaaC. AWS CDK is a compiler that compiles your source code into an AWS CloudFormation template. 
+
+NFS:
+https://aws.amazon.com/getting-started/tutorials/create-network-file-system/?pg=ln&sec=hs
