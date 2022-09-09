@@ -66,3 +66,29 @@ Storage Gateway Activation
 Volume Gateway Cache efficiency:
 * CacheHitPercent metric must be high
 * CachePercentUsed must be low
+
+# DataSync
+Move large amount of data from on-prem to AWS (migration).\
+Can synchronize to: S3 (any storage classes), EFS, FSx.\
+Can synchronize from NAS or filesystems using NFS and SMB.\
+Synchronization EFS - EFS between 2 regions or to encrypted volume.\
+Tasks can be scheduled hourly, daily or weekly (not continuous!).\
+DataSync agent must be used (TLS).\
+Optional bandwidth limit. Incremental replication.
+
+# AWS Backup
+Centrally manage backups and automate backups across AWS services.\
+Point in time recovery for some services (Aurora).\
+Cross regions, cross accounts backup (Organizations).
+On-demand and scheduled backups. Tag based backups.
+
+Backup plans (policies):
+* frequency (every 12h, daily, weekly,cron expression)
+* backup window
+* transition to cold storage
+* retention period
+
+Backup Vault Lock:
+* enforce a WORM state for all the backups that you store in the vault.
+* even root user cannot delete the backups
+* protect from short retention period or malicious software
