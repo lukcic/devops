@@ -1,6 +1,21 @@
 >Metrics - variable to monitor CPU, RAM etc. Has timestamps.\
 Insight - wgląd, rozeznanie
 
+# AWS Logs
+
+Service logs:
+* CloudTrail trails - trace all API calls
+* Config Rules - for Config and compliance over time
+* CloudWatch logs - for full data retention
+* VPC Flow logs - IP traffic within your VPC
+* ELB Access logs - metadata of requests made to load-balancers
+* CloudFront logs - web distribution access logs
+* WAF logs - full logging of al requests analyzed by the service
+
+Logs can be stored in S3 and analyzed using Athena.
+Log protection: S3 encryption, control access using IAM and Bucket Policies, MFA on deletion.
+Can be moved to Glacier for cost savings.
+
 # CloudWatch
 
 Provides metrics for every service in AWS.
