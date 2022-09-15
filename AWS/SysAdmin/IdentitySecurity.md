@@ -1,4 +1,147 @@
-# DDoS
+## IAM Security tools
+
+### IAM Credentials report
+Account level. Lists all account's users and the status of their various credentials.
+
+### IAM Access Advisor
+User level. Shows the service permissions granted to a user and when those service were last accessed. This information can be used to revise existing policies.
+
+### IAM Access Analyzer
+
+Find out which resources are shared externally.
+Define `Zone of Trust` which is AWS Account or AWS Organization. All resources with access outside Zone of trust if a finding. Free to enable.
+
+* S3 buckets
+* IAM roles
+* KMS keys
+* Lambda functions and layers
+* SQS Queues
+* Secret Manager secrets
+
+## Identity Federation
+
+Federation lets users outside of AWS to assume temporary role for accessing AWS resources (they don't have IAM account).
+
+User logs in to 3rd party service that is Trusted by us and this 3rd party service gives him access to AWS resources.
+
+Federation assumes a form of 3rd party authentication:
+* LDAP
+* Microsoft AD (~= SAML)
+* Single SignOn
+* Open ID
+* Cognito
+
+Using Federation you don't need to create IAM users. User management is outside of AWS.
+
+### SAML Federation
+
+For enterprises, to integrate Active Directory/ADFS with AWS (or any SAML 2.0). Provides access to AWS Console or CLI (through temporary credentials).
+
+SAML CLI access
+![SAML CLI access](https://docs.aws.amazon.com/IAM/latest/UserGuide/images/saml-based-federation.diagram.png)
+
+SAML Console access
+![SAML Console Access](https://docs.aws.amazon.com/IAM/latest/UserGuide/images/saml-based-sso-to-console.diagram.png)
+
+### Custom Identity Broker
+
+Use only if identity provider is no compatible with SAML 2.0.
+Identity broker must determine the appropriate IAM policy.
+A lot of work must be done to enable Custom identity broker.
+
+### AWS Cognito
+
+For public applications. Provide direct access to AWS resources from the client side (users of the app).
+
+* Log in to federated identity provider - or remain anonymous.
+* Get temporary AWS credentials back from the `Federated Identity Pool` (Cognito)
+* These credentials come with a pre-defined IAM policy stating their permissions.
+
+Ex: provide (temporary) access to write to S3 bucket using Facebook login.
+
+Accessing AWS services using an identity pool:
+![](https://docs.aws.amazon.com/cognito/latest/developerguide/images/scenario-cup-cib.png)
+
+## STS - Security Token Service
+
+Create temporary, limited credentials to access AWS resources.\
+Token is valid up to 1h (must be refreshed).
+
+### AssumeRole:
+* within your own account: for enhanced security
+* cross account access - assume role in the target account to perform actions here
+
+Using STS to assume role:
+* define an IAM role within your account or cross-account
+* define which principals can access this IAM role (users or roles)
+* use STS to retrieve credentials and impersonate the IAM role you have access to (AssumeRole API)
+* temporary credentials can be valid between 15min to 1h
+
+![](https://docs.aws.amazon.com/IAM/latest/UserGuide/images/roles-usingroletodelegate.png)
+
+>Never share credentials across accounts - instead creating the user and sending credentials is better to create a role, and sure the user assume that role and STS will return you role credentials that are temporary, so if they will be loosen its much safer.
+
+### AssumeRoleWithSAML:
+* return credentials for users logged with SAML
+
+### GetSessionToken:
+* for MFA - from a user or AWS account root user
+* anytime when users hav MFA, they have to use GetSessionToken to access console or CLI
+
+## Cognito
+
+### Cognito User Pools (CUP) - user features
+* Create a serverless database of users for your web and mobile app
+* Simple login (username/password), MFA
+* Password reset
+* Federated Identities: users from Facebook, Google, SAML
+* Feature: block users if their credentials are compromised anywhere
+* Login sends back a JSON Web Token (JWT)
+* custom the hosted UI for authentication
+* can trigger the Lambda during the authentication flow (ex: analytics)
+
+Integrations:
+* API Gateway
+    * user authenticate in Cognito and retrieve the token
+    * connect to API gateway using token
+    * API gateway connect to cognito to verify the token
+    * API gateway gives permissions to backend
+* Application Load balancer
+    * using Listeners and Rules
+
+### Cognito Identity Pools (Federated Identities)
+* Get identities for users to obtain temporary AWS credentials
+* Your identity pool can include:
+    * public providers (Amazon, Facebook, Google, Apple)
+    * users in Cognito Users Pool
+    * OpenID Connect Providers & SAML Identity Providers
+    * Developer Authenticated Identities (custom login server)
+* Cognito Identity Pools allow to unauthenticated (guest) access
+* Users can access AWS services directly or through API Gateway
+    * The IAM policies applied to the credentials are defined in Cognito
+    * they can be customized based on the `user_id` for the grained control
+
+Accessing AWS resources:
+* user logged in and retrieved JWT token
+* Cognito after verification exchange this token to temporary AWS credentials
+* direct access to resources with STS token and IAM policy
+
+IAM roles:
+* default IAM roles for authenticated and guest users
+* define rules to choose the role for each user based on the user's ID
+* you can partition your user's access using policy variables - row based (DynamoDB) or prefix-based (S3) security
+* IAM credentials are obtained by Cognito Identity Pools trough STS
+* the roles must have a trust policy of Cognito Identity Pools
+
+# AWS IAM Identity Center
+Past name: `AWS Single SignOn (SSO)`
+
+Centrally manage Single SignOn to access multiple accounts and 3rd party business applications. Centralized permission management, integrated with AWS Organizations, integration with on-premise AD. Supports SAML 2.0. Auditing with CloudTrail.
+
+Wy log in to SSO, it checks our login (can be in AD) and then we have access to AWS, 3rd party applications and SAML integrated software.
+
+___
+# DDoS Protection
 
 Services used to protect:
 * Shield Standard - free, activated for everyone (3,4 layer attacks)\
