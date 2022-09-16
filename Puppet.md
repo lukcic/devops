@@ -1,8 +1,8 @@
 # Puppet
-Puppet manifest files *.pp - declaration of tasks
+Puppet manifest files *.pp - declaration of tasks\
 /etc/puppet/code/manifests
 
-Pupper Server (Master)
+Puppet Server (Master)\
 Puppet Agent
 
 Run Puppet (standalone agent - without master):\
