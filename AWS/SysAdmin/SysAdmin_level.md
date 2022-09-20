@@ -1,22 +1,4 @@
 # SysOps level
-## Enhanced networking
-**EC2 enhanced networking (SR-IOV)**
-* higher bandwidth, hight PPS (packet per second), low latency
-* option1 - Elastic Network Adapter (ENA) - up to 100Gbps
-* option 2- Intel 82599VF uto to 10 Gbps (legacy)
-* works on newer generation EC2 instances (from t3.x)
-
-Checking ENA kernel module in Amazon Linux:
-$modinfo ena 	# if present, module in installed
-
-Checking type of  NIC in system
-$ethtool -i eth0 # driver **ena** not **vif**
-
-**Elastic Fabric Adapter (EFA)**
-* improved ENA (Elastic network adapter) for High PerformanceComputing - only works with Linux
-* great for inter-node communications, tightly coupled workloads (lives in the same cluster)
-* leverages Message Passing Interface (MPI) standard
-* bypasses the underlying Linux OS to provide low-latency, reliable transport
 
 ## Placement groups
 Control where EC2 instances are placement. Placement group is chosen during EC2 creation (advanced options).
