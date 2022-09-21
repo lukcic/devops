@@ -1,3 +1,60 @@
+## Resource groups
+Logical groups of resources that share the same tags. Regional service.
+Can be made on CloudFormation stack.
+
+Tag “Name” will set EC2 name on instances list.
+
+---
+
+## Elastic Beanstalk
+Platform as a Service. Layer that use all the components: EC2, ASG, ELB, RDS.  Free service - payment for used resources.
+
+Architecture models:
+* single instance - for dev environments
+* LB + ASG - for production or preproduction web apps
+* ASG only - for non-web apps in production (using queue)
+
+Components:
+ * application - collection of Elastic Beanstalk components (environments, versions, configurations)
+ * version - each deployment gets assigned version (iteration)
+ * environment (dev, test, prod - free naming) collection of AWS resources running the application version (only one version at a time)
+ * tiers: web server environment & worker environment
+
+After deploying app version to giver environment, you can promote app version to next environment. Can do rollbacks.
+
+Create app -> upload version -> launch environment -> manage environment
+
+Web Server tier - http endpoint, ELB + ASG + EC2
+Worker tier - SQS Queue + ASG (scale based on SQS messages amount
+---
+
+## AWS Data Sync
+Move large amount of data:
+*  on-premise (NFS, SMB) -> AWS.
+* AWS EFS Region1 -> AWS NFS Region2
+
+Can synchronise to S3 (all classes), EFS, FSx. Use Data Sync agent. Use scheduler (not continuous replication!) and can set bandwidth limit.
+---
+
+## AWS Backup
+Cross account backups.
+Cross region backups (store backup on another region).
+PITR (Point in Time Recovery) for supported services (Aurora).
+Scheduler, tag-based backup policies.
+
+Backup plans - policies:
+* frequency
+* backup window
+* transition to cold storage
+* retention peroid
+
+Backup Vault Lock:
+* WORM (Write once, read many) state
+* even root cannot delete backups
+___
+
+
+
 # ElasticSearch -> OpenSearch
 
 Amazon ES - managed version of ElasticSearch. Need to run on servers (not serverless).
