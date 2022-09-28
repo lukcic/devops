@@ -158,9 +158,12 @@ Virtual Private Cloud
 * regional resource, span all AZs
 
 ## Subnets
-* AZ resource, span one AZ
+* AZ resource, span one AZ - Subnet cannot exists in more than 1 AZ!
 * Public subnet - accessible from internet
 * Private subnet - NOT accessible from internet
+* by default all subnets in one VPC can route between each other, whether they are are private or public, they all are LOCAL target in route table, traffic is managed by SGs or NACLs
+
+
 
 * AWS reserves 5 IP addresses (first 4 and last one) in each subnet:
     * 10.0.0.0 - network address
@@ -299,6 +302,8 @@ Outgoing requests:
 ## Site-to-site VPN
 
 Goes over public Internet.
+
+>`VPN-only subnet` - the subnet that har a route to Virtual Private Gateway, but doesn't have route to the internet gateway (private)
 
 Steps:
 * create customer gateway

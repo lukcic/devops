@@ -1,78 +1,117 @@
-https://learn.hashicorp.com/terraform?utm_source=terraform_io
+## Links:
+https://learn.hashicorp.com/terraform?utm_source=terraform_io\
+https://learn.hashicorp.com/collections/terraform/cli\
+https://learn.hashicorp.com/collections/terraform/configuration-language\
+https://learn.hashicorp.com/tutorials/terraform/resource?in=terraform/configuration-language\
+https://blog.gruntwork.io/terraform-tips-tricks-loops-if-statements-and-gotchas-f739bbae55f9\
+Using maps:
+https://www.youtube.com/watch?v=UFEhJFIj9gY
 
-Infrastructure as a Cloud (IaaC) in Terraform:
--infrastructure can be deployed on multiple cloud providers
--human readable configuration
--state allows to track changes in infrastructure
--configuration can be managed using version control
+## Infrastructure as a Cloud (IaaC) in Terraform:
+* infrastructure can be deployed on multiple cloud providers
+* human readable configuration
+* state allows to track changes in infrastructure
+* configuration can be managed using version control
 
-Terraform plugins to magage different cloud operators are called providers.
-Resources are individual units of inftastructure (VMs, provate networks etc.).
-Terraform configurations are called modules. Configuration language is declarative - describes desired state of resource. 
+Terraform plugins to manage different cloud operators are called providers.
+Resources are individual units of infrastructure (VMs, private networks etc.).
+Terraform configurations are called modules.
+Configuration language is declarative - describes desired state of resource.
 Providers calculate dependencies between resources and create or destroy needed.
 
-Scope       - identify the infrastructure for your project
-Author      - write the config
-Initialize  - installing plugins
-Plan        - preview the changes
-Apply       - make the planned changes
+>Scope       - identify the infrastructure for your project\
+>Author      - write the config\
+>Initialize  - installing plugins\
+>Plan        - preview the changes\
+>Apply       - make the planned changes
 
 Terraform keeps state of infrastructure in state file. This file is used to determine changes to do.
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## Installation
 
 Installation in Ubuntu:
+```
 sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
 curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
 sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
 sudo apt-get update && sudo apt-get install terraform
 
 terraform -install-autocomplete
-
+```
 
 Installation in MacOS:
+```
 brew tap hashicorp/tap
 brew install hashicorp/tap/terraform
-
+```
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Using AWS stored credentials:
-
+## Using AWS stored credentials:
+```
 ~/.aws/credentials
 [default]
 aws_access_key_id = AKIAWAXFM....YFOGXOZ
 aws_secret_access_key = ...
-
+```
 To work with multiple profiles change profile name to default and add next profile below.
-To set current profile to use: 
+To set current profile to use:
+```
 export AWS_PROFILE=lukcic
-
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-Usage:
-
-terraform init          # initialize the project, which downloads a plugin that allows Terraform to interact with Docker.
-
-terraform fmt           # check and correct formatting of terraform file
-
-terraform validate      #check and correct syntax of terraform file
-
-terraform plan -out=[filename.plan]  # will output plan to file
-
-terraform apply         # Provision the NGINX server container with apply. When Terraform asks you to confirm, type yes and press ENTER.
-terraform apply [filename.plan]   # apply given plan
--var "instance_name=myOwnName"    # overriding variable
-
-terraform show          #inspect created resources
-
-terrafrom output        #returns values of output variables saved in cofiguration
-
-terraform destroy       #To stop the container and destroy the resources created in this tutorial, run terraform destroy. When Terraform asks you to confirm, type yes and press ENTER.
+```
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-First module:
+
+## Terraform Commands
+
+* terraform init
+  * initialize the project, which downloads a plugins
+
+* terraform fmt
+  * check and correct formatting of terraform file
+
+* terraform validate
+  * check and correct syntax of terraform file
+
+* terraform plan
+  * will show the changes that will be applied on infrastructure
+
+* terraform plan -out=[filename.plan]
+  * will output plan to file
+
+* terraform apply
+  * apply planned changes
+
+* terraform apply [filename.plan]
+  * apply changes saved in tf plan file
+
+* terraform apply -targed aws_instance.name.id ???
+  * will apply only given resource
+
+* terraform apply -auto-approve
+  * will skip the confirmation
+
+* terraform apply -var-file example.tfvars
+  * apply changes with overriding variable file
+
+* terraform apply -var "instance_name=myOwnName"
+  * apply changes with overriding variable
+
+* terraform show
+  * inspect created resources
+
+* terraform output
+  * returns values of output variables saved in configuration
+
+* terraform destroy
+  * destroy the resources created in this apply
+
+* terraform destroy -target aws_instance.name.id
+    * will destroy only given resource
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## First module
 
 main.tf:
-
+```
 terraform {
   required_providers {
     docker = {
@@ -97,63 +136,57 @@ resource "docker_container" "nginx" {
     external = 8000
   }
 }
-
-
-terraform init            
-terraform apply   
-terraforn apply -targed aws_instance.name.id  # will deploy inly given resource      
-docker ps               #Run docker ps to view the NGINX container running in Docker via Terraform.
-terraform show          
-terraform destroy  
-terraforn destroy -target aws_instance.name.id    # will destroy only given resources
-
-terraform apply -auto-approve   # will skip the confirmation
-terraform apply -var-file example.tfvars
+```
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Terrafrom registry:
-https://registry.terraform.io   # Here are definitions of terraform providers
+## Terraform registry:
+Here are definitions of terraform providers
+
+[https://registry.terraform.io]()
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Terraform state:
-terraform.tfstate - in this file terraform stores state of created infrastructure. 
+## Terraform state
+terraform.tfstate - in this file terraform stores state of created infrastructure.
+
 Has sensitive data, so should be managed as a secret.
-
+```
 terraform state         # advanced state management
 terraform state list    # list resources handle by state file
 
 terraforn state show [resource_name]  # will show detailed information about resource
 
-terrafrom force-unlock [LOCK_ID]      # will delete lock 
-
+terrafrom force-unlock [LOCK_ID]      # will delete lock
+```
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Workspaces:
+## Workspaces:
 
 Terraform workspaces allow you to store your Terraform state in multiple, separate, named workspaces.
 Terraform starts with a single workspace called “default” and if you never explicitly specify a workspace, then the default workspace is the one you’ll use the entire time.
 
-terraform workspace list                      # will show all workspaces
-terraform workspace show                      # show current workspace
-terraform workspace new [NEW_WORKSPACE_NAME]  # create new workspace
-terraform workspace select default            # will change workspace to default
+`terraform workspace list`                      # will show all workspaces\
+`terraform workspace show`                      # show current workspace\
+`terraform workspace new [NEW_WORKSPACE_NAME]`  # create new workspace\
+`terraform workspace select default`            # will change workspace to default\
 
 Switching to a different workspace is equivalent to changing the path where your state file is stored.
 
-
+```
 resource "aws_instance" "example" {
   ami           = "ami-0c55b159cbfafe1f0"
   instance_type = (
     terraform.workspace == "default"    # for default workspace terraform will create t2.medium instance, for other workspaces will create t2.micro
-    ? "t2.medium" 
+    ? "t2.medium"
     : "t2.micro"
   )
-}                                       # https://blog.gruntwork.io/terraform-tips-tricks-loops-if-statements-and-gotchas-f739bbae55f9
+}
+```
+
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Variables:
+## Variables:
 
 to use wit given value:
 terraform apply -var 'location=eastus'
@@ -168,8 +201,8 @@ cir_block = var.subnet_prefix[0].cidr_block
 subnet_name = var.subnet_prefix[0].name
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-For loop
-
+## For loop
+```
 variable "names" {
   type = list(string)
   default = ["one", "two", "three"]
@@ -178,38 +211,28 @@ variable "names" {
 output "upper_names" {
   value =  [for name in var.names: upper(name)]   # upper letters
 }
+```
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
-
-Using maps:
-https://www.youtube.com/watch?v=UFEhJFIj9gY
-
-
-Conditionals:
-
+## Conditionals:
+```
 condition ? true_val : false_val
-
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-https://learn.hashicorp.com/collections/terraform/cli
-https://learn.hashicorp.com/collections/terraform/configuration-language
-
-https://learn.hashicorp.com/tutorials/terraform/resource?in=terraform/configuration-language
+```
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Dynamic Blocks:
+## Dynamic Blocks:
 
 .tfvars:
+```
 log_bucket              = false
 /*log_bucket = {
     bucket          = "bitwww-dev-log-files.s3.amazonaws.com"
     prefix          = "dev-preview"
 }*/
-
+```
 
 .tf
-
+```
 variable "log_bucket" {
   //type = map(string)
   description = "Cloudfront log configuration: bucket name, including cookies, prefix"
@@ -240,3 +263,4 @@ resource "aws_cloudfront_distribution" "bitwww_static" {
   }
 (...)
 }
+```

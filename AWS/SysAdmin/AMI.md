@@ -1,12 +1,14 @@
 ## AMI
 AMIs are regional scoped. Custom AMIs are created from EBS snapshots.
 
-Creating AMI:
-On running EC2 instance: Image and templates - Create image
+### Creating AMI:
+By default when creating AMI from running instance, EC2 will shutdown the instance, take snapshot of existing volumes then creates and register AMI and start instance. This in the preferred way for application consistence (OS buffers are clear).
 
-No-reboot option - must be used when creating AMI form running EC2 (helps data integrity).
+No-reboot option - must be used when creating AMI form running EC2 without shutdown. Option is not enabled by default. OS buffers are not empty while creating EBS snapshots.
 
-Moving Instances between AZs:
+How: Image and templates - Create image
+
+### Moving Instances between AZs:
 * create AMI from instance
 * launch instance from AMI in different AZ
 
@@ -16,6 +18,9 @@ Edit AMI permissions.
 Sharing does not affect ownership of AMI. AMIs with encrypted EBS can be shared only when customer managed key was used to encryption.
 
 Copying images - owner of source AMI must grant you privileges of backbone storage (EBS snapshots).
+
+### Recreating AMIs
+* AMIs cannot be re-created or restored after deletion - new one must be created from EBS Snapshot or existing instance
 
 ## EC2 Image Builder
 Automate the creation, maintain, validate and test EC2 AMIs.

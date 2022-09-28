@@ -440,6 +440,8 @@ High-secure, portable devices to collect and process data at the edge and migrat
 ś
 4. OpsHUB - desktop software to manage SnowFamily
 
+>Data from Snow devices cannot be copied to the Glacier directly, it's must be copied to S3  bucket and moved to glacier using lifecycle policy.
+
 # FSx
 
 3rd party managed filesystems:

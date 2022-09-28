@@ -82,7 +82,6 @@ Benefits:
 * monitor compliance through an interactive dashboard
 * using SSO to log-in to all accounts with one credentials
 
-
 ### Guardrails
 
 Governance rules to enable on OU:

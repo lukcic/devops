@@ -102,6 +102,13 @@ Use-case:
 * Dependencies between micro-services
 * Checking SLA
 
+Integration:
+* S3 - to trace upstream requests
+* Lambda - Lambda runs the X-Ray daemon and records a segment with details about the function invocation and execution
+* API Gateway - trace and analyze user requests as they travel through your APIs to the underlying services. API Gateway supports X-Ray tracing for all API Gateway endpoint types: Regional, edge-optimized, and private.
+
+Application Load balancers do not send data to X-Ray!
+
 # Amplify
 
 Web and mobile applications development tool (like Elastic Beanstalk).

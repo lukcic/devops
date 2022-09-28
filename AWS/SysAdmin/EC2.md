@@ -1,3 +1,10 @@
+# EC2
+## Changing instance type
+* instance must be stopped
+* after start will be restarted on another physical host in data-center
+* data will remain the same (EBS)
+* EBS Optimized - new types of EC2, better throughput
+
 ## Placement groups
 Control where EC2 instances are placement. Placement group is chosen during EC2 creation (advanced options).
 
@@ -116,7 +123,7 @@ Custom metrics:
 * need permissions on EC2 role to send data to CloudWatch, eg. CloudWatchAgentServerPolicy  or CloudWatchAgentAdminPolicy (can add data to parameter store)
 
 ### CloudWatch Unified Agent
-Unified - new type, metrics and loga at the same time.
+Unified - new type, metrics and logs at the same time.
 Default namespace for metrics from agent is called CWAgent.
 
 procstat plugin - collect metrics and monitor system utilizaiton of individual processes (pid_file - pid, exe - process name, regex pattern).

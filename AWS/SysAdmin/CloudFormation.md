@@ -413,7 +413,7 @@ Resources:
 ```
 
 ### Stack Policies
-Used to prevent updating resources form stack.
+Used to prevent updating/deleting resources from stack.
 
 Advanced Options - Stack policy:
 ```

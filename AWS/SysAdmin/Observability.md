@@ -1,7 +1,34 @@
->Metrics - variable to monitor CPU, RAM etc. Has timestamps.\
-Insight - wgląd, rozeznanie
+# Observability
+The ability to measure and understand how internal systems work in  order to answer questions regarding performance, tolerance, security and faults with a system/application.
 
-# AWS Logs
+To obtain observability you need to use Metrics, Logs and traces. you have to use them together!
+
+>Metrics - variable to monitor CPU, RAM etc. Has timestamps.
+
+>Traces - a history of requests that is travels through multiple apps/services so we can pinpoint performance or failure.
+
+>Insight - wgląd, rozeznanie
+
+# CloudWatch
+
+Monitoring solution for AWS resources.
+
+Umbrella service - collection of monitoring tools as:
+* Logs - any log data (custom too)
+* Metrics - represents a time-ordered set of data-points
+* Events - trigger an event based on a condition
+* Alarms - triggers notifications based on metrics
+* Dashboards - create visualizations based on metrics
+* Service Lens - visualize and analyze the health, performance, availability of your app in a single place
+* Container insights - collets, aggregates and summarizes metrics and logs from your containerized apps and microservices
+* Synthetics - test your web apps to see if they're broken
+* Contributor Insights - view the top contributor impacting the performance of your systems and apps in real time
+
+![](.pictures/cloudwatch.jpg)
+
+## CloudWatch LOGS
+
+### AWS Logs
 
 Service logs:
 * CloudTrail trails - trace all API calls
@@ -13,55 +40,7 @@ Service logs:
 * WAF logs - full logging of al requests analyzed by the service
 
 Logs can be stored in S3 and analyzed using Athena.
-Log protection: S3 encryption, control access using IAM and Bucket Policies, MFA on deletion.
-Can be moved to Glacier for cost savings.
-
-# CloudWatch
-
-Provides metrics for every service in AWS.
-
-## CloudWatch METRICS
-
-Metrics belongs to namespaces (groups).\
-Dimension is an attribute of a metric (instance id, environment, etc...).\
-Column name in AWS Console. Up to 10 dimensions per metric.
-
-EC2 Default - metrics every 5mins, Detailed - every 1 min (paid extra)
-Billing - Total Estimated Charge is available only in us-east-1 (for whole account)
-
-### Custom Metrics
-
-For custom metrics is used API call: PutMetricData. It can be send with with dimensions (attributes) to segment metrics: Instance.Id, Environment.name.
-
-Examples:
-* memory usage (RAM)
-* disk space
-* number of logged users
-
-Resolution:
-* standard - 1min
-* high resolution: 1, 5, 10, 30 seconds (higher cost)
-
-Metrics are accepted with timestamp for 2 weeks in the past and 2 hours in the future. You must be sure about time settings in your server.
-
-Push metric data:
-```
-aws cloudwatch put-metric-data --namespace "Usage Metrics" --metric-data file://metric.json
-
-[
-  {
-    "MetricName": "New Posts",
-    "Timestamp": "Wednesday, June 12, 2013 8:28:20 PM",
-    "Value": 0.50,
-    "Unit": "Count"
-  }
-]
-```
-```
-aws cloudwatch put-metric-data --metric-name Buffers --namespace MyNameSpace --unit Bytes --value 231434333 --dimensions InstanceID=1-23456789,InstanceType=m1.small
-```
-
-## CloudWatch LOGS
+Log protection: S3 encryption, control access using IAM and Bucket Policies, MFA on deletion. Can be moved to Glacier for cost savings.
 
 Sources:
 * SDK
@@ -81,19 +60,95 @@ Destinations:
 * AWS Lambda
 * Elasticsearch
 
->Log groups - name that is representing application (can be any name).
+>Log event - single event in a log file
 
->Log stream - instances within application, log files, containers
+>Log stream - sequence of events from monitored application or instance
 
-CloudWatch log agent -can be installed on EC2 machines or on-premise servers for collecting logs by CloudWatch.
+>Log groups - collection of log streams. Name that is representing application (can be any name).
 
+
+### Encryption
+By default, log groups are encrypted at rest using SSE. Own Customer Master Key from KMS can be used.
+
+### Retention
+By default logs never expire.
+Log expiration policies - can be set to amount of time (1day to max 10 years) for each log group or disable retention.
+
+### Filtering
 Filter expressions - can be used to ex: find specific IP within a log or count "ERROR" occurrences (create metric) and trigger CloudWatch Alarm.
 
-Log expiration policies - can be set to amount of time (max 10 years) or disable retention.
-
-Log Insights - can be used to query logs and add queries to CloudWatch Dashboards.
-
 Subscription Filter - can be used to send logs into other services (Lambda, ES, Kinesis) in near real-time.
+
+#### Log Insights
+Interactively search and analyze CloudWatch log data.
+More robust filtering than using the simple filter events in a log stream.
+More simple than analyzing logs in Athena.
+Used to do ad-hoc queries against log groups via AWS Console.
+Can be used to add queries to CloudWatch Dashboards.
+
+Has its own language called `CloudWatch Logs Insights Query Syntax`.
+AWS provides sample queries for common tasks.
+
+Insights analyze the log event and try to structure the content by generating fields that you can use in the query (log parsing).
+
+Five system fields (automatically generated):
+* @message - the raw, unparsed log event
+* @timestamp
+* @ingestionTime - time when the log event was received by CW logs
+* @logStream - the name of the log stream that the log event was added to
+* @log - log group identifier in the form of: account-id:log-group-name
+
+### Agent
+CloudWatch log agent -can be installed on EC2 machines or on-premise servers for collecting logs by CloudWatch.
+
+## CloudWatch METRICS
+
+Metrics belongs to namespaces (groups).\
+Dimension is an attribute of a metric (instance id, environment, etc...).\
+Column name in AWS Console. Up to 10 dimensions per metric.
+
+EC2 Default - metrics every 5mins, Detailed - every 1 min (paid extra)
+Billing - Total Estimated Charge is available only in us-east-1 (for whole account)
+
+Important metrics:
+* `NetworkIn` and `NetworkOut` - usage of network by instance
+* `DataTransfer-Out-Bytes` - used in AWS Cost Explorer reports to see pricing
+* `DiskReadBytes`, `DiskWriteBytes` - data from all instance volumes, determine speed of application
+* `ResourceCount` - metric used to determine the amount of resources running in the account
+
+### Custom Metrics
+
+For custom metrics is used API call: PutMetricData. It can be send with with dimensions (attributes) to segment metrics: Instance.Id, Environment.name.
+
+Examples:
+* memory usage (RAM)
+* disk space
+* number of logged users
+
+Resolution:
+* standard - 1min
+* high resolution: 1, 5, 10, 30 seconds (higher cost)
+
+You can retrieve custom metrics from your applications or services using the `StatsD` and `collectd` protocols. StatsD is supported on both Linux servers and servers running Windows Server. collectd is supported only on Linux servers.
+
+Metrics are accepted with timestamp for 2 weeks in the past and 2 hours in the future. You must be sure about time settings in your server.
+
+Push metric data:
+```
+aws cloudwatch put-metric-data --namespace "Usage Metrics" --metric-data file://metric.json
+
+[
+  {
+    "MetricName": "New Posts",
+    "Timestamp": "Wednesday, June 12, 2013 8:28:20 PM",
+    "Value": 0.50,
+    "Unit": "Count"
+  }
+]
+```
+```
+aws cloudwatch put-metric-data --metric-name Buffers --namespace MyNameSpace --unit Bytes --value 231434333 --dimensions InstanceID=1-23456789,InstanceType=m1.small
+```
 
 ## CloudWatch ALARMS
 
@@ -122,6 +177,8 @@ To set the alarming state (testing) use CLI:\
 
 Make an action on target when event occur on source by creating Event rule.
 
+>Fourth pillar of observability.
+
 * Event pattern - get events from AWS services (sources) to make reaction (SNS topic when IAM root user logged in). Can get any API call using CloudTrail integration.
 * Schedule cron jobs
 
@@ -147,7 +204,11 @@ Event Bridge can analyze the events in bus and gather the schema.
 Schema (JSON) registry allows you to generate the code from your application, that will know in advance how data is structured in the event bus. Schema can be versioned.
 
 Resource-based Policy:\
-Event Buses can be accessed from other AWS accounts. Policy manage permissions for a specific Event Bus, ex: allow/ deny events from another AWS account. Use-case: to aggregate all events from AWS Organization in a single AWS account.
+Event Buses can be accessed from other AWS accounts. Policy manage permissions for a specific Event Bus, ex: allow/deny events from another AWS account. Use-case: to aggregate all events from AWS Organization in a single AWS account.
+
+For Lambda functions and Amazon SNS topics configured as a target to EventBridge, you need to provide resource-based policy. IAM roles for rules are only used for events related to Kinesis Streams.
+
+For Lambda, Amazon SNS, Amazon SQS, and Amazon CloudWatch Logs resources, EventBridge relies on resource-based policies. For Kinesis streams, EventBridge relies on IAM roles.
 
 Sandbox:\
 Test rules and patterns without creating the rule.

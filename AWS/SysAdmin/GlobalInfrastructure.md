@@ -95,3 +95,6 @@ CookieL AWSALB=value1
 To the CloudFront with "AWSALB" cookie whitelisted -> forward to
 
 Application Load balancer, that will always send request with given value to the same target (EC2).
+
+### CloudFront Origin Access Identity
+Can be set only with S3 bucket, not S3 website (it's custom origin). Custom headers an be set to restrict access to website only for CloudFront.

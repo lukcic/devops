@@ -1,3 +1,50 @@
+```
+Using EC2 roles
+Admin creates role that grants access to the photos bucket.
+Developer launches an instance with the role
+App retrieves role credentials from the instance
+App gets photos using the role credentials
+
+
+Roles between different accounts
+
+First account want to have access to resource on second account:
+On second account role is created.
+From first account make AssumeRole call
+On second account we need give permissions for the first account
+
+Dropdown from console - we don’t need to have user in second account.
+Both accounts can be accessed from one console.
+
+
+Credentials
+Hashicorp vault
+Credash - open source in dynamo
+parameter store
+secrets manager
+
+Iam access to DB (STS)
+
+SG referring SG
+Instead opening one subnet to another we can use SG for giving access for subnet only for part of another subnet.
+
+Golden AMI - one image that is a base for others. Create snapshot after hardening instance. Plus system manager.
+
+System updates during bootstrapping (cloud-init).
+
+AWS Inspector - checks instance regularly for vulnerabilities and old packages. Creates reports and notifications.
+
+
+Guard duty
+ - analyze VPC flow logs and reports information about attack tries
+
+AWS CIS security benchmark
+by AWS Security HUB
+https://learn.cisecurity.org/benchmarks
+```
+
+
+
 ## IAM Security tools
 
 ### IAM Credentials report
