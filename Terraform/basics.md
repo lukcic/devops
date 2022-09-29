@@ -47,6 +47,14 @@ brew install hashicorp/tap/terraform
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ## Using AWS stored credentials:
 ```
+provider "aws" {
+  access_key = "ACCESS_KEY_HERE"
+  secret_key = "SECRET_KEY_HERE"
+  region = "us-east-1"
+}
+```
+### Profiles
+```
 ~/.aws/credentials
 [default]
 aws_access_key_id = AKIAWAXFM....YFOGXOZ
@@ -62,20 +70,26 @@ export AWS_PROFILE=lukcic
 
 ## Terraform Commands
 
+### Check
+
 * terraform init
   * initialize the project, which downloads a plugins
 
 * terraform fmt
-  * check and correct formatting of terraform file
+  * format tf file
 
 * terraform validate
   * check and correct syntax of terraform file
+
+### Plan
 
 * terraform plan
   * will show the changes that will be applied on infrastructure
 
 * terraform plan -out=[filename.plan]
   * will output plan to file
+
+### Apply
 
 * terraform apply
   * apply planned changes
@@ -96,16 +110,46 @@ export AWS_PROFILE=lukcic
   * apply changes with overriding variable
 
 * terraform show
-  * inspect created resources
+  * inspect created resources - human readable
 
-* terraform output
+* terraform output [NAME]
   * returns values of output variables saved in configuration
 
 * terraform destroy
   * destroy the resources created in this apply
 
 * terraform destroy -target aws_instance.name.id
-    * will destroy only given resource
+  * will destroy only given resource
+
+
+### State
+
+* terraform state
+  * advance state management (rename the resource etc.)
+
+* terraform refresh
+  * refresh the remote state
+
+* terraform remote
+  * configure remote state storage
+
+* terraform console
+  * enable TF console
+
+* terraform get
+  * download and update modules
+
+* terraform graph
+  * create visual representation of a configuration or execution plan
+
+* terraform import [OPTIONS] [NAME] [id]
+  * import state of existing resource to Terraform state
+
+* terraform taint [NAME]
+  * manually mark a resource as tainted (will be destructed and recreated at the next apply)
+
+* terraform untaint [NAME]
+  * undo a taint
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ## First module
@@ -147,17 +191,233 @@ Here are definitions of terraform providers
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ## Terraform state
-terraform.tfstate - in this file terraform stores state of created infrastructure.
+Has sensitive data, so should be managed as a secret!
 
-Has sensitive data, so should be managed as a secret.
+* terraform.tfstate           - in this file terraform stores state of created infrastructure.
+* terraform.tfstate.backup    - backup of the previous state
+
+Commands:
 ```
-terraform state         # advanced state management
-terraform state list    # list resources handle by state file
-
-terraforn state show [resource_name]  # will show detailed information about resource
-
-terrafrom force-unlock [LOCK_ID]      # will delete lock
+terraform state                       # advanced state management
+terraform state list                  # list resources handle by state file
+terraform state show [resource_name]  # will show detailed information about resource
+terraform force-unlock [LOCK_ID]      # will delete lock
 ```
+
+### Remote state
+
+```
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "4.14.0"
+    }
+  }
+
+  backend "s3" {
+    bucket          = "globally_unique_bucket_name"
+    key             = "filename.tfstate"
+    region          = "eu-central-1"
+    dynamodb_table  = "dynamodb_table_name"
+    encrypt         = true
+  }
+}
+
+provider "aws" {
+  region  = var.region
+  profile = var.profile
+}
+```
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+## Outputs
+
+```
+resource "aws_instance" "example" {
+  ami           = var.AMIS[var.AWS_REGION]
+  instance_type = "t2.micro"
+}
+
+output "ip" {
+  value = aws_instance.example.public_ip
+}
+```
+
+### Using attributes locally
+```
+resource "aws_instance" "example" {
+  ami           = var.AMIS[var.AWS_REGION]
+  instance_type = "t2.micro"
+
+  provisioner "local-exec" {
+    command = "echo ${aws_instance.example.private_ip} >> private_ips.txt"
+  }
+}
+
+```
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## Data-sources
+
+Examples:
+* list of AMIs
+* list of AZs
+* all IP addresses use by AWS
+
+Opening SG for incoming traffic from European AWS IP ranges:
+```
+data "aws_ip_ranges" "european_ec2" {
+  regions = [ "eu-west-1", "eu-central-1" ]
+  services = [ "ec2" ]
+}
+
+resource "aws_security_group" "from_europe" {
+  name = "from_europe"
+
+  ingress {
+    from_port = "443"
+    to_port = "443"
+    protocol = "tcp"
+    cidr_blocks = [ "${data.aws_ip_ranges.european_ec2.cidr_blocks}" ]
+  }
+
+  tags {
+    CreateDate = "${data.aws_ip_ranges.european_ec2.create_date}"
+    SyncToken = "${data.aws_ip_ranges.european_ec2.sync_token}"
+  }
+
+}
+```
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## Templates
+
+The template provider helps creating customized configuration files.\
+You can build templates based on variables from terraform resource attributes (ex: public IP address).\
+Can be used to create generic templates (user data) or cloud init configs.
+
+Template file:
+```
+#!/bin/bash
+echo "database-ip = ${myip}" >> /etc/myapp.config
+```
+
+Use the my-template resource when creating a new instance
+```
+resource "aws_instance" "web" {
+  # ...
+  user_data = templatefile("templates/init.tpl", {
+    myip = aws_instance.database1.private_ip
+  })
+}
+```
+
+Another way:
+```
+locals {
+  web_vars = {
+    myip = aws_instance.database1.private_ip
+  }
+}
+
+resource "aws_instance" "web" {
+  # ...
+  user_data = templatefile("templates/init.tpl", local.web_vars)
+}
+```
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## Modules
+Code that creates particular tasks can be written as module.
+Modules can be reused - need to pass arguments to the module.
+This code can be written once and used in many projects.
+
+External modules - written by others
+Internal modules - used ex: for dividing code for different AWS regions
+
+We wrote module once and use it in many providers (AWS in multiple regions).
+Arguments can be sent to back to main code using outputs.
+
+Module for deploying Consul cluster:
+```
+module "consul" {
+  source   = "github.com/wardviaene/terraform-consul-module.git?ref=terraform-0.12"
+  key_name = aws_key_pair.mykey.key_name
+  key_path = var.PATH_TO_PRIVATE_KEY
+  region   = var.AWS_REGION
+  vpc_id   = aws_default_vpc.default.id
+  subnets = {
+    "0" = aws_default_subnet.default_az1.id
+    "1" = aws_default_subnet.default_az2.id
+    "2" = aws_default_subnet.default_az3.id
+  }
+}
+
+output "consul-output" {
+  value = module.consul.server_address
+}
+```
+
+Networking:
+```
+# default VPC
+resource "aws_default_vpc" "default" {
+  tags = {
+    Name = "Default VPC"
+  }
+}
+
+# default subnets
+resource "aws_default_subnet" "default_az1" {
+  availability_zone = "${var.AWS_REGION}a"
+
+  tags = {
+    Name = "Default subnet for ${var.AWS_REGION}a"
+  }
+}
+
+resource "aws_default_subnet" "default_az2" {
+  availability_zone = "${var.AWS_REGION}b"
+
+  tags = {
+    Name = "Default subnet for ${var.AWS_REGION}b"
+  }
+}
+
+resource "aws_default_subnet" "default_az3" {
+  availability_zone = "${var.AWS_REGION}c"
+
+  tags = {
+    Name = "Default subnet for ${var.AWS_REGION}c"
+  }
+}
+```
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## Importing resources
+
+1. Define provider and credentials.
+2. Create S3 bucket and DynamoDB to handle state.
+3. Create IAM policy to access state resources.
+4. Create resource name:
+
+```
+resource "aws_instance" "bastion" {
+
+}
+
+```
+5. Import instance:
+`terraform import aws_instance.bastion i-12345678`
+
+6. Check the imported resource configuration:
+`terraform state show [TYPE].[NAME] -no-color > show`
+
+7. Copy resource configuration to the file.
+8. Cleanup, create references.
+9. Terraform plan - should be no changes.
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ## Workspaces:
@@ -182,25 +442,8 @@ resource "aws_instance" "example" {
   )
 }
 ```
-
-
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-## Variables:
-
-to use wit given value:
-terraform apply -var 'location=eastus'
-
-Variable as a list:
-
-ip_address = ["10.0.10.0/24", "10.0.20.0/24"]
-var.ip_address[0]
-
-subnet_prefix = [{cidr_block = "10.0.10.0/24", name = "subnet1"}, {cidr_block = "10.0.20.0/24", name = "subnet2"}]
-cir_block = var.subnet_prefix[0].cidr_block
-subnet_name = var.subnet_prefix[0].name
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ## For loop
 ```
 variable "names" {
