@@ -23,6 +23,10 @@ Installation:
 pip install ansible
 
 ansible --version   #checking version
+python3 -m pip show ansible
+
+Upgrading:
+python3 -m pip install --upgrade ansible
 
 Server provisioning - running new instances of vms. 
 Deployment orchestration - making operatios in dedicated order on many remote servers. 
@@ -42,6 +46,7 @@ ansible-playbook playbook.yml   #running the playbook
 --list-tasks                    #show tasks that playbook includes
 --check                         #will run playbook in check mode (simulating changes); in tasks: 'check mode: yes'
 --diff                          #used with check will show changes that will be made on server - installed packages etc; in tasks: 'diff: yes'
+--extra-vars "api_token="       #add extra vars while play
 
 #!/usr/bin/env ansible-playbook         #shebang to set in playbook file
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -136,7 +141,9 @@ ansible-playbook [PLAYBOOK_FILE] --tags [TAG_NAME]    #run playbook, but only ta
 
 tags: always    #this tag is always running no matter of given tag
 _________________________________________________________________________
-
+  - name: Pause playbook
+    pause:
+      minutes:  5
 _________________________________________________________________________
 Ansible galaxy:
 ansible-galaxy init roles/apache2     #creating role apache2
@@ -151,3 +158,7 @@ p. 89
 Remembering pharaphrase:
 eval `ssh-agent`
 ssh-add ~/.ssh/bit-dev-key.pem
+
+
+Looping over block:
+https://ericsysmin.com/2019/06/20/how-to-loop-blocks-of-code-in-ansible/

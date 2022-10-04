@@ -83,6 +83,8 @@ docker rm -f $(docker ps -aq)               #Removes all containers
 docker volume rm $(docker volume ls -q)     #Removes all volumes
 docker system prune -a                      #Will destroy all containers, networks, images and cache
 
+docker rm -f $(docker ps -aq) && docker volume rm $(docker volume ls -q)
+
 https://bulldogjob.pl/readme/jak-odzyskac-przestrzen-dyskowa-zajeta-przez-dockera
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Updating containers:

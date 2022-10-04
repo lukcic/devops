@@ -1,0 +1,33 @@
+Datasources:
+curl -H 'Authorization: Bearer eyJrIjoieXNZ*****'  http://localhost:3000/api/datasources > datasources.json
+curl -X POST 'http://localhost:3000/api/datasources' -H 'Authorization: Bearer glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8' -H 'Content-Type: application/json' -d @datasource.json
+
+Folders:
+curl -X POST 'http://localhost:3000/api/folders' -H 'Authorization: Bearer glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8' -H 'Content-Type: application/json' -d '@folders.json'
+
+Export dashboards:
+curl -H 'Authorization: Bearer eyJrIjoieXNZ*****lIiwiaWQiOjF9'  http://localhost:3000/api/dashboards/uid/5XGQ2tgnk > 5XGQ2tgnk.json
+
+API Token service account:
+glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8
+
+Import:
+curl -X POST 'http://localhost:3000/api/dashboards/db' -H 'Authorization: Bearer glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8' -H 'Content-Type: application/json' -d '@base.json'
+curl -X POST 'http://localhost:3000/api/dashboards/db' -H 'Authorization: Bearer glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8' -H 'Content-Type: application/json' -d '@KS8Phpg7k.json'
+curl -X POST 'http://localhost:3000/api/dashboards/db' -H 'Authorization: Bearer glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8' -H 'Content-Type: application/json' -d '@alerting.json'
+curl -X POST 'http://localhost:3000/api/dashboards/db' -H 'Authorization: Bearer glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8' -H 'Content-Type: application/json' -d '@5XGQ2tgnk.json'
+
+Alerts:
+curl -H 'Authorization: Bearer eyJrIjoieXNZekdMUzBrdmY5UW1tNTFlcEU1YTZBUjAwZmhTdWsiLCJuIjoidGVzdG5ld2luc3RhbmNlIiwiaWQiOjF9'  http://localhost:3000/api/v1/provisioning/alert-rules/qiN6NEm4z | jq '.'
+
+curl -X POST 'http://localhost:3000/api/v1/provisioning/alert-rules' -H 'Authorization: Bearer glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8' -H 'Content-Type: application/json' -d '@alert8.json'
+
+Contact points:
+curl -H 'Authorization: Bearer eyJrIjoieXNZekdMUzBrdmY5UW1tNTFlcEU1YTZBUjAwZmhTdWsiLCJuIjoidGVzdG5ld2luc3RhbmNlIiwiaWQiOjF9'  http://localhost:3000/api/v1/provisioning/contact-points/
+delete []
+curl -X POST 'http://localhost:3000/api/v1/provisioning/contact-points' -H 'Authorization: Bearer glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8' -H 'Content-Type: application/json' -d '@contactpoints.json'
+
+
+Policies:
+curl -H 'Authorization: Bearer eyJrIjoieXNZekdMUzBrdmY5UW1tNTFlcEU1YTZBUjAwZmhTdWsiLCJuIjoidGVzdG5ld2luc3RhbmNlIiwiaWQiOjF9'  http://localhost:3000/api/v1/provisioning/policies | jq '.'
+curl -X PUT 'http://localhost:3000/api/v1/provisioning/policies' -H 'Authorization: Bearer glsa_q35v9rHosM3QmsKIeBJyJ4L2OjX33vCp_87b554f8' -H 'Content-Type: application/json' -d '@policies.json'

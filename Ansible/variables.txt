@@ -102,7 +102,7 @@ Variables that are always available in playbook:
 -ansilbe_play_hosts         -list of all active servers (in this playbook)
 -ansible_version            -vesrion of ansible (dictionary)
 
-HISTVARS - is used to configure element with value that will be gather as fact from another server.
+HOSTVARS - is used to configure element with value that will be gather as fact from another server.
 For example, to configure (in www aplicatoin) ip address of db server use:
 {{ hostvars['db.example.com'].ansible_eth1.ipv4.address }}
 this variable will be changed to IP addres of db.example.com after gathering facts.
@@ -169,3 +169,27 @@ Generating random string:
   - name: Generate Fleet policy ID
     set_fact:
         policy_id: "{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=8') }}"
+
+
+Save output to file:
+    register: responses
+  - name: Save result to file
+    local_action: copy content={{ responses }} dest=./zrzut.json
+
+Switch dictionary key and value:
+  - name: Switch key and value in alert_uids
+    set_fact:
+      reversed: "{{ alert_uids | dict2items | items2dict(key_name='value', value_name='key') }}"
+  - debug: var=reversed
+
+
+Regex:
+# Create dictionary UID: filepath, in check alarm create URL from uid, in Update alert use filepath
+  - name: Generate list of alarms (from file content - UIDs)
+    set_fact:  # cannot use 'find' and 'set_fact' in one task
+      #alert_uids: "{{ alert_uids + [ grafana_url + '/api/v1/provisioning/alert-rules/'+ lookup('file', item.path) | regex_search('\"uid\".+\"') | regex_replace('\"uid\": \"') | regex_replace('\"')] }}"
+      alert_uids: "{{ alert_uids | combine({item.path: (''.join((grafana_url, '/api/v1/provisioning/alert-rules/', lookup('file', item.path) | regex_search('\"uid\".+\"') | regex_replace('\"uid\": \"') | regex_replace('\"')))    )    }) }}"
+    loop: "{{ alert_files.files }}"    # | combine( {item.item.name: item.stdout}
+    loop_control:
+      label: "{{ item.path | basename }}"
+  - debug: var=alert_uids  

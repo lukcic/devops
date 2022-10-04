@@ -1,0 +1,32 @@
+running as a docker container:
+
+docker volume create prometheus-data
+docker volume create grafana-data
+
+docker run -d --name=prometheus -p 9090:9090 -v prometheus-data:/prometheus -v /etc/prometheus:/config --restart=unless-stopped --network=prometheus prom/prometheus:latest --config.file=/config/prometheus.yml
+
+docker run -d --name=grafana -p 3000:3000 -v grafana-data:/var/lib/grafana --restart=always --network=prometheus grafana/grafana
+# https://grafana.com/grafana/dashboards/
+# default user/pass: admin
+
+Cadvisor:
+docker run -v /:/rootfs:ro -v /var/run:/var/run:ro  -v /sys:/sys:ro -v /var/lib/docker/:/var/lib/docker:ro -v /dev/disk/:/dev/disk:ro 
+-p 8111:8080 -d --name=cadvisor --privileged --device=/dev/kmsg --network=prometheus gcr.io/cadvisor/cadvisor
+# https://github.com/google/cadvisor
+
+
+https://linuxhit.com/prometheus-node-exporter-on-raspberry-pi-how-to-install/
+https://github.com/prometheus/node_exporter
+
+https://github.com/ysde/grafana-backup-tool
+
+
+Node exporter:
+Prometheus exporter for hardware and OS metrics exposed by *NIX kernels, written in Go with pluggable metric collectors.
+The node_exporter is designed to monitor the host system. It`s not recommended to deploy it as a Docker container because it requires access to the host system.
+http://localhost:9100/metrics
+
+BlackBox exporter
+https://www.opsramp.com/guides/prometheus-monitoring/prometheus-blackbox-exporter/
+
+

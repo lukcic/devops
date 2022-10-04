@@ -6,6 +6,7 @@ inventory = hosts                       #inventory file name
 remote_user = vagrant                   #username to log by ssh            
 private_key_file = ~/.ssh/keyfile.pem   #private key file location    
 host_key_checking = False               #do not check server fingerprint
+interpreter_python = /usr/bin/python3
 
 Ansible is looking for configuration in:
 1) file definied in env variable: ANSIBLE_CONFIG
