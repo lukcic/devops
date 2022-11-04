@@ -119,6 +119,45 @@ Developer:
 * connect frontend to backend using Amplify Frontend Libraries (React, Vue, Flutter)
 * build using Amplify Console & deploy (Amplify Console, CloudFront)
 
+# OpsWorks
+Configuration Management. Service that provides fully-managed instances for Chef and Puppet. Alternative SSM.
 
+OpsWorks allows you to clearly define the layers of your stack, ex:
+* Load Balancer
+* Application
+* Database
 
+## OpsWorks Stacks
+* managed version of Chef (11 and 12)
+* define your application as a stack which has layers, instances and app
+* easily upgrade Amazon Linux 1 to 2
+* can attach a load balancer
+* can define container layers and RDS layers
+* set IAM user permissions to control stack operations
+* schedule EC2 instance to run on a schedule
+* set EC2 instances to run auto scaling base on CPU usage
 
+>Stack - the container (box) for entire stack\
+>Layers -a blueprint for a set of EC2 instances\
+>Instances - represents a server\
+>Apps - code stored in a repository that you want to install on application server instances\
+
+Each layer has a set of five lifecycle events, each of which has an associated set of Chef recipes.
+Lifecycle events:
+* Setup - occurs after a started instance has finished booting
+* Configure - occurs on all of the stack's instances when one of the following occurs:
+    * instance enters/leaves the online state
+    * Elastic IP address associate/disassociate from the instances
+    * ELB attach/detach to layer
+* Deploy - occurs when you run a deploy command
+* Undeploy - occurs when you delete an app or run an undeploy command to remove the app from set of app server instances
+* Shutdown - occurs after you direct OpsWorks Stacks to shut an instance down but before the associated EC2 instance is actually terminated
+
+Run commands - perform manual operations:
+* Update custom cookbooks
+* Execute recipes
+* setup
+* configure
+* upgrade OS
+
+Rest skipped

@@ -127,6 +127,15 @@ export AWS_PROFILE=lukcic
 * terraform state
   * advance state management (rename the resource etc.)
 
+* terraform state list
+  * show only resources names stored in state
+
+* terraform state mv [OLDNAME] [NEWNAME]
+  * rename resources in state after rename in config file
+  * used to move resources from root module to own modules:
+    * terraform state mv aws_key_pair.arb-prod-key-rsa module.ec2.aws_key_pair.arb-prod-key-rsa
+    * terraform state mv aws_vpc.arb-prod module.network.aws_vpc.arb-prod
+
 * terraform refresh
   * refresh the remote state
 
@@ -150,6 +159,11 @@ export AWS_PROFILE=lukcic
 
 * terraform untaint [NAME]
   * undo a taint
+
+### Lockfile
+Lockfile stores version of provider, so with next download,\
+TF will not download latest version of provider, but version saved in Lockfile.\
+This file is created during terraform init and should be stored in version control.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ## First module
@@ -332,11 +346,16 @@ Code that creates particular tasks can be written as module.
 Modules can be reused - need to pass arguments to the module.
 This code can be written once and used in many projects.
 
+![](project_structure.jpg)
+
 External modules - written by others
 Internal modules - used ex: for dividing code for different AWS regions
 
 We wrote module once and use it in many providers (AWS in multiple regions).
 Arguments can be sent to back to main code using outputs.
+
+module.NAME.output\
+`${module.aws_vpc.vpcid}`
 
 Module for deploying Consul cluster:
 ```
@@ -444,66 +463,3 @@ resource "aws_instance" "example" {
 ```
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-## For loop
-```
-variable "names" {
-  type = list(string)
-  default = ["one", "two", "three"]
-}
-
-output "upper_names" {
-  value =  [for name in var.names: upper(name)]   # upper letters
-}
-```
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-## Conditionals:
-```
-condition ? true_val : false_val
-```
-
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-## Dynamic Blocks:
-
-.tfvars:
-```
-log_bucket              = false
-/*log_bucket = {
-    bucket          = "bitwww-dev-log-files.s3.amazonaws.com"
-    prefix          = "dev-preview"
-}*/
-```
-
-.tf
-```
-variable "log_bucket" {
-  //type = map(string)
-  description = "Cloudfront log configuration: bucket name, including cookies, prefix"
-}
-
-resource "aws_cloudfront_distribution" "bitwww_static" {
-  origin {
-    domain_name = var.s3_bucket_rdn  //origin domain
-    origin_id   = var.s3_bucket_rdn  //origin name
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.bitwww_static.cloudfront_access_identity_path
-    }
-  }
-
-  enabled             = true
-  is_ipv6_enabled     = true
-  default_root_object = "index.html"
-  comment             = "${var.prefix}-cloudfront"
-  aliases             = var.domain_names
-
-  dynamic logging_config {
-    for_each = var.log_bucket == true ? [1] : []
-    content {
-      include_cookies = false
-      bucket          = var.log_bucket.bucket
-      prefix          = var.log_bucket.prefix
-    }
-  }
-(...)
-}
-```
