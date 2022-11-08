@@ -1,6 +1,8 @@
 #!/bin/bash
 set -eu
 
+# Script for importing AWS Subnets to Terraform state
+
 VPC_ID="vpc-0d305a6c1a4ac2a59"
 
 #SUBNETS=$(aws ec2 describe-subnets --filter Name=vpc-id,Values=vpc-0d305a6c1a4ac2a59 --query 'Subnets[].SubnetId' | jq '. | @sh' | sed 's/"//g' | sed -e 's|["'\'']||g')

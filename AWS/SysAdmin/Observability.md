@@ -25,8 +25,11 @@ Umbrella service - collection of monitoring tools as:
 * Contributor Insights - view the top contributor impacting the performance of your systems and apps in real time
 
 ![](.pictures/cloudwatch.jpg)
+![](.pictures/CloudWatchChSh.jpg)
 
 ## CloudWatch LOGS
+
+![](.pictures/cwlogs.jpg)
 
 ### AWS Logs
 
@@ -80,6 +83,9 @@ Filter expressions - can be used to ex: find specific IP within a log or count "
 Subscription Filter - can be used to send logs into other services (Lambda, ES, Kinesis) in near real-time.
 
 #### Log Insights
+
+![](.pictures/cwlogsinsights.jpg)
+
 Interactively search and analyze CloudWatch log data.
 More robust filtering than using the simple filter events in a log stream.
 More simple than analyzing logs in Athena.
@@ -99,16 +105,52 @@ Five system fields (automatically generated):
 * @log - log group identifier in the form of: account-id:log-group-name
 
 ### Agent
-CloudWatch log agent -can be installed on EC2 machines or on-premise servers for collecting logs by CloudWatch.
+CloudWatch log agent - can be installed on EC2 machines or on-premise servers to collecting logs from instance in CloudWatch.
+
+Agent config file:
+`/etc/awslogs/awslogs.conf`
+
+Restarting:
+```
+sudo service awslogsd stop
+sudo service awslogsd start
+```
+
+Install by AWS Systems Manager SSM Run command (AWS-ConfigureAWSPackage).
+
+`CloudWatchAgentServerRole` must be enabled on EC2!
 
 ## CloudWatch METRICS
+
+![](.pictures/cwmetrics.jpg)
+
+>Metric - a time ordered set of data points.\
+>Variable, that is monitored over time.
 
 Metrics belongs to namespaces (groups).\
 Dimension is an attribute of a metric (instance id, environment, etc...).\
 Column name in AWS Console. Up to 10 dimensions per metric.
 
-EC2 Default - metrics every 5mins, Detailed - every 1 min (paid extra)
+### Intervals
+Basic monitoring: 1min / 3min / 5min;  **for EC2: 5min**\
+Detailed monitoring: N/A; **for EC2 - 1min (extra paid)**
+
 Billing - Total Estimated Charge is available only in us-east-1 (for whole account)
+
+### Metric types
+
+Host level metrics (without agent):
+* CPU usage
+* network usage (transfer)
+* disk usage
+* status checks
+
+Agent level metrics:
+* memory utilization
+* Disk swap utilization
+* Disk space utilization
+* page file utilization
+* log collection
 
 Important metrics:
 * `NetworkIn` and `NetworkOut` - usage of network by instance
@@ -116,7 +158,7 @@ Important metrics:
 * `DiskReadBytes`, `DiskWriteBytes` - data from all instance volumes, determine speed of application
 * `ResourceCount` - metric used to determine the amount of resources running in the account
 
-### Custom Metrics
+Custom Metrics
 
 For custom metrics is used API call: PutMetricData. It can be send with with dimensions (attributes) to segment metrics: Instance.Id, Environment.name.
 
@@ -134,8 +176,11 @@ You can retrieve custom metrics from your applications or services using the `St
 Metrics are accepted with timestamp for 2 weeks in the past and 2 hours in the future. You must be sure about time settings in your server.
 
 Push metric data:
+```bash
+aws cloudwatch put-metric-data --metric-name Test --namespace "Usage Metrics" --metric-data file://metric.json
 ```
-aws cloudwatch put-metric-data --namespace "Usage Metrics" --metric-data file://metric.json
+
+```json
 
 [
   {
@@ -146,13 +191,16 @@ aws cloudwatch put-metric-data --namespace "Usage Metrics" --metric-data file://
   }
 ]
 ```
-```
+```bash
 aws cloudwatch put-metric-data --metric-name Buffers --namespace MyNameSpace --unit Bytes --value 231434333 --dimensions InstanceID=1-23456789,InstanceType=m1.small
 ```
 
 ## CloudWatch ALARMS
 
+![](.pictures/cwalarms.jpg)
+
 Trigger notifications for any metric.
+A CloudWatch Alarm monitors a CloudWatch Metric based on a defined threshold.
 
 Alarm states:
 >OK                 - all is alright\
@@ -164,9 +212,22 @@ Targets:
 * ASG - trigger Auto-scaling action
 * SNS - send notification into an SNS topic (later to Lambda)
 
-Status check:
+>Metric - the actual data we are measuring\
+>Data-point - represents the metric's measurement at a given period\
+>Threshold condition - defines when a data-point is breached (over the limit)\
+>Period - how often it checks to evaluate the alarm\
+>Evaluation periods - number of previous periods\
+>Data-points to alarm - 1 data point is breached in an evaluation period going back 4 periods. This is what triggers the alarm.
+
+### Composite alarms
+Alarms that monitor other alarms. Used to reduce alarm noise.
+
+Configuring 2 alarms with `no action`: CPU Utilization and NetworkIn. For this 2 alarms composite alarms is created with condition: `ALARM("CPU Uilization)" AND ALARM("Network_In")`. Action for this alarm can be only SNS Topic!
+
+EC2 Status check:
 * Instance status - check the VM
 * System status - check the underlying hardware
+* cannot be disabled
 
 StatusCheckFailed_System - can be used to recover the EC2 (same subnet, Elastic IP, metadata, placement group).
 
@@ -189,19 +250,162 @@ JSON payload is created from the event and passed to a target:
 * maintenance - SSM, EC2 Action
 
 ### Amazon EventBridge
+
+![](.pictures/eventbridge1.jpg)
+![](.pictures/eventbridge2.jpg)
+
 Evolution of CloudWatch events. It uses teh same service API and endpoint.
+
+Event bus receives events from a source and routes them to a target based on a rules.
+It's a `serverless` event bus service that is used for application integration by `streaming real-time data` to your application.
 
 * Default Event BUS - generated by AWS services (CloudWatch Events)
 * Partner Event Bus - receive event from SaaS service or applications (DataDog, Auth0)
-* Custom Event Buses - for your own applications
+* Custom Event Buses - for your own applications, scoped to multiple AWS accounts
+
+>Producers - AWS services that emit events.
+
+>Events - data emitted by services, JSON objects that travel (stream) within event bus.
+
+>Rules - defines how to process the events (100 rules per bus)
+
+>Targets - AWS services that consume events (5 targets per rule)
+
+>Partner sources - third-party apps that can emit events to an event bus
 
 Events can be archived after sent to Event Bus, and replayed from archive.
 
-Rules - defines how to process the events.
+#### Event
+```json
+{
+  "account": "123456789012",
+  "region": "us-east-1",
+  "detail-type": "CodeDeploy Deployment State-change Notification",
+  "source": "aws.codedeploy",
+  "version": "0",
+  "time": "2016-06-30T22:06:31Z",
+  "id": "c071bfbf-83c4-49ca-a6ff-3df053957145",
+  "resources": [
+    "arn:aws:codedeploy:us-east-1:123456789012:application:myApplication",
+    "arn:aws:codedeploy:us-east-1:123456789012:deploymentgroup:myApplication/myDeploymentGroup"
+  ],
+  "detail": {
+    "instanceGroupId": "9fd2fbef-2157-40d8-91e7-6845af69e2d2",
+    "region": "us-east-1",
+    "application": "myApplication",
+    "deploymentId": "d-123456789",
+    "state": "SUCCESS",
+    "deploymentGroup": "myDeploymentGroup"
+  }
+}
+```
 
-Schema Registry:\
+Metadata - top level fields\
+Content - in `detail` key
+
+#### Scheduled Expressions
+
+* UTC time zone
+* 1 minute minimum precision
+* cron expressions and rate expressions (ex: every 8 hours)
+
+EventsBridge rules can be triggered by schedule - serverless` Cron jobs`.
+
+#### Rules
+
+Commonly targeted services:
+* Lambda function (with optional version)
+* SQS queue
+* SNS topic
+* firehouse delivery system
+* ECS task
+
+Configure input - sort or filter what gets passed to process by rule:
+* Match events - the entire event pattern text is passed to the target when rule is triggered
+* part of the match event - only the part of the event text that you specify is passed to the target ($.detail)
+* Constant (JSON text) - send static content instead of the matched event data - Mocked JSON ({"success":true})
+* Input transformer - ypu can transform the event text to a different format of a string or a JSON object. You map fields from the event data to variables, then you can use those variables in a string or JSON object and that will be passed to target.
+
+#### Event pattern
+Are used to filter what events should be used to pass along to a target.
+You can filter events by providing the same fields and values found in the original events.
+
+Simplified:
+Cut only needed values from event's JSON and use it to match if event should be passed to target or not. Ex: EC State change notification - only when state is "Terminated".
+
+Patterns:
+* prefix matching
+  * `"region" : [{"prefix": "ca-" }]`
+* anything-but matching
+  * `"state": [{"anything-but": ["stopped", "overloaded"]"}]`
+* numeric matching
+  * `"x-imit" : [{"number": [ ">", 0, "<=",5 ] }]`
+* IP address matching
+  * `"source-ip": [{ "cidr": "10.0.0.0/16"}]`
+* exist matching
+  * `"c-count": [{"exists": false}]`
+* empty value matching
+  * `"version": [null]`
+* complex example with multiple matching
+  * combination of many
+
+#### Schema Registry:
 Event Bridge can analyze the events in bus and gather the schema.
+
+Schema ia an outline, diagram or model. Schemas are often used to describe the structure of different types of data (similar to terraform variable type).
+
+```json
+{
+    "openapi": "3.0.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "Event"
+    },
+    "paths": {},
+    "components": {
+      "schemas": {
+        "Event": {
+          "type": "object",
+          "properties": {
+            "ordinal": {
+              "type": "number",
+              "format": "int64"
+            },
+            "name": {
+              "type": "string"
+            },
+            "price": {
+              "type": "number",
+              "format": "double"
+            },
+            "address": {
+              "type": "string"
+            },
+            "comments": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    }
+  }
+```
+
 Schema (JSON) registry allows you to generate the code from your application, that will know in advance how data is structured in the event bus. Schema can be versioned.
+
+EventBridge schema registry allows you to create, discover and manage OpenAPI schemas for events on EventBridge.
+
+
+Schemas are used to see if the structure of events have changed over time. This makes easier to developers to know what data type expect from a type of event, so its easier to integrate into applications.
+
+Code Binding is when the schema is wrapped in a programming Object. This standardizes how to work with event data in the code loading to fewer bugs and easier discovery of data.
 
 Resource-based Policy:\
 Event Buses can be accessed from other AWS accounts. Policy manage permissions for a specific Event Bus, ex: allow/deny events from another AWS account. Use-case: to aggregate all events from AWS Organization in a single AWS account.
@@ -213,6 +417,9 @@ For Lambda, Amazon SNS, Amazon SQS, and Amazon CloudWatch Logs resources, EventB
 Sandbox:\
 Test rules and patterns without creating the rule.
 
+#### CloudTrail events
+Turning on CloudTrial allows EventBridge to track changes to AWS Services made by API calls or by AWS Users.The detail type of CloudTrail will be called: `AWS API Call via CloudTrail`. Max API call event is 256KB.
+
 ## CloudWatch DASHBOARDS
 * dashboards are global
 * can include graphs from different AWS accounts and regions
@@ -221,22 +428,99 @@ Test rules and patterns without creating the rule.
 * can be shared with people without AWS account (public, email address, 3rd party SSO through Amazon Cognito)
 * 3 dashboards (up to 50 metrics) for free, $3 per dsb per month
 
+## Service Lens
+Performing distributed (microservices) applications `Observability` by consolidating metrics, traces, logs and alarms into a one unified dashboard.
+
+ServiceLens integrates CloudWatch with X-Ray to provide an end-to-end view of your application to help you efficiently:
+* pinpoint performance bottlenecks
+* identify impacted users
+
+Integration with CloudWatch Synthetics.
+
+Service map - displays your service endpoints as `nodes` and highlights the traffic, latency and errors for each node and its connections. Map view and List view.
+
+>Insert screen
+
+Log correlation with:
+* Lambda functions
+* API gateway
+* Java-based apps on EC2, EKS, ECS
+* Kubernetes with Container Insights
+
+To install and use ServiceLens:
+* deploy X-Ray (instrument your services)
+* deploy CloudWatch agent and X-Ray daemon
+
+Filtering  trace information to open in X-Ray analytics.
+
+## ClodWatch Synthetics
+
+Canary - configurable script that runs on a schedule to monitor your endpoints and APIs. Canaries mimic steps to real user would take, so you can `continuously verify the customer experience`.
+
+Synthetics is used to `test web apps` by creating canaries to:
+* broken and dead links
+* step-by-step completion
+* page load errors
+* load latencies of assets
+* Complex wizard flows
+* checkout flows
+
+Canaries run on AWS Lambda using Node.js and Puppeteer.
+
+>Puppeteer - headless chrome browser and an automatic testing framework. Can be coded to open web-browser and click to enter information into a website.
+
+Canaries blueprints:
+* Heart Beat monitoring - check a single page is it still alive
+* API Canary - used to check API endpoint (method, headers, Payload)
+* Broken link checker - supply a URL and check links on the page
+* GUI workflow builder - test a sequence of steps that makes up a workflow (actions: Click, Input text, verify text)
+
+## CloudWatch Contributor Insights
+
+### Container Insights
+
+Collects, aggregates and summarizes information about your containers from metics and logs.
+
+Works with:
+* ECS
+* ECS Fargate
+* EKS
+* Kubernetes on EC2 instances
+
+Metrics collected by Container Insights are available in CloudWatch automatic dashboards.
+You can analyze and troubleshoot container performance and logs data with CloudWatch Insights. Operational data is collected as performance log events. These are entries tat use a structured JSN schema that enables high-cardinality data to be ingested and stored at scale.
+
+Filtering by: Cluster, Node, Pod, Task, Service level.
+
+Contributor Insights allows you to view top contributors impacting the performance of your systems and application in `real time`. It looks at your CloudWatch logs and based on Insight rules you define shows `real time time-series data`. Sample rules available.
+
+
 # CloudTrail (ślad)
-Governance, compliance and audit for AWS account.
-Enabled by default, diagnose who did what.
+
+![](.pictures/cloudtrail.jpg)
+When you want to know `Who to blame?`
+
+Governance, compliance operational and risk audit for AWS account. Enabled by default.
 History of events/API calls within account (console, CLI, SDK connections), can put logs to CloudWatch or S3.
 
-Events types:
-* Management Events (logged by default) - operations performed on resources: create resource, attach policy. Read and Write events (modifications). No charges, KMS events can be excluded (amount).
+## Events types:
+* `Management Events` (logged by default) - operations performed on resources: create resource, attach policy. Read and Write events (modifications). No charges, KMS events can be excluded (amount). Can't be turned off.
 
-* Data Events (not logged by default) - operations on S3 object level: Get, Put, Delete Object, Lambda executions. Read and Write events.
+* `Data Events` (not logged by default, additional charges) - operations on S3 object level (Get, Put, Delete Object) and Lambda executions. Read and Write events.
 
-* Insight Events (additional payment) - detect unusual activities (service limits, provisioning problems, gaps in maintenance). Create baseline of normal activity and continuously analyze write events.
+* `Insight Events` (additional payment) - detect unusual activities (service limits, provisioning problems, gaps in maintenance). Create baseline of normal activity and continuously analyze write events.
 
-Retention:\
-Events are stored by 90 days. Can be stored in S3 to use in Athena (SQL analysis).
+## Trail Options
+* trail can be set to log to all regions
+* trail can be set to across all accounts in an Organization
+* you can encrypt logs using Server Side Encryption via SSE-KMS
+* you can enable `log file integration` to be sure that logs weren't manipulated
+* logs can be sent to deliver events to CloudWatch
 
-Log File Integrity Validation
+## Retention
+Events are stored by default for 90 days (Event history with GUI). If more needed then create a `Trail`. Data can be stored in S3 to use in Athena (SQL analysis).
+
+### Log File Integrity Validation
 Digest Files - reference of log files from last hour - contains hash of each log file. Is stored in the same bucket as logs, but in different directory (index).
 Determine if log file was modified after deliver by CloudTrail. Bucket should be protected by: policy, versioning, MFA Delete Protection, encryption, object lock.
 

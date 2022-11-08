@@ -1,3 +1,8 @@
+# Cloud Networking
+![](./.pictures/CloudNetworking/1.jpg)
+![](./.pictures/CloudNetworking/2.jpg)
+![](./.pictures/CloudNetworking/3.jpg)
+
 # Enhanced networking
 
 **EC2 enhanced networking (SR-IOV)**
@@ -156,14 +161,31 @@ Auto-defined System Rules:
 # VPC
 Virtual Private Cloud
 * regional resource, span all AZs
+* max 5 VPC per region
+* DNS names should be enabled in newly created VPC
+
+![](.pictures/vpc.jpg)
+
+Paid:
+* NAT Gateway
+* VPC Endpoints
+* VPN Gateway
+* Customer Gateway
+
+Free:
+* VPC
+* Subnets
+* Route table
+* ACL
+* Internet Gateway
+* Security Groups
+* VPC Peering
 
 ## Subnets
 * AZ resource, span one AZ - Subnet cannot exists in more than 1 AZ!
 * Public subnet - accessible from internet
 * Private subnet - NOT accessible from internet
 * by default all subnets in one VPC can route between each other, whether they are are private or public, they all are LOCAL target in route table, traffic is managed by SGs or NACLs
-
-
 
 * AWS reserves 5 IP addresses (first 4 and last one) in each subnet:
     * 10.0.0.0 - network address
@@ -172,14 +194,18 @@ Virtual Private Cloud
     * 10.0.0.3 - for future use
     * 10.0.0.255 - Network Broadcast address
 
+Range of VPC must be between /16 and /28 (16 addresses).
+VPC has a limit of 200 subnets per VPC.
+
 ## Internet Gateway
 * Used to connect instances to the internet.
+* performs the network address translation (NAT)
 * Public subnets have a route to Internet Gateway.
 * Must be attached to VPC and route table to give access to the internet
 
-
 ## Route tables
 * define access to the internet and between subnets
+* each subnet must be associated with one route table
 
 ## Bastion host
 * is used to give SSH access to host in private networks
@@ -250,7 +276,8 @@ Cost $0.10 per analysis.
 ## VPC Peering
 * connect two VPCs privately
 * must be set between every pair of VPCs
-* they will behave like they were in the same network (CIDRs cannot overlap)
+* CIDRs cannot overlap
+* instances on peered VPCs behave just like they are on the same network
 * you can create VPC Peering connection between VPCs in different accounts/regions
 * you can reference a SG in a peered VPC (works cross accounts - same region)
 * route tables in each vpc must be updated: main VPC CIDR as destination and peering connection as a target
@@ -262,7 +289,6 @@ Connect AWS services by private network instead public Internet (S3, DynamoDB, C
 
 * batter security
 * low latency
-
 
 ### VPC Endpoint Gateway (service)
 * ONLY for S3 and DynamoDB (preferred)

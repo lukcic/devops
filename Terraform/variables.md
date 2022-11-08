@@ -55,6 +55,7 @@ variable "mymap" {
 
 var.mymap
 var.mymap["mykey"]
+lookup(var.AMIs, var.AWS_REGION)
 ```
 
 ## Usage:
