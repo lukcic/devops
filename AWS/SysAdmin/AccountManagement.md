@@ -91,18 +91,32 @@ Governance rules to enable on OU:
 
 # AWS Service Catalog
 
-Quick self-service portal to launch of set of authorized products pre-defined by admins.\
+![](.pictures/serviceCatalog.jpg)
+
+Quick self-service portal to launch of set of authorized products pre-defined by admins and approved to use.\
 Include: virtual machines, databases, storage options.
 Portal to managing project infrastructure by your client without AWS knowledge (based on CloudFormation).
+AWS Budget can be associated with the product.
 
-Admin tasks:
+## Admin tasks:
 * create Products (CloudFormation templates)
 * create Portfolio (Collection of products)
-* Control (IAM permissions to access Portfolios)
+* Control access with IAM permissions to access Portfolios (groups, roles, users)
 
-User tasks:
+Constraints - can restrict how products are used.
+![](.pictures/constraints.jpg)
+
+## User tasks:
 * Product list - authorized by IAM ---> launch
-* Provisioned products - reade to use properly configured and tagged
+* Provisioned products - ready to use properly configured and tagged
+
+![](.pictures/scUser.jpg)
+
+## Service Actions
+
+SSM Documents associated with a product to allow the end user perform maintenance, ex: "AWS-RestartEC2Instance".
+
+## Sharing portfolios
 
 Share portfolios with individual AWS accounts or Organizations.
 There is a possibility to add products from the imported portfolio to the local portfolio.

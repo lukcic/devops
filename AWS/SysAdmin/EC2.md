@@ -1,4 +1,16 @@
 # EC2
+
+## Metadata
+
+To access EC2 metadata send curl request from host to:
+```
+http://169.254.169.254/latest/meta-data
+```
+Paths:
+* /public-ipv4
+* /ami-id
+* /instance-type
+
 ## Changing instance type
 * instance must be stopped
 * after start will be restarted on another physical host in data-center
@@ -60,13 +72,13 @@ Filter EC2_INSTANCE_CONNECT in https://ip-ranges.amazonaws.com/ip-ranges.json to
 Spot request:
 * maximum price
 * desired number of instances
-* lauch specification
+* launch specification
 * valid: from - until
 * request time: one-time, persistent
 
 Request time:
 * one-time - request is done after one cycle reservation - termination
-* persistent - if instances were terminated because price, spot request is stil valid and will be relaunched
+* persistent - if instances were terminated because price, spot request is still valid and will be relaunched
 
 Request status:
 * open

@@ -5,7 +5,7 @@
 
 # Enhanced networking
 
-**EC2 enhanced networking (SR-IOV)**
+## EC2 enhanced networking (SR-IOV)
 * higher bandwidth, hight PPS (packet per second), low latency
 * option1 - Elastic Network Adapter (ENA) - up to 100Gbps
 * option 2- Intel 82599VF uto to 10 Gbps (legacy)
@@ -23,11 +23,13 @@ $ethtool -i eth0
 # driver should be ena not vif
 ```
 
-**Elastic Fabric Adapter (EFA)**
+## Elastic Fabric Adapter (EFA)
 * improved ENA (Elastic network adapter) for High PerformanceComputing - only works with Linux
 * great for inter-node communications, tightly coupled workloads (lives in the same cluster)
 * leverages Message Passing Interface (MPI) standard
 * bypasses the underlying Linux OS to provide low-latency, reliable transport
+
+---
 
 # Route53
 
@@ -158,10 +160,12 @@ System Rules:
 Auto-defined System Rules:
 * Defines how DNS queries for selected domains are resolved, ex: AWS internal domain names, private hosted zones
 
+---
+
 # VPC
 Virtual Private Cloud
 * regional resource, span all AZs
-* max 5 VPC per region
+* max 5 VPC per region, max 200 subnets per VPC
 * DNS names should be enabled in newly created VPC
 
 ![](.pictures/vpc.jpg)
@@ -183,7 +187,7 @@ Free:
 
 ## Subnets
 * AZ resource, span one AZ - Subnet cannot exists in more than 1 AZ!
-* Public subnet - accessible from internet
+* Public subnet - accessible from internet (auto-assign IPv4 enabled)
 * Private subnet - NOT accessible from internet
 * by default all subnets in one VPC can route between each other, whether they are are private or public, they all are LOCAL target in route table, traffic is managed by SGs or NACLs
 
@@ -222,10 +226,11 @@ VPC has a limit of 200 subnets per VPC.
 * must disable EC2 setting: Source/destination check on NAT instance
 * dedicated AMIs in Marketplace (Amz)
 * EC2 instances subnet must have Internet gateway with entry in route table to send internet traffic to NAT host
+* HA using ASG in different AZs and failover using script or DNS
 
 ### NAT Gateway
 * allows instances in private subnet to access to internet while remaining private
-* AWS managed, higher bandwidth (5-45 Gbps), HA, no administration, no SG
+* AWS managed, higher bandwidth (5-45 Gbps), HA in 1 AZ, no administration, no SG
 * pay per hour and bandwidth
 * NATGW is created in a specific AZ, uses Elastic IP
 * cant be used by EC2 instance in the same subnet (only from another)
@@ -248,7 +253,7 @@ VPC - Right click - `Edit DNS resolution`
 VPC - Right click - `Edit DNS hostnames`
 
 ## NACL
-* Subnet level firewall
+* Subnet level firewall (one NACL per subnet)
 * allows traffic from and to subnet
 * allow and deny (deny all for new acls)
 * works on IPs
@@ -256,6 +261,7 @@ VPC - Right click - `Edit DNS hostnames`
 * stateless - return traffic must be turned on (with ephemeral ports 1027-65535)
 * process rules in order as numbers 1-32766 (first rule match will drive the decision), AWS recommends adding rules by increment of 100
 * last rule is an asterisk (*) and denies all request without a match
+* used to block single IP (SG has only allow rules)
 
 ## Security group
 
@@ -264,10 +270,15 @@ VPC - Right click - `Edit DNS hostnames`
 * can be attached to multiple EC2 or ENI
 * access to ports, authorized IP ranges
 * control of inbound (blocked by default) and outbound (allowed by default) traffic
-* only Allow rules!
+* only Allow rules! (all is denied by default)
 * works on IPs and other SecurityGroups
 * stateful - return traffic is automatically allowed (regardless any rules)
 * process rules at all (NOT in order)
+
+Limits:
+* 2500 SGs in Region (max to 10k)
+* 60 inbound and 60 outbound rules in SG
+* 5 SGs per ENI (max 16 SGs)
 
 ## VPC Reachability analyzer
 
@@ -294,14 +305,14 @@ Connect AWS services by private network instead public Internet (S3, DynamoDB, C
 * ONLY for S3 and DynamoDB (preferred)
 * provisions a gateway and must be used as a target in a route table (don't need SG)
 * region must be specified while access (the same)
-* free of charges
+* free of charges!!
 
 ### VPC Endpoint Interface (ENI)
 * for the rest of services
-* provisions an ENI (private IP address) as an entry point, SG must be attached
+* ENI (with private IP address) serve as an entry point, SG must be attached
 * powered by AWS Private Link
-* for S3 preferred when access is required form on-prem, a different VPC or region
-* cost per hour + per GB of processed data
+* for S3 preferred when access is required from on-prem, a different VPC or region
+* cost (~ 7.5$/month) per hour + per GB of processed data
 
 
 ## Flow Logs
@@ -311,10 +322,13 @@ Capturing information about IP traffic.
 * Subnet Flow logs
 * ENI flow logs
 
+![](.pictures/flowLogs.jpg)
+
 Captures information from AWS managed interfaces (ELB, RDS, NATGW, etc.)
-Data can be sent to S3 or CloudWatch.
+Data can be sent to S3 or CloudWatch. No hostnames (just IP).
 Action - success or failure of the request due to SG/NACL
 Can be used for analytics on usage patterns or malicious behavior.
+Some data is not logged (AWS DNS queries, Win activation, DHCP).
 
 Incoming requests:
 * inbound REJECT => NACL or SG problem
