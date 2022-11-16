@@ -1,21 +1,39 @@
-## EC2 Storage management
+# Storage
+Types of storage:
+* Block - EBS, Instance Store
+* File - EFS, FSx
+* Object - S3, Glacier
+
+>IOPS - Input/Output per second, amount of independent reads and writes can be performed on a storage medium.
+
+>Throughput - data transfer rate to and from the storage in megabytes per second
+
+>Bandwidth - the measurement of total possible speed of data movement along the network
+```
+bandwidth - pipe
+throughput - water
+```
+
+## EBS
 ### EBS volumes types:
-* gp2/gp3 (SSD) - general purpose, can be root volume
-* io1/io2 (SSD) - highest performance SSD, for mission critical, low latency or high-throughput workloads, can be root volume
-* st1 (HDD) - low cost HDD for frequently accessed, throughput intensive workloads, cannot be root volume
-* sc1 (HDD) - lowest cost HDD for less frequently accessed workloads, cannot be root volume
+* General Purpose gp2/gp3 (SSD) - general purpose, can be root volume
+* Provisioned IOPS io1/io2 (SSD) - highest performance SSD, for mission critical, low latency or high-throughput workloads, can be root volume
+* Throughput Optimized st1 (HDD) - low cost HDD for frequently accessed, throughput intensive workloads, cannot be root volume
+* Cold HDD sc1 (HDD) - lowest cost HDD for less frequently accessed workloads, cannot be root volume
+* EBS Magnetic (standard) - obsolete generation of HDDs
+
+![](.pictures/ebs.jpg)
 
 ### General Purpose
-GP2:
-*  1GB - 16TB
-* size of volume and IOPS are linked
-* small volumes max 3000 IOPS
-* max 16 000 IOPS at 5TB
-
- GP3
-* 1GB - 16TB
-* baseline 3 000 IOPS and 125MiB/s
-* increase up to 16 000 IOPS and 1000 MiB/s (not linked)
+* GP2:
+	* 1GB - 16TB
+	* size of volume and IOPS are linked
+	* small volumes max 3000 IOPS
+	* max 16 000 IOPS at 5TB
+* GP3:
+	* 1GB - 16TB
+	* baseline 3 000 IOPS and 125MiB/s
+	* increase up to 16 000 IOPS and 1000 MiB/s (not linked)
 
 ### Provisioned IOPS SSD:
 * critical business applications with permanent IOPS performance (databases eg. )
@@ -57,6 +75,18 @@ Other tools:
 resize2fs
 xfs_growfs
 
+### Moving volumes
+From one AZ to another:
+* take a snapshot
+* create AMI from the Snapshot
+* launch new EC2 instance in desired AZ
+
+From one Region to another:
+* take a snapshot
+* create AMI from the Snapshot
+* copy AMI to another region
+* launch new EC2 instance in desired region from copied AMI
+
 ### Snapshots
 
 Amazon Data Lifecycle Manager - automate the creation, retention and deletion of EBS snapshots and EBS-backed AMIs. Schedule backups, cross-account snapshot copies, delete outdating backups. Uses resource tags.
@@ -71,7 +101,7 @@ EBS Snapshots archive - move snapshots to an archive tier (75% cheaper, 24-72h t
 
 Snapshot Recycle bin - can be enabled (retention 1 ay to 1 year).
 
-Encryption of EBS
+### Encryption of EBS
 If volume is encrypted:
 * data at rest is encrypted inside the volume
 * all data in flight while moving between the instance and the volume is encrypted
@@ -84,7 +114,7 @@ Encryption of old volume:
 * create new volume from encrypted snapshot
 * attach encrypted volume instead old one
 
-### Elastic File System (EFS)
+## Elastic File System (EFS)
 
 Managed NFS (v4.1) - POSIX file system.
 Can be mounted on many EC2 in many AZ.
@@ -193,7 +223,6 @@ Default encryption using bucket policy:
   }
 }
 ```
-
 
 *Blocking public access*
 
@@ -312,7 +341,7 @@ Analytics - setup will help determine when to transition objects from Standard t
 
 S3 bucket - Analytics - Add filter - Destination bucket select
 
-### Glacier
+## Glacier
 Alternative to on-premise magnetic tape storage. Encrypted by default (AES-256), keys are managed by AWS.
 
 S3:			Glacier:
@@ -417,16 +446,7 @@ Cost: around $0.25
 
 Manifest - a way to reference your files in your bucket to tell process which of files should be processed. S3 inventory report can be used or simple CSV file wit columns: bucket name, object_key and optionally version_id.
 
-
-
-# Introduction
-
-Types of storage:
-* Block - EBS, Instance Store
-* File - EFS, FSx
-* Object - S3, Glacier
-
-# Snow Family
+## Snow Family
 High-secure, portable devices to collect and process data at the edge and migrate data into and out of AWS. If you need more than week to transfer data, use Snow family devices.
 
 1. Snowcone (szyszka) - NUC PC, 8TB, online (DataSync agent) and offline, 2 CPU and 4GB RAM. AWS DataSync compatible. Data migration and edge computing.
@@ -442,7 +462,7 @@ High-secure, portable devices to collect and process data at the edge and migrat
 
 >Data from Snow devices cannot be copied to the Glacier directly, it's must be copied to S3  bucket and moved to glacier using lifecycle policy.
 
-# FSx
+## FSx
 
 3rd party managed filesystems:
 
@@ -461,20 +481,19 @@ High-secure, portable devices to collect and process data at the edge and migrat
 
 3. FSx for NetApp ONTAP
 
-# Storage Gateway
+## Storage Gateway
+Extending, backing up on-prem storage to the cloud.
+Connects on-prem software appliance with cloud-based storage.
 
 Bridge between S3 object data and on-premise (hybrid solution) used for integration on-prem and cloud data. Local cache of cloud data on own infrastructure for most frequently used data. Software works in on-prem VM (ESXi, Hyper-V, KVM or EC2). Hardware appliance can be used.
 
 Types:
-* File Gateway - configured S3 bucket are accessible using NFS or SMB. Posix compliant. Classes: Standard, IA, One Zone IA. Access using IAM roles and AD integration. Local cache of Amazon S3 on own infrastructure for most frequently used data. Can be mounted on many servers.
-
-* Volume Gateway - block storage using iSCSI protocol backed by S3.\
-EBS Snapshots which can help restore on-prem volumes:
-    * Cached volumes - low latency access to most recent data
-    * Stored volumes - on-prem data with scheduled backups stored in S3
-
-* Tape Gateway - Tape Storage in the cloud. Back up data using existing tape-based process (and iSCSI interface). Virtual Tape Library is backed by S3 and Glacier.
-
+* File Gateway - configured S3 bucket are accessible using NFS or SMB. Treat S3 like a local hard drive. Posix compliant. Classes: Standard, IA, One Zone IA. Access using IAM roles and AD integration. Local cache of Amazon S3 on own infrastructure for most frequently used data. Can be mounted on many servers.
+* Volume Gateway - block storage using iSCSI protocol backed by S3. It gives you power of EBS locally - use your local drives as EBS drives.\
+EBS Snapshots of your HDDs:
+    * Cached volumes (1-32GB) - low latency access to most recent data - S3 is primary data storage, while retaining frequently accessed data locally in your Storage Gateway.
+    * Stored volumes (1GB-16TB) - on-prem data with scheduled off-site backups stored in S3. Primary data is stored locally, while asynchronous backing up that data to AWS.
+* Tape Gateway (VTL) - cost effective solution to archive your data in the cloud. Back up data using existing tape-based backup application (and iSCSI interface). Virtual Tape Library is backed by S3 and Glacier. Virtual tape cartridges.
 * FSx File Gateway - native access to Amazon FSx for Windows File Server. Local cache to frequently accessed data. Useful for group file shares and home directories.
 
 Rebooting Storage Gateway:
@@ -490,7 +509,7 @@ Volume Gateway Cache efficiency:
 * CacheHitPercent metric must be high
 * CachePercentUsed must be low
 
-# DataSync
+## DataSync
 Move large amount of data from on-prem to AWS (migration).\
 Can synchronize to: S3 (any storage classes), EFS, FSx.\
 Can synchronize from NAS or filesystems using NFS and SMB.\
@@ -499,7 +518,7 @@ Tasks can be scheduled hourly, daily or weekly (not continuous!).\
 DataSync agent must be used (TLS).\
 Optional bandwidth limit. Incremental replication.
 
-# AWS Backup
+## AWS Backup
 Centrally manage backups and automate backups across AWS services.\
 Point in time recovery for some services (Aurora).\
 Cross regions, cross accounts backup (Organizations).

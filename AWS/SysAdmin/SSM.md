@@ -1,12 +1,15 @@
 ## Simple Systems Manager
 Manage fleet of EC2s at scale. Get operational insights about the state of your infrastructure, easily detect problems. Free service. Uses agent - do not need opening SSH port.
-
 * patching (security updates)
 * supplying configurations to VMs
 * running OS commands on Vms
 * monitoring
 * secure connections
 * maintain a configured state of a VMs
+
+
+![](.pictures/ssm1.jpg)
+![](.pictures/ssm2.jpg)
 
 To add instance to fleet manager:
 1. Add IAM role to EC2: `AmazonEC2RoleforSSM` (old) and `AmazonSSMManagedInstanceCore` (new).
@@ -64,7 +67,9 @@ Individual step in an automation document as part of workflow.
 Allows you to define when SSM Automations are allowed or not allowed to be executed by your team (ex: demo day).
 
 ### SSM - Documents
-Definition of actions and parameters. Can be made in JSON or YAML.
+Code management documents (definition of actions and parameters) relating to different SSM Services. Can be made in JSON or YAML.
+
+![](.pictures/ssmDocuments.jpg)
 
 ### SSM AppConfig
 Create, manage and quickly deploy application configuration.
@@ -97,35 +102,20 @@ Task types:
 
 Rate control - how much instances will run script simultaneously or manual stop execution of command if X errors occurs.
 
-### SSM Parameter Store
-Securely store configuration and secrets in AWS. Optional encryption (KMS). Version tracking. Integration with CloudFormation and CloudWatch Events. Hierarchy of stored secrets - path in name eg. “/my-app/dev/db-pass”.
-
-Pricing:
-Standard - free. max 10k parameters (4KB). Pay only for high output of API.
-Advanced - 0.05$ per parameter. Max 100k (8KB). Parameters policies.
-
- Policies - create TTL of parameters (passwords).
-
-Parameters types:
-* string
-* string list
-* secure string
-
-Accessing parameters by CLI:
-`aws ssm get-parameters —names /my-app/dev/db-pass /my-app/prod/db-url`
-
-`—with-decryption`
-will check if user got KSM keys and if yes, will return decrypted secret
-
-`aws ssm get-parameters-by-path —path /my-app/dev --recursive`
-will return all parameters from given path
-
 ### SSM State Manager
-Automate the process of keeping your instances in state that you defined. Used for eg. updating/patching OS. Uses SSM Documents to create Association (eg. SSM document to configure CloudWatch Agent.
+Automate the process of keeping your instances in state that you defined. Used for eg. updating/patching OS. Uses SSM Documents to create Association (eg. SSM document to configure CloudWatch Agent. Integration with CloudTrail
+* bootstrap instances with specific software start-up
+* download and update agents on a definid schedule
+* configure network settings
+* join instances to Windows domain
+* patch instances
+* run scripts
 
 State Manager Association
 * defines the state that you want to maintain, eg. port 22 must be closed
 * specify a schedule when the configuration is applied
+
+Hte State Manager is really just a service to run a Command or Automation Document on schedule.
 
 ### SSM Inventory
 
@@ -147,3 +137,34 @@ SSM Maintenance Window
 
 ### SSM Session manager
 Allows to SSH on EC2 and on-prem. Access through AWS Console, CLI or Session Manager SDK. Do not need SSH access, bastion host or keys (use agent). Can log connections (CloudWatch, S3). CloudTrail can listen sessions. Requires IAM permissions. Use tags for defining instances access. Even commands can be restricted.
+
+### Distributor
+Lets you package your own software (msa, deb, rpm, npm) or install AWS-provided agent software packages such as AmazonCloudWatchAgent to install on AWS System Manager Managed instances.
+
+Manifest file - defines zip files for specific OS version and architecture.
+
+### SSM Parameter Store
+Securely store configuration and secrets in AWS. Optional encryption (KMS). Version tracking. Integration with CloudFormation and CloudWatch Events. Hierarchy of stored secrets - path in name eg. “/my-app/dev/db-pass”.
+
+Pricing:
+Standard - free. max 10k parameters (4KB, no policies). Pay only for high output of API.
+Advanced - 0.05$ per parameter. Max 100k (8KB). Parameters policies.
+
+Policies - create TTL of parameters (passwords). Forcing to update or delete passwords. Multiple policies to one parameter.
+
+Parameters types:
+* string
+* string list
+* secure string
+
+Creating parameters:\
+`aws ssm put-parameter --name "/planets/vulcan/population" --value 4.9B --type String`
+
+Accessing parameters by CLI:\
+`aws ssm get-parameters —names /my-app/dev/db-pass /my-app/prod/db-url`
+
+`—with-decryption`\
+will check if user got KSM keys and if yes, will return decrypted secret
+
+`aws ssm get-parameters-by-path —path /my-app/dev --recursive`\
+will return all parameters from given path

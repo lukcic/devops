@@ -181,11 +181,10 @@ RDS MySQL snapshot can be migrated to Aurora.
 * AuroraReplicaLagMinimum - min amount of lag across all DB instances in cluster
 * DatabaseConnections - current number of connections to instance
 * InsertLatency - average duration of insert operations
-
+---
 # ElastiCache
 
-Managed Redis or Memcached - in-memory databases with high performance and low latency.\
-Helps reduce load off of databases for read intensive workloads.\
+Managed Redis or Memcached - in-memory databases with high performance and low latency. Helps reduce load off of databases for read intensive workloads.
 Using Elasticache involves heavy changes in application code, but can help to create stateless application.
 
 Stateless application:
@@ -193,6 +192,12 @@ Stateless application:
 * the app writes the session data into ElastiCache
 * user hits another instance of our application
 * the application retrieves the session data from ElastiCache and user is already logged in
+
+### Memcached vs Redis:
+* Memcached is generally preffered for caching HTML fragments (simple key/value store). Simple and very fast.
+* Redis can perform many different kinds of operations on data: leaderboards, keep track of unread notification data. Very fast but not as fas as Memcached.
+
+![](.pictures/elasticache.jpg)
 
 ## Redis:
 * Multi-AZ with auto failover

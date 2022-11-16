@@ -1,53 +1,8 @@
->https://learn.cisecurity.org/benchmarks
-
-```
-Using EC2 roles
-Admin creates role that grants access to the photos bucket.
-Developer launches an instance with the role
-App retrieves role credentials from the instance
-App gets photos using the role credentials
-
-
-Roles between different accounts
-
-First account want to have access to resource on second account:
-On second account role is created.
-From first account make AssumeRole call
-On second account we need give permissions for the first account
-
-Dropdown from console - we don’t need to have user in second account.
-Both accounts can be accessed from one console.
-
-
-Credentials
-Hashicorp vault
-Credash - open source in dynamo
-parameter store
-secrets manager
-
-Iam access to DB (STS)
-
-SG referring SG
-Instead opening one subnet to another we can use SG for giving access for subnet only for part of another subnet.
-
-Golden AMI - one image that is a base for others. Create snapshot after hardening instance. Plus system manager.
-
-System updates during bootstrapping (cloud-init).
-
-AWS Inspector - checks instance regularly for vulnerabilities and old packages. Creates reports and notifications.
-
-
-Guard duty
- - analyze VPC flow logs and reports information about attack tries
-
-AWS CIS security benchmark
-by AWS Security HUB
-https://learn.cisecurity.org/benchmarks
-```
-
-
-
-## IAM Security tools
+# IAM
+Policies types
+* managed policies
+* customer managed policies
+* inline policies (directly attached to the user)
 
 ### IAM Credentials report
 Account level. Lists all account's users and the status of their various credentials.
@@ -67,7 +22,8 @@ Define `Zone of Trust` which is AWS Account or AWS Organization. All resources w
 * SQS Queues
 * Secret Manager secrets
 
-## Identity Federation
+---
+# Identity Federation
 
 Federation lets users outside of AWS to assume temporary role for accessing AWS resources (they don't have IAM account).
 
@@ -98,8 +54,7 @@ Use only if identity provider is no compatible with SAML 2.0.
 Identity broker must determine the appropriate IAM policy.
 A lot of work must be done to enable Custom identity broker.
 
-### AWS Cognito
-
+## Cognito
 For public applications. Provide direct access to AWS resources from the client side (users of the app).
 
 * Log in to federated identity provider - or remain anonymous.
@@ -110,34 +65,6 @@ Ex: provide (temporary) access to write to S3 bucket using Facebook login.
 
 Accessing AWS services using an identity pool:
 ![](https://docs.aws.amazon.com/cognito/latest/developerguide/images/scenario-cup-cib.png)
-
-## STS - Security Token Service
-
-Create temporary, limited credentials to access AWS resources.\
-Token is valid up to 1h (must be refreshed).
-
-### AssumeRole:
-* within your own account: for enhanced security
-* cross account access - assume role in the target account to perform actions here
-
-Using STS to assume role:
-* define an IAM role within your account or cross-account
-* define which principals can access this IAM role (users or roles)
-* use STS to retrieve credentials and impersonate the IAM role you have access to (AssumeRole API)
-* temporary credentials can be valid between 15min to 1h
-
-![](https://docs.aws.amazon.com/IAM/latest/UserGuide/images/roles-usingroletodelegate.png)
-
->Never share credentials across accounts - instead creating the user and sending credentials is better to create a role, and sure the user assume that role and STS will return you role credentials that are temporary, so if they will be loosen its much safer.
-
-### AssumeRoleWithSAML:
-* return credentials for users logged with SAML
-
-### GetSessionToken:
-* for MFA - from a user or AWS account root user
-* anytime when users hav MFA, they have to use GetSessionToken to access console or CLI
-
-## Cognito
 
 ### Cognito User Pools (CUP) - user features
 * Create a serverless database of users for your web and mobile app
@@ -182,14 +109,41 @@ IAM roles:
 * IAM credentials are obtained by Cognito Identity Pools trough STS
 * the roles must have a trust policy of Cognito Identity Pools
 
-# AWS IAM Identity Center
+## AWS IAM Identity Center
 Past name: `AWS Single SignOn (SSO)`
 
 Centrally manage Single SignOn to access multiple accounts and 3rd party business applications. Centralized permission management, integrated with AWS Organizations, integration with on-premise AD. Supports SAML 2.0. Auditing with CloudTrail.
 
 Wy log in to SSO, it checks our login (can be in AD) and then we have access to AWS, 3rd party applications and SAML integrated software.
 
-___
+---
+# STS - Security Token Service
+
+Create temporary, limited credentials to access AWS resources.\
+Token is valid up to 1h (must be refreshed).
+
+### AssumeRole:
+* within your own account: for enhanced security
+* cross account access - assume role in the target account to perform actions here
+
+Using STS to assume role:
+* define an IAM role within your account or cross-account
+* define which principals can access this IAM role (users or roles)
+* use STS to retrieve credentials and impersonate the IAM role you have access to (AssumeRole API)
+* temporary credentials can be valid between 15min to 1h
+
+![](https://docs.aws.amazon.com/IAM/latest/UserGuide/images/roles-usingroletodelegate.png)
+
+>Never share credentials across accounts - instead creating the user and sending credentials is better to create a role, and sure the user assume that role and STS will return you role credentials that are temporary, so if they will be loosen its much safer.
+
+### AssumeRoleWithSAML:
+* return credentials for users logged with SAML
+
+### GetSessionToken:
+* for MFA - from a user or AWS account root user
+* anytime when users hav MFA, they have to use GetSessionToken to access console or CLI
+
+---
 # DDoS Protection
 
 Services used to protect:
@@ -317,7 +271,6 @@ Business and enterprise Support plan:
 ---
 # Encryption
 
-
 # Key Management Service (KMS)
 
 >CloudTrail, Glacier and Storage Gateway are encrypted by default!
@@ -429,7 +382,8 @@ Integration:
 Capability to force rotation of secrets every X days.
 Automate generation of secrets (using Lambda).
 Secrets rotation events details are registered in CloudTrail. Combined with CloudWatch Alarms gives possibility to notify users.
-Strong integration with RDS (MySQL, PostrgreSQL, Aurora) for storing credentials.
+Strong integration with RDS (MySQL, PostrgreSQL, Aurora) for storing DB credentials.
+Other DBs: Redshift, DocumentDB, other). Can generate API keys.
 Secrets are encrypted using KSM.
 
 Pricing:
@@ -440,6 +394,64 @@ Pricing:
 ### Differences between Parameter Store:
 * simple API
 * no parameter rotation
-* KMS encryption is optional
+* KMS encryption is optional in Parameter Store
 * Parameter Store has CloudFormation integration
 * can pull secret (from Secret Manager) using the SSM Parameter Store API
+
+CLI:\
+`aws secretsmanager describe-secret --secret-id "secret/name"`\
+will show secret details
+
+`aws secretsmanager get-secret-value --secret-id "secret/name" --version-stage AWSCURRENT`\
+will show last version of secrets value
+
+---
+# Check for later:
+>https://learn.cisecurity.org/benchmarks
+
+```
+Using EC2 roles
+Admin creates role that grants access to the photos bucket.
+Developer launches an instance with the role
+App retrieves role credentials from the instance
+App gets photos using the role credentials
+
+
+Roles between different accounts
+
+First account want to have access to resource on second account:
+On second account role is created.
+From first account make AssumeRole call
+On second account we need give permissions for the first account
+
+Dropdown from console - we don’t need to have user in second account.
+Both accounts can be accessed from one console.
+
+
+Credentials
+Hashicorp vault
+Credash - open source in dynamo
+parameter store
+secrets manager
+
+Iam access to DB (STS)
+
+SG referring SG
+Instead opening one subnet to another we can use SG for giving access for subnet only for part of another subnet.
+
+Golden AMI - one image that is a base for others. Create snapshot after hardening instance. Plus system manager.
+
+System updates during bootstrapping (cloud-init).
+
+AWS Inspector - checks instance regularly for vulnerabilities and old packages. Creates reports and notifications.
+
+
+Guard duty
+ - analyze VPC flow logs and reports information about attack tries
+
+AWS CIS security benchmark
+by AWS Security HUB
+https://learn.cisecurity.org/benchmarks
+```
+
+
