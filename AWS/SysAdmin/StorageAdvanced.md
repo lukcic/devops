@@ -163,14 +163,35 @@ CloudWatch metrics:
 * BurstCreditBalance
 * StorageBytes - 15min interval
 
+---
+
 ## S3
 S3 is regional scope, but bucket names must be globally unique.
+Objects form 0 bytes to 5TB. 3 or more AZs (exclude One Zone).
+
+### Storage Classes
+
+Moving can be done manually or using lifecycle policy:
+
+* Standard - general purpose, frequently used data, low latency, hight throughput, for content distribution
+* Standard IA (Infrequent Access) - data that is less frequently accessed (less than once a month), but requires rapid access when needed, 50% cheaper than standard (retrieve fee), for backups
+* One Zone IA - data can be lost when AZ destroyed, for data that can be recreated or secondary backups of on-premise, 20% cheaper than IA
+* Glacier Instant Retrieval - low cost archive, backup, pay for RETRIEVAL!, min 90 days, milliseconds retrieval
+* Glacier Flexible Retrieval (just Glacier) - 90 days, free retrieval on bulk (5-12h), standard (3-5h), expedited (1-5min)
+* Glacier Deep Archive - long term archive, min 180 days, standard retrieval (12h), bulk (48h)
+* Intelligent Tiering - tiering is paid, no retrieval charges - standard —> IA (30 days) —> Glacier Instant (90 days) —> OPTIONAL Glacier (90-700+ days) —> OPTIONAL Glacier Deep Archive (180-700+ days)
+
+![](.pictures/s3classess.jpg)
+
+Durability (trwałość) - same for all storage classes (99,9… 11x9)\
+Availability (dostępność) - depending on storage class
 
 ### Versioning
 * file uploaded before enabling versioning: version = null
 * file uploaded after enabling versioning: version = [long_hash]
 * file deleted with enabled versioning: versions still exists, S3 adds “delete marker” - version stamp that disable object visibility
 * restore file deleted with versioning: delete “the delete marker”
+* cannot be disabled, only suspended
 
 ### Encryption
 * SSE-S3 - keys are fully handled and managed by AWS
@@ -189,22 +210,12 @@ S3 is regional scope, but bucket names must be globally unique.
 
 Encryption can be set on object level or for whole bucket - “Default encryption” option.
 
-### S3 security
-* user based
-	* IAM policies - which API calls should be allowed for a specific user
-* resource based
-	* Bucket policies - allows cross account
-	* Object ACL - read and write permissions at object level
-	* Bucket ACL
-
-Principal “*”  = public access
-
-*S3 default encryption*
+#### S3 default encryption
 Prevent upload objects without encryption:
 Properties - Default Encryption - Enable
 
 Default encryption using bucket policy:
-```
+```json
 ...
 "Action" : "S3:PutObject",
 "Effect" : "Deny",
@@ -224,7 +235,28 @@ Default encryption using bucket policy:
 }
 ```
 
-*Blocking public access*
+### S3 security
+All new buckets are private by default!
+
+Access control is configured using Bucket Policies and Access Control list (legacy) or on user level:
+* user based
+	* IAM policies - which API calls should be allowed for a specific user
+* resource based
+	* Bucket policies - allows cross account
+	* Object ACL - read and write permissions at object level
+	* Bucket ACL
+
+Bucket policies:
+* resources: buckets and objects
+* principal: account or user
+* to grant public access
+* force encryption at upload
+* grant access to another account (Cross account)
+
+Principal “*”  = public access
+IAM principal can access S3 object if the user IAM policy allows it or the resource policy allows it and no DENY is set.
+
+#### Blocking public access
 
 Options:
 * Block all public access
@@ -235,23 +267,42 @@ Options:
 
 Can be set to all buckets: “Account setting for block public access”.
 
-*VPC endpoints* - for instances in VPC without internet access.
+### S3 Lifecycle Rules
 
-*S3 access logs* - can be stored in ANOTHER S3 bucket. Enabling both in the bucket same will create log loop.
+1. Transition actions - defines when objects are transitioned to another storage class, ex: move to IA or Glacier.
+2. Expiration Actions - configure objects to expire (delete) after some time, ex: logs.
+
+Rules can be created for:
+* certain prefix, ex: s3://mybucket/mp3/*
+* certain objects tags, ex: Department: Finance
+
+Analytics - setup will help determine when to transition objects from Standard to Standard IA. Report updated daily.
+
+S3 bucket - Analytics - Add filter - Destination bucket select
+
+### S3 transfer acceleration
+Use internal AWS network (EDGE locations), so only part of traffic is transferred using Internet. Instead of uploading to the bucket, use `distinct URL` for an EDGE location. As data arrives to the Edge Network it is automatically routed to S3.Compatible with `multi-part upload`.
+
+`S3 Byte-Range Fetches` - GETs requests only part of file - resilience of download failures, can be used to retrieve only part of data.
+
+### VPC endpoints
+For instances in VPC without internet access.
+
+### S3 access logs
+Can be stored in ANOTHER S3 bucket. Enabling both in the bucket same will create log loop.
 API calls (authorized and denied) can be logged in AWS cloud trail.
 
-*MFA delete* - can be required in versioned buckets to delete objects.
-It forces user to generate code to do important operations on S3: permanently delete an object version, suspend versioning on the bucket.
+### MFA delete
+Can be required in versioned buckets to delete objects - user must type MFA code while deleting. It forces user to generate code to do important operations on S3: permanently delete an object version, suspend versioning on the bucket.
 Operations must be executed by CLI - AWS console will not work.
 
 To enable this feature use CLI:
+```sh
+aws s3api put-bucket-versioning --bucket [BUCKET-NAME] --versioning-configuration Status=Enabled,MFADelete=Enabled --mfa "[MFA-DEVICE-ARN] [MFA-CODE]" --profile [PROFILE-NAME]
 ```
-aws s3api put-bucket-versioning --bucket [BUCKET-NAME] --versioning-configuration Status=Enabled,MFADelete=Enabled --mfa "[MFA-DEVICE-ARN] [MFA-CODE]" --profile [PROFILEN-NAME]
-```
-
 To enable/disable this feature root account must be used.
 
-*Pre-signed URLs*
+### Pre-signed URLs
 Valid only for limited time, default 3600 seconds. Set by “—expires-in”.
 Generation is made by SDK or CLI (downloads only).
 Permissions are inherited from user who generated link.
@@ -264,6 +315,11 @@ Usage:
 Download link can be generated from AWS Console:
 Object actions - Share with pre-signed URL
 
+Generating:
+```sh
+aws s3 presign s3://mybucket/myobject --expires-in 3600
+```
+
 ### S3 Replication
 * Cross Region Replication CRR - compliance, lower latency access, replication across accounts.
 * Same Region Replication SRR - log aggregation, live replication between prod and test accounts.
@@ -271,16 +327,32 @@ Object actions - Share with pre-signed URL
 Versioning must be enabled (both).
 Copying is asynchronous. Version IDs are replicated.
 Buckets can be in different accounts - must give a proper IAM permissions.
-Only new objects are replicated, to replicate old and failed objects use S3 Batch Replication. Delete markers can be replicated (optional), deletion with version ID (permanent) are not replicated. No replication chaining.
+Only new objects are replicated, to replicate old and failed objects use `S3 Batch Replication`. Delete markers can be replicated (optional), deletion with version ID (permanent) are not replicated. No replication chaining.
 
 Enabling: (origin bucket)
-Management - Replication rules - Create
+Management - Replication rules - Create\
 Will ask if replicate existing objects.
+
+### S3 Batch Operations
+
+Perform operations at massive amount of existing S3 objects with a simple request:
+* modify object metadata and properties
+* copy objects between buckets
+* replace object tag sets
+* modify ACLs
+* restore objects from Glacier
+* invoke Lambda functions to perform custom action on each object
+
+A job consist a list of objects, the action to perform and operational parameters. S3 Batch Operations manages retries, tracks progress, sends completion notifications, generate reports, etc. S3 Inventory can be used to get object list and use S3 Select to filter your object before passing them to Batch Operations.
+
+Cost: around $0.25
+
+Manifest - a way to reference your files in your bucket to tell process which of files should be processed. S3 inventory report can be used or simple CSV file wit columns: bucket name, object_key and optionally version_id.
 
 ### S3 Inventory
 List objects and their metadata - alternative to S3 List API operations.
 
-Can generate daily or weekly repots in CSV, ORC or Apache Parquet.
+Can generate daily or weekly reports in CSV, ORC or Apache Parquet.
 Data can be queried using AWS Athena, Redshift and other.
 Report can be filtered using S3 select.
 
@@ -308,12 +380,6 @@ KMS limitations - 5 500, 10 000 or 30 000 quota (GenerateDataKey and Decrypt KMS
 
 Order is not important. It's speeding up transfers. Mac 10 000 parts. If some failures, only failed parts are re-uploaded. Lifecycle policy can be used to automate old parts deletion on unfinished upload. Upload can be done only using CLI or SDK. After all parts are uploaded, `Complete request` must be sent to pack parts together.
 
-
-### S3 transfer acceleration
-Use internal AWS network (EDGE locations), so only part of traffic is transferred using Internet. Compatible with multi-part upload.
-
-S3 Byte-Range Fetches - GETs requests only part of file - resilience of download failures, can be used to retrieve only part of data.
-
 ### S3 Select & Glacier Select
 
 Server side filtering (simple SQL statements) for download only needed files - cheaper and faster.
@@ -327,19 +393,6 @@ event (put, delete…) —> S3 bucket —> EventBridge —- rules—-> 18 AWS de
 Advanced filtering options with JSON rules (metadata, object size, name…)
 Multiple destinations ex: StepFunctions, Kinesis Streams…
 EventBridge Capabilities - Archive, Replay events, Reliable delivery
-
-### S3 Lifecycle Rules
-
-1. Transition actions - defines when objects are transitioned to another storage class, e: move to IA or Glacier.
-2. Expiration Actions - configure objects to expire (delete) after some time, ex: logs.
-
-Rules can be created for:
-* certain prefix, ex: s3://mybucket/mp3/*
-* certain objects tags, ex: Department: Finance
-
-Analytics - setup will help determine when to transition objects from Standard to Standard IA. Report updated daily.
-
-S3 bucket - Analytics - Add filter - Destination bucket select
 
 ## Glacier
 Alternative to on-premise magnetic tape storage. Encrypted by default (AES-256), keys are managed by AWS.
@@ -430,21 +483,9 @@ Optional conditions on:
 * CloudFront Origin Access Identity
 * aws:MultiFactorAuthPresent - used for allowing access to the objects only if account is logged with MFA
 
-### S3 Batch Operations
 
-Perform operations at massive amount of existing S3 objects with a simple request:
-* modify object metadata and properties
-* copy objects between buckets
-* replace object tag sets
-* modify ACLs
-* restore objects from Glacier
-* invoke Lambda functions to perform custom action on each object
 
-A job consist a list of objects, the action to perform and operational parameters. S3 Batch Operations manages retries, tracks progress, sends completion notifications, generate reports, etc. S3 Inventory can be used to get object list and use S3 Select to filter your object before passing them to Batch Operations.
-
-Cost: around $0.25
-
-Manifest - a way to reference your files in your bucket to tell process which of files should be processed. S3 inventory report can be used or simple CSV file wit columns: bucket name, object_key and optionally version_id.
+___
 
 ## Snow Family
 High-secure, portable devices to collect and process data at the edge and migrate data into and out of AWS. If you need more than week to transfer data, use Snow family devices.

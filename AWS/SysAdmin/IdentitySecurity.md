@@ -271,7 +271,7 @@ Business and enterprise Support plan:
 ---
 # Encryption
 
-# Key Management Service (KMS)
+## Key Management Service (KMS)
 
 >CloudTrail, Glacier and Storage Gateway are encrypted by default!
 
@@ -360,10 +360,14 @@ cat ExampleFileDecrypted.base64 | base64 --decode > ExampleFileDecrypted.txt
 AWS provision dedicated encryption hardware, we are managing keys entirely.
 Supports both symetric and asymetric keys. HMS clusters are spread across Multi AZ (HA).
 
+---
+
 # AWS Artifact
 
 On-demand access to AWS compliance documentation and agreements.
 For audit and compliance.
+
+---
 
 # ACM - AWS Certificate Manager
 
@@ -376,6 +380,8 @@ Integration:
 * ELB
 * CF Distribution
 * APIs on the API gateway
+
+---
 
 # Secrets Manager
 
