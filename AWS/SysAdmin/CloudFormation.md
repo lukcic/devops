@@ -31,6 +31,8 @@ Resources:
       InstanceType: t2.micro
 ```
 
+![](.pictures/cf1.jpg)
+
 Change set preview - information about stack resources change during update.
 
 Resources identifiers:
@@ -39,6 +41,8 @@ AWS::service-name::data-type-name
 ```
 
 [AWS resource and property types reference - AWS CloudFormation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html)
+
+[AWS QuickStarts](https://github.com/aws-quickstart)
 
 Update requires:
 * Replacement - new resource will be created
@@ -85,7 +89,7 @@ DbSubnet1:
     VpcId: !MyVPC
 ```
 
-PseudoParameters:
+#### PseudoParameters:
 AWS::AccountId		1234567890
 AWS::Region 		us-east-2
 AWS::StackName		MyStack
@@ -165,8 +169,8 @@ Resources:
     Condition: CreateProdResources
 ```
 
-### Intrisic Functions
-Wewnętrzne funkcje
+### Intrisic Functions (Wewnętrzne funkcje)
+Assign values to properties that are not available until runtime.
 
 1. Fn::GetAtt
 Used to get information about resource, eg. AZ, PrivateIP for given EC2
@@ -199,6 +203,9 @@ AvailabilityZones:
     - 0
     - Fn::GetAZs: !Ref 'AWS::Region'
 ```
+
+Others:
+![](.pictures/cffunc.jpg)
 
 ### UserData in EC2
 Entire script must be passed through the function using Fn::Base64.
@@ -256,6 +263,10 @@ Define WaitCondition:
 * block the template until it receives a cfn-signal
 * attach a CreationPolicy (works with EC2 & ASG)
 
+For EC2 and ASG Creation Policy should be used instead Wait Condition.
+Creation Policy waits on the dependent resource.
+WaitCondition waits on the wait condition (external).
+
 ```
 Resources:
   MyInstance:
@@ -289,7 +300,7 @@ yum update -y aws-cfn-bootstrap
 * ensure that instance has access to the internet
 * verify that both cfn-init and cfn-signal run on the host machine successfully - check the logs (disable rollback on failure)
 
-Rollbacks:
+### Rollbacks:
 If stack creation fails everything rolls back (changes are deleted, stack gets back to the previous working state). Optionally rollback can be disabled (for troubleshoot).
 
 Advanced Options: Stack Creation Options - Rollback on failure - Disable.
@@ -315,6 +326,17 @@ Information about what will change during updating our stack - something like te
 
 Can be Executed after reviewing changes or deleted.
 
+### Updates
+* update with no interruption
+  * updates the resource without disrupting operation
+  * and without changing the resource's physical ID
+* update with some interruption
+  * updates the resource with some interruption
+  * and retains the physical ID
+* replacement
+  * recreates the resource during an update
+  * generates new physical ID
+
 ### Drifts
 When someone else changed resources (deployed by CF) using another access method (eg. console or cli).
 Stack Actions - Detect Drift - View drift results
@@ -323,8 +345,28 @@ Stack Actions - Detect Drift - View drift results
 Cannot delete stack:
 Actions - Termination protection - Enable
 
+## Resource attributes
+
+### Creation Policy
+
+CloudFormation must receive a specified number of success signals or the timeout period must be exceeded. To be sure, that ASG is created properly.
+
+```
+Resources:
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      DesiredCapacity: '3'
+      ...
+    CreationPolicy:
+      ResourceSignal:
+        Count: '3'
+        Timeout: PT15M
+```
+
+
 ### Deletion policy
-Can be set on any resource to control what happens when CF template is deleted.
+Can be set on any resource to control what happens when CF template is deleted (delete, retain or snapshot).
 
 ```
 Resources:
@@ -344,25 +386,9 @@ Types:
 	* specify resources to preserve/backup
 	* works on any resource
 
-### ASG CloudFormation CreationPolicy
+### Update Policy
+How to handle an update for ASG, ElastiCache, Domain or Lambda Alias.
 
-To be sure, that ASG is created properly.
-
-```
-Resources:
-  AutoScalingGroup:
-    Type: AWS::AutoScaling::AutoScalingGroup
-    Properties:
-      DesiredCapacity: '3'
-      ...
-    CreationPolicy:
-      ResourceSignal:
-        Conut: '3'
-        Timeout: PT15M
-```
-
-
-### ASG CloudFormation UpdatePolicy
 
 [Update Auto Scaling groups during a stack update in AWS CloudFormation](https://aws.amazon.com/premiumsupport/knowledge-center/auto-scaling-group-rolling-updates/)
 
@@ -393,6 +419,17 @@ UpdatePolicy:
     WillReplace: 'true'
 ```
 Create completely new ASG with new Launch Configuration, and when Creation Policy passed, replace them and delete old one.
+
+### UpdateReplace Policy
+To retain or (in some cases) backup the existing physical instance of a resource when it's replaced during a stack update operation (delete, retain on snapshot).
+
+```
+...
+Resource:
+  MyDbInstance:
+    Type: AWS::RDS::DBInstance
+    UpdateReplacePolicy: Retain
+```
 
 ### DependsOn
 
@@ -441,3 +478,16 @@ Deploy application in multiple regions and accounts with single operation.
 Roles:
 * StackSetAdministrator (created manually)
 * StackSetTrustedAccount (created by stack set)
+
+### CFN lint
+Node package to lint AWS CloudFormation templates.
+
+Installation:
+```sh
+npm i cfn-lint -g
+```
+
+Usage:
+```
+cfn-lint validate template-name.yaml
+```

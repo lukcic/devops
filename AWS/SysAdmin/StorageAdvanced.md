@@ -246,12 +246,23 @@ Access control is configured using Bucket Policies and Access Control list (lega
 	* Object ACL - read and write permissions at object level
 	* Bucket ACL
 
-Bucket policies:
+#### S3 Bucket Policies
+* Used for:
+	* grant public access to the bucket
+	* force objects to be encrypted at upload
+	* grant access to another account (cross account)
 * resources: buckets and objects
 * principal: account or user
 * to grant public access
 * force encryption at upload
 * grant access to another account (Cross account)
+* Optional conditions on:
+	* Public IP or Elastic IP (not Private)
+	* aws:PrincipalOrgID - can be used to restrict access to the bucket only for accounts that are inside given organization
+	* Source VPC or Source VPC Endpoint - only works with VPC endpoints
+	* CloudFront Origin Access Identity
+	* aws:MultiFactorAuthPresent - used for allowing access to the objects only if account is logged with MFA
+
 
 Principal “*”  = public access
 IAM principal can access S3 object if the user IAM policy allows it or the resource policy allows it and no DENY is set.
@@ -259,7 +270,7 @@ IAM principal can access S3 object if the user IAM policy allows it or the resou
 #### Blocking public access
 
 Options:
-* Block all public access
+* block all public access
 * from new ACLs
 * from any ACLs
 * from new public bucket or access point policies
@@ -285,8 +296,11 @@ Use internal AWS network (EDGE locations), so only part of traffic is transferre
 
 `S3 Byte-Range Fetches` - GETs requests only part of file - resilience of download failures, can be used to retrieve only part of data.
 
-### VPC endpoints
-For instances in VPC without internet access.
+### VPC Endpoint Gateway for S3
+
+Used to access S3 bucket from EC2 instance in private subnet. No need to open S3 to Internet. More secure and cheeper.
+
+S3 bucket policy by `AWS:SourceVpce` - one or more endpoints, or `AWS:SourceVpc` for all possible VPC endpoints. For public traffic: `AWS:SourceIP`.
 
 ### S3 access logs
 Can be stored in ANOTHER S3 bucket. Enabling both in the bucket same will create log loop.
@@ -394,48 +408,6 @@ Advanced filtering options with JSON rules (metadata, object size, name…)
 Multiple destinations ex: StepFunctions, Kinesis Streams…
 EventBridge Capabilities - Archive, Replay events, Reliable delivery
 
-## Glacier
-Alternative to on-premise magnetic tape storage. Encrypted by default (AES-256), keys are managed by AWS.
-
-S3:			Glacier:
-Bucket		Vault
-Object 		Archive
-
-Max Archive size - 40TB.
-
-Vault operations:
-* Create & delete - delete only if empty
-* Retrieving metadata - creation date, numer of archives, total size, etc.
-* Download inventory - list of archives in the vault
-
-Glacier operations:
-* upload - single operation or by multiparts
-* download - first initiate the retrieval job for the archive, then Glacier prepares it for download - user has a limited time to download the data from staging server (expiry time)
-* delete - use Glacier REST API or AWS SDK by specifying archive ID
-
-Retrieval options:
-* expedited (1 to 5 mins) - $0.03 per GB
-* standard (3 to 5h) - $0.01 per GB
-* bulk (5 to 12h) - $0.0025 per GB
-
-Vault policies - each vault has ONE policy for access and one for lock.
-Policies are written in JSON.
-
-Vault Access policy is like a bucket policy - restrict user/accounts permissions.
-
-Vault lock policy is used for regulatory and compliance requirements.
-Policy is immutable - it can never be changed, ex: forbid deleting an archive if less than 1 year old. Must be validated in 24h using LOCK ID, otherwise will be deleted.
-
-WORM - write once, read many.
-
-**Vault Notification Configuration:**
-* configure a vault so, that when a job completes, a message is sent to SNS
-* optionally, specify an SNS topic when you initiate a job
-
-**S3 Event Notifications:**
-* S3 supports the restoration of objects archived to S3 Glacier storage classes
-* s3:ObjectRestore:Post => notify when object restoration initiated
-* s3:ObjectRestore:Completed => notify when object restoration completed
 
 ### Athena
 
@@ -463,27 +435,60 @@ If access to bucket have to be managed by access points only, control over bucke
 [Access Point Policy examples](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-points-policies.html)
 
 
-### VPC Endpoint Gateway for S3
+## Glacier
+Alternative to on-premise magnetic tape storage. Encrypted by default (AES-256), keys are managed by AWS.
 
-Used to access S3 bucket from EC2 instance in private subnet. No need to open S3 to Internet. More secure and cheeper.
+S3:			Glacier:
+Bucket		Vault
+Object 		Archive
 
-S3 bucket policy by `AWS:SourceVpce` - one or more endpoints, or `AWS:SourceVpc` for all possible VPC endpoints. For public traffic: `AWS:SourceIP`.
+Max Archive size - 40TB.
 
-### S3 Bucket Policies
+![](.pictures/glacier1.jpg)
 
-Used for:
-* grant public access to the bucket
-* force objects to be encrypted at upload
-* grant access to another account (cross account)
+![](.pictures/glacier2.jpg)
 
-Optional conditions on:
-* Public IP or Elastic IP (not Private)
-* aws:PrincipalOrgID - can be used to restrict access to the bucket only for accounts that are inside given organization
-* Source VPC or Source VPC Endpoint - only works with VPC endpoints
-* CloudFront Origin Access Identity
-* aws:MultiFactorAuthPresent - used for allowing access to the objects only if account is logged with MFA
+### Jobs:
+Vault operations:
+* Create & delete - delete only if empty and after inventory (24h)
+* Retrieving metadata - creation date, number of archives, total size, etc. 32KB additional amount of data per archive
+* Download inventory - list of archives in the vault
 
+Glacier operations:
+* upload - single operation or by multi-parts (SnowFamily, CLI, SDK, Lifecycle Policies - 30days)
+* download - first initiate the retrieval job for the archive, then Glacier prepares it for download - user has a limited time to download the data from staging server (expiry time). Initiate job type `Archive retrieval`.
+* delete - use Glacier REST API or AWS SDK by specifying archive ID
 
+Retrieval options:
+* expedited (1 to 5 mins) - $0.03 per GB
+* standard (3 to 5h) - $0.01 per GB (default)
+* bulk (5 to 12h) - $0.0025 per GB
+
+Vault policies - each vault has ONE policy for access and one for lock.
+Policies are written in JSON.
+
+Vault Access policy is like a bucket policy - restrict user/accounts permissions.
+
+Vault lock policy is used for regulatory and compliance requirements.
+Policy is immutable - it can never be changed, ex: forbid deleting an archive if less than 1 year old. Must be validated in 24h using `lock ID`, otherwise will be deleted.
+
+WORM - write once, read many. Cannot be changed.
+
+### Vault Notification Configuration
+* configure a vault so, that when a job completes, a message is sent to SNS
+* optionally, specify an SNS topic when you initiate a job
+
+### S3 Event Notifications
+* S3 supports the restoration of objects archived to S3 Glacier storage classes
+* s3:ObjectRestore:Post => notify when object restoration initiated
+* s3:ObjectRestore:Completed => notify when object restoration completed
+
+### Vault inventory
+List archives in the vault. Glacier cannot be explored via the console like normal S3 bucket. First list of li==files must be made and then individual requests for the files.
+
+After uploading first file to the vault, Glacier automatically creates a Vault Inventory (updates once a day).
+
+To retrieve Vault Inventory you need to execute `InitiateJob` and `GetJobOutput` API calls.
 
 ___
 
@@ -498,7 +503,7 @@ High-secure, portable devices to collect and process data at the edge and migrat
     * Compute Optimized 42 TB block and S3, 52 vCPU, 208 GB RAM, optional GPU, can run EC2 instances and Lambda functions (AWS IoT Greengrass)
 
 3. Snowmobile (ciężarówka) - Exabytes of data, 100 PB of capacity per truck. To transfer more than 10 PB of data. Only data migration.
-ś
+
 4. OpsHUB - desktop software to manage SnowFamily
 
 >Data from Snow devices cannot be copied to the Glacier directly, it's must be copied to S3  bucket and moved to glacier using lifecycle policy.

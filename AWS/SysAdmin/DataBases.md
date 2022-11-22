@@ -41,10 +41,10 @@ SSL must be enabled.
 * enabled by default
 * daily full backup of the DB (in maintenance window)
 * transactions logs are backed-up every 5 mins
-* ability to restore to any point in time (from oldest backup to 5 minutes ago).
+* ability to restore to any point in time (from oldest backup to 5 minutes ago using most recent daily backup and transaction log data)
 * 7 days backup retention (can be increased to 35 days, or disabled - 0)
 * can be use even if DB is deleted
-* restoring will create new DB instance
+* restoring will create new DB instance (dns endpoint)
 
 ### Snapshots
 * manually trigger by user, stops DB from seconds to minutes
@@ -53,8 +53,7 @@ SSL must be enabled.
 * are incremental, can be copied and shared (manual)
 * if encrypted snapshot is shared, kye must be shared too
 * final snapshot while deleting DB can be done
-* restoring will create new DB instance
-
+* restoring will create new DB instance (dns endpoint)
 
 ### Storage Auto-Scaling
 * supports all DB engines
@@ -69,7 +68,8 @@ SSL must be enabled.
 * within AZ, Cross AZ and Cross Region
 * replication is ASYNC
 * replica can be promoted to normal DB
-* application must update connection string to leverage read replicas
+* application must update connection string to leverage read replicas (each RR have own endpoint)
+* no automatic failover
 * no transfer fees if both DBs in the same region
 * use-case: for reporting applications to not overload master DB (only SELECTS)
 
@@ -79,6 +79,9 @@ SSL must be enabled.
 * one DNS name - automatic app failover by default
 * increase availability, failover if loose: AZ, network, instance or storage
 * no downtime when creating: snapshot, restoration in new DB, sync
+
+![](.pictures/rds1.jpg)
+
 
 ### RDS proxy
 
@@ -273,3 +276,28 @@ Auto Discovery:
 * SwapUsage - should not exceed 50 MiB
 * CurrConnections - number of concurrent and active connections (app problem)
 * FreeableMemory - amount of free memory on the host
+
+---
+
+# DynamoDB
+
+Fully managed NoSQL database:
+* key/value and document database (all data in simple table)
+* distributed serverless db to massive workloads (you create only table)
+* multi-region, multi-master, replication in 3 zones
+* millions of requests, trillions of rows, 100's TB of storage
+* low (single digit milliseconds) latency
+* standard and IA table class
+* you pay by read and write capacity per second (must be set)
+* used for storing locks in terraform
+
+Table structure:
+![](.pictures/dynamotable.jpg)
+
+Read consistency:
+* Eventual Consistent reads (default)
+    * it is possible to read data before all copies (in different regions) became consistent
+    * reads are fast, but no guarantee of consistent
+* Strongly Consistent reads
+    * while read, database will not return value before all copies becomes consistent
+    * reads are slower, but with guarantee of consistent
