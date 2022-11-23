@@ -491,3 +491,9 @@ Usage:
 ```
 cfn-lint validate template-name.yaml
 ```
+
+---
+
+![](.pictures/cf2.jpg)
+![](.pictures/cf3.jpg)
+![](.pictures/cf4.jpg)

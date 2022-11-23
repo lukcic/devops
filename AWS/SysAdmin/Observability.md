@@ -536,28 +536,65 @@ How near you are from reaching service limits. CloudWatch Alarm can be set when 
 
 # AWS Config
 
-Record configurations of services and it's changes over time for audits and compliance needs. Use rules to check f current config is compliant or not. Rules don't prevent actions from happening - it's only view of changes. Configuration data can be stored in S3 to analyze in Athena. Alerts using SNS notifications when configuration changes (resource is non-compliant). Per region service, data can be aggregated form many regions. Paid service.
+Record configurations of services and it's changes over time for audits and compliance needs. Use rules to check if current config is compliant or not. Rules don't prevent actions from happening - it's only view of changes. Configuration data can be stored in S3 to analyze in Athena. Alerts using SNS notifications when configuration changes (resource is non-compliant). Per region service, data can be aggregated form many regions. Paid service.
+
+AWS Config is disabled by default. After enabling it will discover resources within the region and create `Resource Inventory` for free?.
+
+Use cases:
+* want this resource to stay configured a specific way for compliance
+* want to keep track of configuration changes to resources
+* want to list all resources within a region
+* want to use analyze potential security weaknesses, you need detailed historical information
 
 Problems:
 * Is any unrestricted SSH access in my security groups?
 * Do any of my buckets have public access?
 * Has my ELB configuration changed over time?
 
-Config Rules:
-* AWS managed config rules (over 75)
-* custom rules (must be defined in AWS Lambda)
+### Config Rules:
+AWS Lambda's designed to check if a desired configuration is met on AWS resource.
+
+Types:
+* AWS managed config rules (over 100+), cannot change trigger type, but other settings are possible: Scope of changes, Frequency
+* custom rules (must be defined in AWS Lambda), trigger type can be changed
 
 Rules can be evaluated/triggered:
-* for each config change
-* scheduled
+* for each config change:
+  * all changes - when any resource recorded by AWS Config is created changed or deleted
+  * resources - when any resource that matches the specified type, or the type plus identifier is created, changed or deleted
+  * tags - when any resource with specified tag is created, changed or deleted
+* scheduled (periodic)
 
 >Pricing - $0.003 per configuration item recorded, $0.001 per config rule evaluation.
 
+### Resource timelines
+
+Timeline of changes:
+* Configuration timeline - when changes have been made to the resource
+* Compliance timeline - when resource has become uncompliant with a rule
+
 ### Remediation (korekta)
-Non-compliant resources can be remediated using SSM Automation Documents (can be custom). Max 5 Remediation Retries. Ex: deactivate ssk keys older than 90 days.
+Non-compliant resources can be remediated (action of reversing, stopping or correcting something) using SSM Automation Documents (can be custom). Max 5 Remediation Retries. Ex: deactivate ssh keys older than 90 days.
 
 ### Aggregators
 One AWS Account that has enabled aggregator - centralized view of config from all source accounts. It's aggregates rules, resources, etc across multiple account and regions. Without Organizations on all account must be created authorizations.
 Rules are created in each account separately, to deploy rules to multiple target account CloudFormation StackSets must be used.
 
+Rules - represents your desired configuration settings. Can be seen across regions and source accounts.
 
+Resources - resources across regions and accounts.
+
+Authorizations - grants permission to the aggregator accounts and regions to collect AWS Config configuration and compliance data.
+
+### Conformance pack
+Collection of AWS Config rules and remediation actions that can be easily deployed as a single entity in an account in a Region or across an AWS Organization. Packs are created by authoring a YAML template that contains the list of rules (managed or custom) and remediation actions.
+
+![](.pictures/config1.jpg)
+
+### Advanced queries
+Allows to write SQL Queries to quickly find resources within your AWS account, cross-region and cross-account.
+
+---
+
+![](.pictures/config2.jpg)
+![](.pictures/config3.jpg)

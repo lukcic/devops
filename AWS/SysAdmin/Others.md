@@ -7,11 +7,11 @@ Tag “Name” will set EC2 name on instances list.
 ---
 
 ## Elastic Beanstalk
-Platform as a Service. Layer that use all the components: EC2, ASG, ELB, RDS.  Free service - payment for used resources.
+Platform as a Service. Layer that use all the components: EC2, ASG, ELB, RDS.  Free service - payment for used resources. Based on CloudFormation templates.
 
 Architecture models:
 * single instance - for dev environments
-* LB + ASG - for production or preproduction web apps
+* LB + ASG - for production or pre-production web apps
 * ASG only - for non-web apps in production (using queue)
 
 Components:
@@ -26,14 +26,120 @@ Create app -> upload version -> launch environment -> manage environment
 
 Web Server tier - http endpoint, ELB + ASG + EC2
 Worker tier - SQS Queue + ASG (scale based on SQS messages amount
+
+
+### Deployment policies
+
+|Deployment policy|Load balanced env|Single instance env|
+|------| ------|  ------|
+|All at once | yes | yes |
+|Rolling | yes | no |
+|Rolling with additional batch | yes | no |
+|Immutable | yes | yes |
+
+#### All at once
+The fastest and the most dangerous.
+
+1. Deploy the new app version to all instances at the same time.
+2. Takes all instances `out of service` while the deployment process.
+3. Server becomes available again.
+4. In case o failure you need to roll back the changes by re-deploying older app version to all instances.
+
+#### Rolling deploys
+Slow but secure deployment method.
+
+1. Deploy the new app version to a small group of instances at the time.
+2. Takes a batch of instances `out of service` while the deployment process.
+3. Reattaches updated instances.
+4. Goes onto next batch, taking them out of service.
+5. Reattaches those instances (rinse and repeat).
+6. In case of failure you need to perform an additional rolling update in order to roll back the changes.
+
+#### Rolling updates with additional batch
+Slow, but very secure deployment method. No reduce of capacity!
+
+1. Launch new instance that will be used to replace a batch.
+2. Deploy update app version to the new batch.
+3. Attach the new batch and terminate the existing batch.
+4. In case of failure you need to perform an additional rolling update to roll back the changes.
+
+#### Immutable
+The safest way to deploy for critical applications.
+
+1. Create a new ASG with EC2 instances.
+2. Deploy the updated version of the app on the new EC2 instances.
+3. Point the ELB to the new ASG group and delete the old ASG which will terminate the old EC2 instances.
+4. In case of failure you just terminate the new instances since the existing instances still remain.
+
+
+![](.pictures/ebdeploys.jpg)
+![](.pictures/ebdeploys2.jpg)
+*in exam use the scope of Elastic Beanstalk
+
+![](.pictures/ebdeploys3.jpg)
+
+
+### Config files
+`.ebextensions` - hidden folder called at the root of your project which contains config files\
+`.config` - extension of the config files
+
+Configurable:
+1. Option settings
+2. Linux/Windows server configuration
+3. Custom resources
+
+#### Linux server configuration
+
+Packages - download and install prepackaged applications and components (use yum)
+Groups - Linux/Unix groups config
+Files - create files on the EC2 instance
+Commands - execute commands on the EC2 instance before app is setup
+Services - define which services should be started or stopped when the instance is launched
+Container Commands - execute commands that effect your application source code (not about Docker, container means EB's runtime environment)
+
+### Environment manifest
+`env.yml` - in root of project. File allows you to configure the defaults like:
+* environment name (+ on name's end means group)
+* stack solution (programming language)
+* associating the `environment links`
+* default configuration of services etc
+
+### CLI
+
+Clone [the repo](https://github.com/aws/aws-elastic-beanstalk-cli-setup.git), then:
+```sh
+./aws-elastic-beanstalk-cli-setup/scripts/bundled_installer
+```
+
+Commands:
+![commands](.pictures/ebcommands.jpg)
+
+### Custom image
+You can specify own AMI to use instead standard EB AMI. It may improve provisioning times. Or maybe you need a lot of other software that isn't installed on environment.
+
+```sh
+aws elasticbeanstalk describe-platform-version --region [REGION] --platform-arn [USED_PLATFORM_ARN] --query PlatformDescription.CustomList
+```
+
+This will return AMI id that can be used to as base tof modifications for given platform. Build own AMI from that one.
+
+### RDS configuration
+
+Inside EB ENV - intended for development envs. You create DB within EB - when it's terminated, RDS is terminated too.
+
+Outside EB ENV - intended for production envs. You create DB separate form EB - when it's terminated, RDS remains.
+
+![](.pictures/eb1.jpg)
+![](.pictures/eb2.jpg)
+
 ---
 
 ## AWS Data Sync
 Move large amount of data:
 *  on-premise (NFS, SMB) -> AWS.
-* AWS EFS Region1 -> AWS NFS Region2
+* AWS EFS region1 -> AWS EFS region2
 
-Can synchronise to S3 (all classes), EFS, FSx. Use Data Sync agent. Use scheduler (not continuous replication!) and can set bandwidth limit.
+Can synchronize to S3 (all classes), EFS, FSx. Use Data Sync agent. Use scheduler (not continuous replication!) and can set bandwidth limit.
 ---
 
 ## AWS Backup
@@ -46,7 +152,7 @@ Backup plans - policies:
 * frequency
 * backup window
 * transition to cold storage
-* retention peroid
+* retention period
 
 Backup Vault Lock:
 * WORM (Write once, read many) state
@@ -161,3 +267,22 @@ Run commands - perform manual operations:
 * upgrade OS
 
 Rest skipped
+
+## ECS
+Elastic Container Service
+
+>Clusters - multiple EC2 instances which will house the docker containers.
+
+>Task definition - JSON file that defines the configuration of containers (up to 10) you want to run.
+
+Essential container - if this container fail or stops than all other containers will be stopped.
+
+>Task - launches containers defined in Task Definition. Task do not remaining running once workload is complete. Used for one time jobs?
+
+>Service - Ensures tasks remaining running (ex: webapp) - like task but long running.
+
+>Container agent - binary on each EC2 instance which monitors, starts and stops tasks.
+
+Amazon ECS Instance role (ecsInstanceRole) - must be provided for all cluster instances and include policy: `AmazonEC2ContainerServiceForEC2Role`.
+
+ecsTaskExecutionRole??
