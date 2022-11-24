@@ -271,15 +271,17 @@ Rest skipped
 ## ECS
 Elastic Container Service
 
->Clusters - multiple EC2 instances which will house the docker containers.
+>Cluster — A logic group of EC2 instances. When an instance launches the ecs-agent software on the server registers the instance to an ECS Cluster. This is easily configurable by setting the ECS_CLUSTER variable in /etc/ecs/ecs.config described here.
 
->Task definition - JSON file that defines the configuration of containers (up to 10) you want to run.
+>Task Definition — This a blueprint that describes how a docker container should launch. It is like a LaunchConfig except instead it is for a docker container instead of a instance. It contains settings like exposed port, docker image, cpu shares, memory requirement, command to run and environmental variables.
 
 Essential container - if this container fail or stops than all other containers will be stopped.
 
->Task - launches containers defined in Task Definition. Task do not remaining running once workload is complete. Used for one time jobs?
+>Task — This is a running container with the settings defined in the Task Definition. It can be thought of as an “instance” of a Task Definition.
 
->Service - Ensures tasks remaining running (ex: webapp) - like task but long running.
+>Service — Defines long running tasks of the same Task Definition. This can be 1 running container or multiple running containers all using the same Task Definition.
+
+>Container Instance — This is just an EC2 instance that is part of an ECS Cluster and has docker and the ecs-agent running on it.
 
 >Container agent - binary on each EC2 instance which monitors, starts and stops tasks.
 
