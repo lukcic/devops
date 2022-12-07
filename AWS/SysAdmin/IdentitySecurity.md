@@ -267,6 +267,7 @@ Business and enterprise Support plan:
 * full check based on all 5 categories
 * set CloudWatch alarms when limits reached
 * AWS support API (programmatic access)
+* Weekly Email notifications Option!!!
 
 ---
 # Encryption
