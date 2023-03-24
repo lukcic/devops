@@ -1,1 +1,4 @@
 https://dev.to/aws-builders/decorate-the-python-function-traces-1po8
+
+Python Lambdas:
+https://aws-lambda-for-python-developers.readthedocs.io/en/latest/02_event_and_context/

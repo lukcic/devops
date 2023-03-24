@@ -175,6 +175,9 @@ Versioning is reffering to file`s URLs.
 
 Transfer acceleration - pay for fastest tranfer of data withinh the bucket.
 
+PreSigned URLs:
+https://fourtheorem.com/the-illustrated-guide-to-s3-pre-signed-urls/
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 EBS - Elastic Block Storage (block)

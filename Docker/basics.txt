@@ -85,6 +85,12 @@ docker system prune -a                      #Will destroy all containers, networ
 
 docker rm -f $(docker ps -aq) && docker volume rm $(docker volume ls -q)
 
+Cleaning images:
+Dangling images are layers that have no relationship to any tagged images. They no longer serve a purpose and consume disk space.
+
+docker images -f dangling=true
+docker image prune
+
 https://bulldogjob.pl/readme/jak-odzyskac-przestrzen-dyskowa-zajeta-przez-dockera
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Updating containers:

@@ -46,6 +46,7 @@ cdk synth   #Synthesize the code into an AWS CloudFormation template using the t
 cdk deploy  #Deploy the stack. Log in to the AWS Management Console and search for CloudFormation. Choose CdkPrimerStack, and then select Resources to view the deployed resources.
 
 cdk destroy #To remove all resources created in the stack, run the following command in the terminal:
+cdk destroy -f --all
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

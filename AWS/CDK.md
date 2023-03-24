@@ -176,3 +176,22 @@ After that methods of all Constructs are called in series:
 
 Deployment Artifacts are uploaded to CDKToolkit.
 CloudFormation Deployment begins, rest is done in CloudFormation. 
+
+
+Sharing resources between stacks:
+https://towardsthecloud.com/aws-cdk-share-resources-across-stacks
+
+VPC:
+https://bobbyhadz.com/blog/aws-cdk-vpc-example
+https://bobbyhadz.com/blog/aws-cdk-security-group-example
+https://stackoverflow.com/questions/58812479/how-to-add-an-internet-gateway-to-a-vpc-using-aws-cdk
+https://github.com/aws/aws-cdk/issues/1305
+https://stackoverflow.com/questions/62265949/how-to-have-the-cdk-create-only-one-elastic-ip-address-for-use-with-a-single-ec2
+https://loige.co/create-resources-conditionally-with-cdk/
+https://medium.com/aspecto/attach-ebs-docker-volume-to-aws-ecs-using-cdk-931c29e0e1
+
+    const myBucket = process.env['CREATE_BUCKET'] === 'true'
+    ? new Bucket(this, 'MyBucket')
+    : Bucket.fromBucketAttributes(this, 'MyBucket', {
+        bucketName: 'theNameOfTheBucketToImport'
+      })

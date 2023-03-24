@@ -1,6 +1,20 @@
 ### CORS
 Cross-Origin Resource Sharing
 
+CORS: 
+Simple: allow JS requests already allowed, and add a permission check for read 
+Complex: if not simple, do a preflight to see if request is allowed 
+
+CORB: X-origin read blocking to block html as a sub-resource in a process. Hacked renderer process can't get Gmail HTML 
+
+CORP: X-origin resource policy to allow URIs to say "don't allow anyone else to include me". Hacked renderer process can't load secret images 
+
+COOP: X-origin opener poilcy to say "Don;t give me synchronous handla to any x-origin popups". Allows browsers to process-isolate x-origin frames 
+
+COEP: X-origin embedder to tell browser "block any x-origin loads into my process unless I can read them" 
+
+COOP+COEP => I am fully isolated; give me fine-grained timers!
+
 Origin = schema:
 <protocol>://<host>:<port>
 
