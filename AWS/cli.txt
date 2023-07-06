@@ -56,3 +56,5 @@ aws sqs receive-message --queue-url https://sqs.eu-central-1.amazonaws.com/74761
 
 Check user:
 aws sts get-caller-identity
+
+[Create DNS entries using CLI](https://repost.aws/knowledge-center/simple-resource-record-route53-cli)

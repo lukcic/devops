@@ -12,6 +12,7 @@
 Docs
 [API Reference · AWS CDK](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-construct-library.html)
 [What is the AWS CDK? - AWS Cloud Development Kit (AWS CDK) v2](https://docs.aws.amazon.com/cdk/v2/guide/home.html)
+[Permissions](https://docs.aws.amazon.com/cdk/v2/guide/permissions.html)
 
 ### CDK App:
 App s special root construct. Orchestrates the lifecycle of the stacks and resources within it.
@@ -195,3 +196,10 @@ https://medium.com/aspecto/attach-ebs-docker-volume-to-aws-ecs-using-cdk-931c29e
     : Bucket.fromBucketAttributes(this, 'MyBucket', {
         bucketName: 'theNameOfTheBucketToImport'
       })
+
+### AWS CDK cross-account deployments with CDK Pipelines and cdk-assume-role-credential-plugin
+[Link](https://johntipper.org/aws-cdk-cross-account-deployments-with-cdk-pipelines-and-cdk-assume-role-credential-plugin/)
+[Link2](https://dev.to/aws-builders/deploying-aws-cdk-apps-using-short-lived-credentials-and-github-actions-59g6)
+[Link 3](https://github.com/johnf/cdk-cross-account-route53)
+[Link 4](https://medium.com/i-love-my-local-farmer-engineering-blog/dns-multi-account-management-using-cdk-6394ef295eee)
+

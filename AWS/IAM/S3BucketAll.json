@@ -1,0 +1,31 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": [
+                "arn:aws:s3:::[BUCKET_NAME]/*",
+                "arn:aws:s3:::[BUCKET_NAME]"
+            ]
+        }
+    ]
+}
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::[ACCOUNT]:user/[USER_NAME]"
+            },
+            "Action": "s3:*",
+            "Resource": [
+                "arn:aws:s3:::[BUCKET_NAME]/*",
+                "arn:aws:s3:::[BUCKET_NAME]"
+            ]
+        }
+    ]
+}

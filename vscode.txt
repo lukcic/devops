@@ -1,2 +1,30 @@
+Install code in the PATH:
+• open command palete (CMD + Shift + P) and type PATH
+
+CMD + P command palete
+> will give access to the commands, ex Toggle minimap
+>task - will configure new VSCode task
+@ 
+:16 -will go to the 16th line of code
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Shift + strzałki - zaznaczanie
+CRTL + strzałki - przesuwanie po słowie
+
+CTRL+D - highlight current word
+multiple times will highlight each apperance of this word
+
+CTRL + x - wycina całą linię
+ALT + Shift + dół -kopiuje całą linię 
+
+ALT + click i multiple places - multiline cursor
+
+ALT + góra/dół - przeniesie linie góra/dół
+
 Pretty JSON
 Shift + Opt + F
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Quokka.js - extension that runs JS code directly in the file

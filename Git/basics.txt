@@ -185,6 +185,9 @@ git log master..origin/master   # differences between local and remote
 
 REBASE - method for moving changes from one branch to another (merging branches) by changing base. Rebase changes "parent" of commit. 
 
+on devops/prod:
+git rebase origin/production
+
 Will remove fork with adding all changes from branch to master. 
 git rebase master   # done on branch, will take changes from branch and merge every single commit (from branch) with master to make flat structure
 git rebase --continue   # continue rebase after solving conflict
@@ -199,6 +202,21 @@ squash - chase (scalić) changes with last commit
 fixup - chase changes with last commit - only changes in code (without commit message)
 exec -run script for this change (run tests while copying commit, be sure that code is sompiling)
 drop - drop changes 
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+SQUASH
+
+On feature branch:
+• git rebase master --interactive
+will squash multiple commits into one using interactive way
+pick - use the commit
+squash - squash commit
+fixup - squash commit without saving commit message?
+Then save the file and close it.
+
+git commit --squash [commit-id]
+git rebase -i --autosquash
+commits will be squashed automatically while making rebase
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

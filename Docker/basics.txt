@@ -84,6 +84,7 @@ docker volume rm $(docker volume ls -q)     #Removes all volumes
 docker system prune -a                      #Will destroy all containers, networks, images and cache
 
 docker rm -f $(docker ps -aq) && docker volume rm $(docker volume ls -q)
+docker rm -f $(docker ps -aq) && docker volume rm $(docker volume ls -q) && docker network prune -f
 
 Cleaning images:
 Dangling images are layers that have no relationship to any tagged images. They no longer serve a purpose and consume disk space.
@@ -104,6 +105,8 @@ Getting container information:
 
 docker inspect [NAME/TAG]           #Show detailed info about container, works with containers, images, volumens and networks.
 --format='{{.VARIABLE}}'            #Getting value of given docker inspect attribute (variable): docker inspect --format='{{.DockerVersion}}' NAME
+
+docker inspect --format='{{.LogPath}}' my-app
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -244,4 +247,15 @@ Sandboxed Docker environments
 DinD in CI pipelines is the most common use case. It shows up when a Docker container is tasked with building or running Docker containers. For example, in a Jenkins pipeline, the agent may be a Docker container tasked with building or running other Docker containers. This requires Docker in Docker.
 But CI is not the only use case. Another common use case is developers that want to play around with Docker containers in a sandboxed environment, isolated from their host environment where they do real work. In this case Docker-in-Docker is a great solution.
 
+_________________________________________________________________________
 
+Moving data root path:
+
+
+Edit the file /etc/docker/daemon.json and add or modfy the “data-root” entry. If you configuration is empty, the file will look like this:
+
+    {
+    “data-root”: “/new/data/root/path”
+    }
+
+Restart the docker daemon!
