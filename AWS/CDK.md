@@ -203,3 +203,5 @@ https://medium.com/aspecto/attach-ebs-docker-volume-to-aws-ecs-using-cdk-931c29e
 [Link 3](https://github.com/johnf/cdk-cross-account-route53)
 [Link 4](https://medium.com/i-love-my-local-farmer-engineering-blog/dns-multi-account-management-using-cdk-6394ef295eee)
 
+UPDATE_ROLLBACK_FAILED
+aws cloudformation continue-update-rollback --stack-name interreg-dev-elasticsearch-stack  --resources-to-skip esDataVolume78E19945

@@ -109,6 +109,9 @@ export AWS_PROFILE=lukcic
 * terraform apply -var "instance_name=myOwnName"
   * apply changes with overriding variable
 
+* terraform apply --auto-approve -replace=module.nat-instance.aws_instance.nat_instance
+  * recreate instance
+
 * terraform show
   * inspect created resources - human readable
 

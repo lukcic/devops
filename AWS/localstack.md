@@ -1,0 +1,1 @@
+https://awstip.com/run-aws-on-your-laptop-introduction-to-localstack-7269c19dedae
