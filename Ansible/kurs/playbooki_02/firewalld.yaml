@@ -1,0 +1,104 @@
+- name: Add users
+  hosts: web,db
+  tasks:
+    - name: permit traffic in default zone for https service
+      ansible.posix.firewalld:
+        service: ssh
+        permanent: yes
+        state: enabled
+        immediate: true
+    - name: permit traffic in default zone for https service
+      ansible.posix.firewalld:
+        port: 3306/tcp
+        permanent: yes
+        state: enabled
+        immediate: true
+
+
+    - name: firewall CentOS
+      include_tasks: centos_firewall.yaml
+      when: ansible_facts['os_family'] == "RedHat"
+      tags: firewall
+
+    - name: firewall Ubuntu
+      include_tasks: ubuntu_firewall.yaml
+      when: ansible_facts['os_family'] == "Debian"
+      tags: firewall
+
+
+- name: permit traffic in default zone
+  firewalld:
+    port: "{{ item }}/tcp"
+    permanent: yes
+    state: enabled
+    immediate: true
+  loop: "{{ open_ports }}"
+  tags: firewall
+
+
+- name: allow only open ports
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: "{{ open_ports }}"
+  tags: firewall
+
+- name: Allow everything and enable UFW
+  ufw:
+    state: enabled
+    policy: deny
+  tags: firewall
+
+
+
+- name: Role for web
+  hosts: web
+  tasks:
+    - name: Print a message
+      ansible.builtin.debug:
+        msg: "this task runs before the example role"
+      tags: docker
+  pre_tasks:
+    - name: Print a message
+      ansible.builtin.debug:
+        msg: "this task runs before the example role"
+      tags: docker
+  roles:
+     - role: 'geerlingguy.docker'
+  tasks:
+    - name: Print a message
+      ansible.builtin.debug:
+        msg: "this task runs before the example role"
+      tags: docker
+
+
+
+
+  tasks:
+    - name: Install required system packages
+      apt:
+        pkg:
+          - python3-pip
+          - python3-setuptools
+        state: latest
+        update_cache: true
+      tags: docker_run
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+      tags: docker_run
+    - name: Pull default Docker image
+      community.docker.docker_image:
+        name: nginx:latest
+        source: pull
+      tags: docker_run
+    - name: Create default containers
+      community.docker.docker_container:
+        name: nginx
+        image: nginx:latest
+        state: started
+        ports:
+          - "80:80"
+      tags: docker_run
+

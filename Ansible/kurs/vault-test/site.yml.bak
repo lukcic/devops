@@ -1,0 +1,7 @@
+- name: vault test
+  hosts: local
+  vars_files: vault.yml
+  tasks:
+  - debug:
+      msg: "hello1 {{ tajne }} hello2 {{ tajne2 }}"
+

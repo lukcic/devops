@@ -1,0 +1,42 @@
+- name: Install MariaDB
+  apt:
+   name:
+     - mariadb-server
+     - mariadb-client
+     - python3-mysqldb
+     - libmysqlclient-dev
+
+- name: Create a databases
+  community.mysql.mysql_db:
+    name: "{{ item.db_name }}"
+    state: present
+  when:  item.state|default('present') != 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+
+
+- name: Create users and priv
+  community.mysql.mysql_user:
+    name: "{{ item.db_username }}"
+    password: "{{ item.db_password }}"
+    priv: "{{ item.db_name }}.*:ALL"
+    state: present
+  when: item.state|default('present') != 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+
+- name: cleanup database
+  community.mysql.mysql_db:
+    name: "{{ item.db_name }}"
+    state: absent
+  when: item.state|default('present') == 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+
+
+- name: cleanup users and priv
+  community.mysql.mysql_user:
+    name: "{{ item.db_username }}"
+    password: "{{ item.db_password }}"
+    priv: "{{ item.db_name }}.*:ALL"
+    state: absent
+  when: item.state|default('present') == 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+

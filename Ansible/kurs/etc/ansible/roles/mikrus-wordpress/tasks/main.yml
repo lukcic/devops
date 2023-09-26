@@ -1,0 +1,17 @@
+---
+# tasks file for mikrus-wordpress
+- include_tasks: setup-nginx.yml
+  when: mikrus_wordpress_webserver == 'nginx'
+
+- include_tasks: setup-apache2.yml
+  when: mikrus_wordpress_webserver == 'apache2'
+
+- include_tasks: setup-php.yml
+
+- include_tasks: setup-mariadb.yml
+
+- include_tasks: setup-wp-cli.yml
+
+- include_tasks: setup-wordpress.yml
+
+- include_tasks: setup-cloudflare.yml

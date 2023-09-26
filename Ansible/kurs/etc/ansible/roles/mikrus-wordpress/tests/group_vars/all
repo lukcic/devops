@@ -1,0 +1,21 @@
+mikrus_wordpress_vhosts:
+  - server_name: "pt1.sits.ovh"
+    db_name: pt1
+    db_username: pt1
+    db_password: 12345
+    wp_admin: admin
+    wp_admin_password: 123kkc93399
+    wp_admin_email: costam@example.com
+    wp_title: moj blog
+    state: present
+  - server_name: "pt2.sits.ovh"
+    db_name: pt2
+    db_username: pt2
+    db_password: 12345
+    wp_admin: admin
+    wp_admin_password: 123kkc93399
+    wp_admin_email: costam@example.com
+    wp_title: moj blog2
+    state: present
+mikrus_wordpress_php_addtional_mods:
+  - redis

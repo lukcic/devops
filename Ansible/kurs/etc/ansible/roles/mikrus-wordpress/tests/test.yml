@@ -1,0 +1,5 @@
+---
+- hosts: mikrus_ipv6
+  remote_user: root
+  roles:
+    - mikrus-wordpress

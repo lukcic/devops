@@ -1,0 +1,12 @@
+<VirtualHost *:80>
+        ServerName {{ item.server_name }}
+        ServerAlias www.{{ item.server_name }}
+
+        DocumentRoot /var/www/{{ item.server_name }}/
+        <Directory /var/www/{{ item.server_name }}/>
+                Options -Indexes
+		Require all granted
+		DirectoryIndex index.php
+                AllowOverride All
+        </Directory>
+</VirtualHost>

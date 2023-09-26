@@ -1,0 +1,70 @@
+- name: Create a directory if it does not exist
+  file:
+    path: "/var/www/{{ item.server_name }}"
+    state: directory
+    mode: '0755'
+  when: item.state|default('present') != 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+
+- name: cleanup a directory if it does not exist
+  file:
+    path: "/var/www/{{ item.server_name }}"
+    state: absent
+  when: item.state|default('present') == 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+
+- name: check if wp is installed
+  stat:
+    path: /var/www/{{ item.server_name }}/index.php
+  register: is_wordpress_installed
+  when: item.state|default('present') != 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+
+- name: download wp core
+  command: "{{ mikrus_wordpress_wp_cli_path }} core download --path=/var/www/{{ item.item.server_name }} --allow-root"
+  when: item.stat.exists is defined and not item.stat.exists and item.item.state|default('present') != 'absent'
+  loop: "{{ is_wordpress_installed.results }}"
+
+- name: wp config
+  command: "{{ mikrus_wordpress_wp_cli_path }} core config --dbhost=localhost --dbname={{ item.item.db_name }} --dbuser={{ item.item.db_username }} --dbpass={{ item.item.db_password }} --path=/var/www/{{ item.item.server_name }} --allow-root"
+  when: item.stat.exists is defined and item.stat.exists == False and item.item.state|default('present') != 'absent'
+  loop: "{{ is_wordpress_installed.results }}"
+
+- name: wp install
+  command: '{{ mikrus_wordpress_wp_cli_path }} core install --url={{ item.item.server_name }} --title="{{ item.item.wp_title }}" --admin_name={{ item.item.wp_admin }} --admin_password={{ item.item.wp_admin_password }} --admin_email={{ item.item.wp_admin_email }}   --path=/var/www/{{ item.item.server_name }} --allow-root'
+  when: item.stat.exists is defined and item.stat.exists == False and item.item.state|default('present') != 'absent'
+  loop: "{{ is_wordpress_installed.results }}"
+
+- name: Change wp-content permissions
+  file:
+    path: /var/www/{{ item.item.server_name }}/wp-content
+    owner: www-data
+    group: www-data
+    recurse: true
+    mode: '755'
+  when: item.stat.exists is defined and item.stat.exists == False and item.item.state|default('present') != 'absent'
+  loop: "{{ is_wordpress_installed.results }}"
+
+- name: change php ini for apache2
+  lineinfile:
+    dest: /etc/php/{{ mikrus_wordpress_php_version }}/apache2/php.ini
+    regexp: "{{ item }} ="
+    line: "{{ item }} = 128M"
+  loop:
+    - upload_max_filesize
+    - post_max_size
+  when: mikrus_wordpress_webserver == 'apache2'
+  notify:
+    - validate apache2 configuration and restart apache2
+
+- name: change php ini for nginx
+  lineinfile:
+    dest: /etc/php/{{ mikrus_wordpress_php_version }}/fpm/php.ini
+    regexp: "{{ item }} ="
+    line: "{{ item }} = 128M"
+  loop:
+    - upload_max_filesize
+    - post_max_size
+  when: mikrus_wordpress_webserver == 'nginx'
+  notify:
+    - validate nginx configuration and restart nginx

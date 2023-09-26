@@ -1,0 +1,26 @@
+- name: Create a record using api token
+  community.general.cloudflare_dns:
+    zone: "{{ item.server_name.split('.')[1:] | join('.') }}" #pt.sits.ovh=pt sits ovh=sits.ovh 
+    record: "{{ item.server_name.split('.')[0] }}" #pt.sits.ovh=pt sits ovh=pt
+    type: AAAA
+    value: "{{ ansible_default_ipv6.address }}"
+    proxied: true
+    account_email: moj@email
+    account_api_key: MOJ_API_KEY
+    state: present
+  when: item.state|default('present') != 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+
+- name: cleanup a record using api token
+  community.general.cloudflare_dns:
+    zone: "{{ item.server_name.split('.')[1:] | join('.') }}" #pt.sits.ovh=pt sits ovh=sits.ovh 
+    record: "{{ item.server_name.split('.')[0] }}" #pt.sits.ovh=pt sits ovh=pt
+    type: AAAA
+    value: "{{ ansible_default_ipv6.address }}"
+    proxied: true
+    account_email: moj@email
+    account_api_key: MOJ_API_KEY
+    state: absent
+  when: item.state|default('present') == 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+

@@ -1,0 +1,29 @@
+- name: Add users
+  hosts: web,db
+  tasks:
+    - name: Add the users
+      user:
+        name: johnd
+        comment: John Doe
+        shell: /bin/bash
+    - name: Set authorized key taken from file
+      authorized_key:
+        user: johnd
+        state: present
+        key: "{{ lookup('file', '/root/playbook/ssh_keys/' + zzz + '.pub') }}"
+    - name: Shut down CentOS 6 and Debian 7 systems
+      package:
+        name: bind-utils
+        state: absent
+      when: ansible_facts['os_family'] == "RedHat"
+    - name: Update apt packages
+      apt:
+        update_cache: yes
+
+- name: Copy file with owner and permission, using symbolic representation
+  copy:
+    src: motd
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r

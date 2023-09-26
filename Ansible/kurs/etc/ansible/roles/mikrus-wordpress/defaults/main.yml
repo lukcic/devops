@@ -1,0 +1,29 @@
+---
+# defaults file for mikrus-wordpress
+mikrus_wordpress_webserver: apache2
+mikrus_wordpress_php_version: 8.1
+mikrus_wordpress_php_addtional_mods: []
+mikrus_wordpress_vhosts: []
+# example vhosts
+# mikrus_wordpress_vhosts:
+#   - server_name: "pt.sits.ovh"
+#     db_name: pt1
+#     db_username: pt1
+#     db_password: 12345
+#     wp_admin: admin
+#     wp_admin_password: 123fjfjjf
+#     wp_admin_email: costam@example.com
+#     wp_title: Moj blog
+#     state: present
+#   - server_name: "pt.sits.ovh2"
+#     db_name: pt2
+#     db_username: pt2
+#     db_password: 12345
+#     wp_admin: admin
+#     wp_admin_password: 123fjfjjf
+#     wp_admin_email: costam@example.com
+#     wp_title: Moj blog
+#     state: absent
+
+mikrus_wordpress_wp_cli_path: /usr/local/bin/wp
+mikrus_wordpress_wp_cli_url: https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar

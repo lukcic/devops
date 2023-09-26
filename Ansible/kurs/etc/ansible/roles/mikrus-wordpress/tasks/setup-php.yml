@@ -1,0 +1,38 @@
+- name: add php repository
+  apt_repository:
+    repo: ppa:ondrej/php
+
+- name: install php {{ mikrus_wordpress_php_version }}
+  apt:
+    name:
+      - php{{ mikrus_wordpress_php_version }}
+      - php{{ mikrus_wordpress_php_version }}-curl
+      - php{{ mikrus_wordpress_php_version }}-gd
+      - php{{ mikrus_wordpress_php_version }}-mbstring
+      - php{{ mikrus_wordpress_php_version }}-xml
+      - php{{ mikrus_wordpress_php_version }}-xmlrpc
+      - php{{ mikrus_wordpress_php_version }}-soap
+      - php{{ mikrus_wordpress_php_version }}-intl
+      - php{{ mikrus_wordpress_php_version }}-zip
+      - php{{ mikrus_wordpress_php_version }}-mysql
+    state: latest
+
+- name: install php addtional mods
+  apt:
+    name: php{{ mikrus_wordpress_php_version }}-{{ item }}
+  loop: "{{ mikrus_wordpress_php_addtional_mods }}"
+
+- name: install php fpm for nginx
+  apt:
+    name: php{{ mikrus_wordpress_php_version }}-fpm
+  when: mikrus_wordpress_webserver == 'nginx'
+
+- name: install libmodphp for apache2
+  apt:
+    name: libapache2-mod-php{{ mikrus_wordpress_php_version }}
+  when: mikrus_wordpress_webserver == 'apache2'
+
+
+
+
+

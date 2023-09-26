@@ -1,0 +1,8 @@
+- name: vault test
+  hosts: local
+  tasks:
+  - name: Retrieve password for HAL when not signed in to 1Password
+    ansible.builtin.debug:
+      var: lookup('community.general.onepassword'
+                  'HAL 9000'
+                  master_password=vault_master_password)

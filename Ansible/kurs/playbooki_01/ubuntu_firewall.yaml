@@ -1,0 +1,13 @@
+- name: allow open ports
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop: "{{ open_ports }}"
+  tags: firewall
+
+- name: Default policy to deny and enable ufw
+  ufw:
+    state: enabled
+    policy: deny
+  tags: firewall

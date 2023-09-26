@@ -1,0 +1,4 @@
+- name: Role for web
+  hosts: web
+  roles:
+    - { role: 's', tags: 's' }

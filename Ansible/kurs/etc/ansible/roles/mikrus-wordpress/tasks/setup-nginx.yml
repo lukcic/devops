@@ -1,0 +1,55 @@
+- name: make sure that apache2 is stopped
+  service:
+    name: apache2
+    state: stopped
+  failed_when: no
+
+- name: make sure that apache2 is not installed
+  apt:
+    name: apache2
+    state: absent
+
+- name: Install nginx
+  apt:
+    name: nginx
+    state: latest
+    update_cache: yes
+
+
+- name: make sure that nginx is started
+  service:
+    name: nginx
+    state: started
+
+
+- name: Add managed vhost config files.
+  template:
+    src: nginx-vhost.j2
+    dest: /etc/nginx/sites-available/{{ item.server_name }}
+    force: true
+    mode: 0644
+  when: item.state|default('present') != 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+  notify:
+    - validate nginx configuration and restart nginx
+
+
+- name: enable nginx vhosts
+  file:
+    src: /etc/nginx/sites-available/{{ item.server_name }}
+    dest: /etc/nginx/sites-enabled/{{ item.server_name }}
+    state: link
+  when: item.state|default('present') != 'absent'
+  loop: "{{ mikrus_wordpress_vhosts }}"
+  notify:
+    - validate nginx configuration and restart nginx
+
+- name: cleanup managed vhost config files.
+  file:
+    path: "{{ item[0] }}{{ item[1].server_name }}"
+    state: absent
+  when: item[1].state|default('present') == 'absent'
+  loop: "{{ [ '/etc/nginx/sites-available/', '/etc/nginx/sites-enabled/']|product(mikrus_wordpress_vhosts)|list }}"
+  notify:
+    - validate nginx configuration and restart nginx
+

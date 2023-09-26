@@ -1,0 +1,18 @@
+- name: Check if wp-cli exists
+  stat:
+    path: "{{ mikrus_wordpress_wp_cli_path }}"
+  register: wpcli_exist
+
+- name: Updating wp-cli
+  shell: "{{ mikrus_wordpress_wp_cli_path }} cli update --yes"
+  when: wpcli_exist.stat.exists
+
+- name: Install WP-CLI
+  get_url:
+    url: "{{ mikrus_wordpress_wp_cli_url }}"
+    dest: "{{ mikrus_wordpress_wp_cli_path }}"
+    force: true
+    owner: root
+    group: root
+    mode: 0755
+  when: not wpcli_exist.stat.exists
