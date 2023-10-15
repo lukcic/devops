@@ -1,0 +1,18 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS w akcji: rozdzial 5 (zapora sieciowa dla serwera IRC)'
+Parameters:
+  VPC:
+    Description: 'Wybierz po prostu jedyna dostepna domyslna usluge VPC.'
+    Type: 'AWS::EC2::VPC::Id'
+Resources:
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Pozwala na dostep do serwera IRC'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 6667
+        ToPort: 6667
+        CidrIp: '0.0.0.0/0'

@@ -1,0 +1,110 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS w akcji: rozdzial 5 (OpenSwan jako punkt koncowy sieci VPN z IPSec)'
+Parameters:
+  KeyName:
+    Description: 'Nazwa pary kluczy do dostepu przez SSH'
+    Type: 'AWS::EC2::KeyPair::KeyName'
+  VPC:
+    Description: 'Wybierz po prostu jedyna dostepna domyslna usluge VPC.'
+    Type: 'AWS::EC2::VPC::Id'
+  Subnet:
+    Description: 'Wybierz po prostu jedna z dostepnych podsieci.'
+    Type: 'AWS::EC2::Subnet::Id'
+  IPSecSharedSecret:
+    Description: 'Tajny klucz wspoldzielony dla IPSec'
+    Type: String
+  VPNUser:
+    Description: 'Uzytkownik sieci VPN'
+    Type: String
+  VPNPassword:
+    Description: 'Haslo sieci VPN'
+    Type: String
+Mappings:
+  RegionMap:
+    'ap-south-1':
+      AMI: 'ami-2ed19c41'
+    'eu-west-3':
+      AMI: 'ami-c8a017b5'
+    'eu-west-2':
+      AMI: 'ami-e3051987'
+    'eu-west-1':
+      AMI: 'ami-760aaa0f'
+    'ap-northeast-2':
+      AMI: 'ami-fc862292'
+    'ap-northeast-1':
+      AMI: 'ami-2803ac4e'
+    'sa-east-1':
+      AMI: 'ami-1678037a'
+    'ca-central-1':
+      AMI: 'ami-ef3b838b'
+    'ap-southeast-1':
+      AMI: 'ami-dd7935be'
+    'ap-southeast-2':
+      AMI: 'ami-1a668878'
+    'eu-central-1':
+      AMI: 'ami-e28d098d'
+    'us-east-1':
+      AMI: 'ami-6057e21a'
+    'us-east-2':
+      AMI: 'ami-aa1b34cf'
+    'us-west-1':
+      AMI: 'ami-1a033c7a'
+    'us-west-2':
+      AMI: 'ami-32d8124a'
+Resources:
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: 't2.micro'
+      SecurityGroupIds:
+      - !Ref InstanceSecurityGroup
+      KeyName: !Ref KeyName
+      ImageId: !FindInMap [RegionMap, !Ref 'AWS::Region', AMI]
+      SubnetId: !Ref Subnet
+      UserData:
+        'Fn::Base64': !Sub |
+          #!/bin/bash -x
+          export IPSEC_PSK="${IPSecSharedSecret}"
+          export VPN_USER="${VPNUser}"
+          export VPN_PASSWORD="${VPNPassword}"
+          curl -s https://raw.githubusercontent.com/AWSinAction/code2/master/chapter05/vpn-setup.sh | bash -ex
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource EC2Instance --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT10M
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Zezwol na dostep do serwera VPN.'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: '0.0.0.0/0'
+      - IpProtocol: udp
+        FromPort: 500
+        ToPort: 500
+        CidrIp: '0.0.0.0/0'
+      - IpProtocol: udp
+        FromPort: 1701
+        ToPort: 1701
+        CidrIp: '0.0.0.0/0'
+      - IpProtocol: udp
+        FromPort: 4500
+        ToPort: 4500
+        CidrIp: '0.0.0.0/0'
+Outputs:
+  ServerIP:
+    Description: 'Publiczny adres IP serwera VPN'
+    Value: !GetAtt 'EC2Instance.PublicIp'
+  IPSecSharedSecret:
+    Description: 'Klucz wspoldzielony dla polaczenia VPN (IPSec)'
+    Value: !Ref IPSecSharedSecret
+  VPNUser:
+    Description: 'Nazwa uzytkownika dla polaczenia VPN'
+    Value: !Ref VPNUser
+  VPNPassword:
+    Description: 'Haslo dla polaczenia VPN'
+    Value: !Ref VPNPassword

@@ -52,6 +52,28 @@ Then added
 		IdentityFile ~/.ssh/id_rsa_jexchan
 
 
+.git/config:
+```
+[remote "origin"]
+	url = git@github.com-lukcic:lukcic/terraform-moduels.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+
+[user]
+	name = lukcic
+	email = lukcic@int.pl
+
+```
+Host must be the same as in `~/.ssh/config` file
+
+Cloning repo from second account:
+```sh
+GIT_SSH_COMMAND="ssh -i ~/.ssh/lukcic_id_ed25519.pem" git clone git@github.com:lukcic/scripts.git
+```
+
+
+
+
+
 Clone you repo and modify your Git config
 ---------------------------------------------
 
