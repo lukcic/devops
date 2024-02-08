@@ -168,6 +168,12 @@ https://github.com/xcad2k/cheat-sheets/blob/main/infrastructure/docker.md
 Restore:
 docker run --rm --volumes-from [CONTAINER] -v $(pwd):/backup busybox bash -c "cd [CONTAINERPATH] && tar xvf /backup/backup.tar --strip 1"
 
+NFS volumes:
+docker volume create --driver local --opt type=nfs --opt o=addr=192.168.254.100,rw --opt device=:/tubearchivist ta-nfs
+docker run -it --mount
+'type=volume,dst=/mnt,volume-driver=local,volume-opt=type=nfs,volume-opt=device=:/tubearchivist,"volume-opt=o=addr=192.168.254.100,rw,nfsvers=4"'
+debian:latest
+
 #https://docs.docker.com/storage/volumes
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 

@@ -28,6 +28,7 @@ add:
 	email = lukcic@int.pl
 ```
 Host must be the same as in `~/.ssh/config` file!
+And username defined in config must be added to url (after colon)!
 
 Cloning repo from second account:
 ```sh

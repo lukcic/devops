@@ -187,8 +187,8 @@ Regex:
 # Create dictionary UID: filepath, in check alarm create URL from uid, in Update alert use filepath
   - name: Generate list of alarms (from file content - UIDs)
     set_fact:  # cannot use 'find' and 'set_fact' in one task
-      #alert_uids: "{{ alert_uids + [ grafana_url + '/api/v1/provisioning/alert-rules/'+ lookup('file', item.path) | regex_search('\"uid\".+\"') | regex_replace('\"uid\": \"') | regex_replace('\"')] }}"
-      alert_uids: "{{ alert_uids | combine({item.path: (''.join((grafana_url, '/api/v1/provisioning/alert-rules/', lookup('file', item.path) | regex_search('\"uid\".+\"') | regex_replace('\"uid\": \"') | regex_replace('\"')))    )    }) }}"
+      #alert_uids: "{{ alert_uids + [ lxc_url + '/api/v1/provisioning/alert-rules/'+ lookup('file', item.path) | regex_search('\"uid\".+\"') | regex_replace('\"uid\": \"') | regex_replace('\"')] }}"
+      alert_uids: "{{ alert_uids | combine({item.path: (''.join((lxc_url, '/api/v1/provisioning/alert-rules/', lookup('file', item.path) | regex_search('\"uid\".+\"') | regex_replace('\"uid\": \"') | regex_replace('\"')))    )    }) }}"
     loop: "{{ alert_files.files }}"    # | combine( {item.item.name: item.stdout}
     loop_control:
       label: "{{ item.path | basename }}"
