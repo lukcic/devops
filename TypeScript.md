@@ -1,7 +1,7 @@
 # TypeScript
 Any code valid in JS is also valid in TS.
 
-`npm i -g typescript`
+`npm i -g typescript`\
 -g globally
 
 tsc - typescript compiler
