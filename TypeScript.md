@@ -31,7 +31,7 @@ src - for typescript files
 dist - for JS (project files)
 
 Types:
-```
+```ts
 let lucky: number;
 - - - - - - - - - - - - - - - - - - - - - -
 
@@ -55,7 +55,7 @@ let somefont: Style;		// new variable of type Style
 ```
 
 ```ts
-#Schema of JS object
+//Schema of JS object
 interface Person {
 	first: string;
 	last: string;
