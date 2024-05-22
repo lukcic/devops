@@ -1,7 +1,11 @@
 # Content Security Policy
 
-Main goal of CSP is protection against XSS (Cross-Site-Scripting). It works like an instruction for browser which elements of website should be loaded and which one should not. 
+Whitelist of elements/domains that our website can inject data from. Main goal of CSP is protection against XSS (Cross-Site-Scripting), but it should be last defense line which means app shouldn't have bugs allowing for XSS (all data coming from users should be validated). It works like an instruction for browser which elements of website should be loaded and which one should not. CSP doesn't fix the XSS vulnerability, it could just block exploitation. 
 
+Defense-in-depth, second layer of protection.
+Developer has grade control on what web application can request, embed and execute.
+Can reduce privilege of application itself.
+Reporting mode for detecting exploitation.
 
 CSP adjusts elements like:
 * images
@@ -53,6 +57,40 @@ directive-name value1 value2 'keyword' ; directive-name2 [...]
 * `default-src 'self' https://example.com/script.js` - resources from own domain are allowed and only `script.js` file from `https://example.com`
 * `default-src 'none'` - none of external resources are allowed
 
+
+## Evaluator
+
+https://csp-evaluator.withgoogle.com/
+
+
+## Reporting
+
+report-uri directive
+
+## Common mistakes
+
+* `unsafe-inline` in `script-src` and no nonce - allows adding `<script>` tags
+* URL schemes (https: )or wildcards in `script-src` and no `strict-dynamic` - can add inline script but can source script from wherever 
+* missing `object-src` or `default-src` directive - scripts are restricted, but attacker can could just inject a object tag and allow script access
+* allow 'self' + hosting user-provided content on the same origin - if app is hosted in big domain with other apps or if you host user provided data on your domain or if you have some weird error messages that allow you to echo back strings right on your same domain all of this can potentially be used to completely bypass the CSP
+
+Example: 
+```
+<script src="/user_upload/evil_cat.jpg.js">
+```
+
+## Bypassing CSP
+* JSONP-like endpoint in whitelist
+
+Policy:
+```
+script-src 'self' https://whitelisted.com
+object-scr 'none'
+```
+Bypass:
+```
+<script src="https://whitelisted.com/jsonp/callback=alert">
+```
 
 
 
