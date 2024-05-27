@@ -74,7 +74,7 @@ directive-name value1 value2 'keyword' ; directive-name2 [...]
 * `object-src` - setting up origins allowed to load `<object>`, `<embed>` and `<applet>`. Usually these tags were used for loading unsafe technologies like Flash or Java, this directive should always be set as 'none'
 * `script-src` - external scripts sources
 * `worker-src` - Web Workers API origins
-* `base-uri` - whitelist for tag's `<base>` `href` value, it can be used to bypass CSP if attacker can inject `<base>` tag with value of own origin just before `<script>` with proper nonce value. It should be always set with value of 'none' or 'self'.
+* `base-uri` - whitelist for tag's `<base href=...>` value, it can be used to bypass CSP if attacker can inject `<base>` tag with value of own origin just before `<script>` with proper nonce value. It should be always set with value of 'none' or 'self'.
 * `block-all-mixed-content` - blocks any external resources served without HTTPS, browser support for it is limited :(
 * `upgrade-insecure-requests` - upgrade all HTTP requests to HTTPS 
 * `form-action` - defines possible values of `<form action=...>` attribute, attacker can inject own `<form action=` value which override proper value
