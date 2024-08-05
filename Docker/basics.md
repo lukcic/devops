@@ -1,4 +1,4 @@
-# Containers
+# Docker containers
 
 Containers are not virtual machines. You can understand them as boxes that isolates Unix processes.
 Processes in containers are just processes in docker server - they use the same instance of Linux kernel.
@@ -152,174 +152,272 @@ docker run --restart="VALUE" [NAME]:[TAG]
 
 ---
 
-Getting container information:
+### Getting container information:
 
+```sh
 docker inspect [NAME/TAG] #Show detailed info about container, works with containers, images, volumens and networks.
 --format='{{.VARIABLE}}' #Getting value of given docker inspect attribute (variable): docker inspect --format='{{.DockerVersion}}' NAME
 
 docker inspect --format='{{.LogPath}}' my-app
+```
 
 ---
 
-Interaction with running container:
+### Interaction with running container:
 
 Docker exec:
-docker exec [NAME/TAG] [COMMAND] # Will execute command in container (bash) terminal.
-docker exec -it -u root 6dg6dg7 /bin/bash # Will execute command as given user (--user root)
-docker exec -it -w / 6dg6dg7 ls # -w / will change workdir to /
-docker exec -e TEST=true -it 6dg6dg7 /bin/bash -c 'echo $TEST' #-c will send argument as string
---privileged # will run container without some docker demons limitations, used for routing tables modifications, promiscious mode etc.
 
-nsenter (Namespace Enter)
+```sh
+docker exec [NAME/TAG] [COMMAND]
+# Will execute command in container (bash) terminal.
+
+docker exec -it -u root 6dg6dg7 /bin/bash
+# Will execute command as given user (--user root)
+
+docker exec -it -w / 6dg6dg7 ls
+# -w / will change workdir to /
+
+docker exec -e TEST=true -it 6dg6dg7 /bin/bash -c 'echo $TEST'
+#-c will send argument as string
+
+--privileged
+# will run container without some docker demons limitations, used for routing tables modifications, promiscious mode etc.
+```
+
+#### nsenter (Namespace Enter)
+
 This Linux package give possibility to enter in any linux namespace. You can enter inside container even if it not responding (docke exec fails).
 
+```sh
 sudo apt install util-linux
-docker run --rm -v /usr/local/bin:/target jpetazzo/nsenter #installation nsenter without package manager
+docker run --rm -v /usr/local/bin:/target jpetazzo/nsenter
+#installation nsenter without package manager
+```
 
 Connecting to container namespace:
-PID=$(docker inspect --format \{{.State.Pid\}} [CONTAINER_ID]) #Check linux PID of running container and assign it to PID variable
-sudo nsenter --target $PID --mount --uts --ipc --net --pid #Connect to namespace of given container
+
+```sh
+PID=$(docker inspect --format \{{.State.Pid\}} [CONTAINER_ID])
+#Check linux PID of running container and assign it to PID variable
+
+sudo nsenter --target $PID --mount --uts --ipc --net --pid
+# Connect to namespace of given container
+```
 
 the same effect:
+
+```sh
 docker exec -it [CONTAINER_ID] /bin/bash
+```
 
 ---
 
-Volumes - special type of directories that are managed by docker engine and mounted inside containers. Data created by container are stored inside volume.
-Can be mouned using --mount or -v [VOLUME_NAME]:/PATH.
+## Volumes
+
+Special type of directories that are managed by docker engine and mounted inside containers. Data created by container are stored inside volume.
+Can be mouned using `--mount` or `-v [VOLUME_NAME]:/PATH`
 
 Docker images create two types of volumes:
 Persistent - after container stops data are stored (mysql)
 Empheral - deletes data after container stop (ubuntu)
 
-docker volume create [VOLUME_NAME] #Creating local volume
-docker volume ls #Listing volumes
-docker volume inspect [NAME/ID] #View info about volume
+```sh
+docker volume create [VOLUME_NAME]
+# Creating local volume
 
-docker run -it -v /[PATH_IN_CONTAINER] [IMAGE][TAG] #running container with volume creation (random name)
-docker run --name [NAME] -v [VOLUME_NAME]:/[PATH_IN_CONTAINER] [IMAGE][TAG] #running container with mounting existed volume
-docker run --mount source=[VOLUME_NAME],target=[PATH] [IMAGE][TAG] #creating container with mounting exist volume (00mount need existed volume)
+docker volume ls
+# Listing volumes
+
+docker volume inspect [NAME/ID]
+# View info about volume
+
+docker run -it -v /[PATH_IN_CONTAINER] [IMAGE][TAG]
+# running container with volume creation (random name)
+
+docker run --name [NAME] -v [VOLUME_NAME]:/[PATH_IN_CONTAINER] [IMAGE][TAG]
+# running container with mounting existed volume
+
+docker run --mount source=[VOLUME_NAME],target=[PATH] [IMAGE][TAG]
+# creating container with mounting exist volume (00mount need existed volume)
+```
 
 Host path that volumes are stored locally:
-/var/lib/docker/volumes
+`/var/lib/docker/volumes`
 Docker use volumes drivers to store volumes in remote directories.
 
 Read only volume:
+
+```sh
 -v [VOLUME_NAME]:/[PATH_IN_CONTAINER]:ro
 
-docker run --tmpfs [CONTAINER_VOLUME_PATH] [IMAGE]:[TAG] #Creating tempolary volume (files deleted while closing container), can be used with --read-only
+docker run --tmpfs [CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]
+# Creating temporary volume (files deleted while closing container), can be used with --read-only
+```
 
-Plugins:
+#### Plugins
+
+```sh
 docker container run --name [NAME] --mount type=volume,volume-driver=[DRIVER_FULL_NAME],source=[VOLUME_NAME],destination=[PATH_IN_CONTAINER] [IMAGE]:[TAG]
-#creating container with cration volume using plugin
+# creating container with creation volume using plugin
+```
 
-Backup volumes data:
+#### Backup volumes data
+
+```sh
 docker run --rm --volumes-from portainer -v $(pwd):/backup busybox tar cvf /backup/backup-poratiner-data.tar /data
+```
+
 https://github.com/xcad2k/cheat-sheets/blob/main/infrastructure/docker.md
 
-Restore:
-docker run --rm --volumes-from [CONTAINER] -v $(pwd):/backup busybox bash -c "cd [CONTAINERPATH] && tar xvf /backup/backup.tar --strip 1"
+#### Restore
 
-NFS volumes:
+```sh
+docker run --rm --volumes-from [CONTAINER] -v $(pwd):/backup busybox bash -c "cd [CONTAINERPATH] && tar xvf /backup/backup.tar --strip 1"
+```
+
+#### NFS volumes
+
+```sh
 docker volume create --driver local --opt type=nfs --opt o=addr=192.168.254.100,rw --opt device=:/tubearchivist ta-nfs
 docker run -it --mount
 'type=volume,dst=/mnt,volume-driver=local,volume-opt=type=nfs,volume-opt=device=:/tubearchivist,"volume-opt=o=addr=192.168.254.100,rw,nfsvers=4"'
 debian:latest
+```
 
-#https://docs.docker.com/storage/volumes
+https://docs.docker.com/storage/volumes
 
 ---
 
-Bind-mouted directories - it`s not a volume.
-Used for mounting hosts files or directories into container. BM dirs are not managed by docker engine.
-Container cannot do any changes in host filesystem (takes a own copy)??????
-Need absolute host path, where volume needs name or empty sign (docker will create volume).
+### Bind-mouted directories
 
-docker run -v [HOST_VOLUME_PATH]:[CONTAINER_VOLUME_PATH] [IMAGE]:[TAG] #-v will create dirs
-docker container run -d -p 8080:80 -v $(pwd):/usr/share/nginx/html nginx #Host path can be variable
+Used for mounting hosts files or directories into container. BM dirs are not managed by docker engine. Needs absolute host path, where volume needs name or empty sign (docker will create volume).
+```sh
+docker run -v [HOST_VOLUME_PATH]:[CONTAINER_VOLUME_PATH] [IMAGE]:[TAG] 
+# -v will create dirs
+
+docker container run -d -p 8080:80 -v $(pwd):/usr/share/nginx/html nginx 
+# Host path can be variable
 
 docker run -it --name example --mount type=bind,source="$(pwd)"/test,target=/data_from_host [IMAGE]:[TAG]
-
+```
 ---
 
-Statistics & processes:
+### Statistics & processes
 Docker stats give us information about containers usage of: cpu, mem, hdd io and network.
+```sh
+docker stats 
+# statistics of all containers
 
-docker stats #statistics of all containers
-docker container stats [NAME/ID] #statiscics of given container (live)
---no-stream #only from given moment
---format "{{}.CPUPerc}" #just procentage use of procesor (live)
+docker container stats [NAME/ID] 
+# statiscics of given container (live)
 
-docker container top [NAME/ID] #Shows processes running in container (the same process id are listed in host ps)
+--no-stream 
+# only from given moment
+
+--format "{{}.CPUPerc}" 
+# just percentage use of processor (live)
+
+docker container top [NAME/ID] 
+# shows processes running in container (the same process id are listed in host ps)
 
 ---
 
-Logs:
+### Logs
+
 Docker by default use json-file mechanism to storing container logs. May be changed for given container or permanently. Docker can use ony one logging plugin at once.
 Available plugins: syslog, fluentd, journald, gelf, awslogs, splunk, etwlogs, gcplogs, logentries.
 
-docker run --log-driver=syslog [IMAGE] #creating container with syslog connection, this disable docker logs command
---log-opt syslog-address=udp://192.168.42.42:123 #sending logs to remote syslog server
---log-driver=none #disabling loginng mechanism
+```sh
+docker run --log-driver=syslog [IMAGE] 
+# creating container with syslog connection, this disable docker logs command
 
-docker logs [NAME/ID] #Shows container logs
+--log-opt syslog-address=udp://192.168.42.42:123 
+# sending logs to remote syslog server
+
+--log-driver=none 
+# disabling log mechanism
+
+docker logs [NAME/ID] 
+# shows container logs
+
 -t #shows logs with timestamps
+
 -f #Live mode -appending new logs
+
 --tail "10" #Shows last 10 log lines, may be used with -f
---since "2021-07-21T11:21:00" #Shows logs from given timestamp
---until "2021-07-21T21:21:00" #Shows logs to givem timestamo. May be used with since.
 
-Alternatives:
-Daemon svlogd - installed inside of container can grab logs from stdout & stderr and send them to remote logging servers using udp.
-Syslog redirector - compiled app that grab stdout and stderr of one process from inside of container: https://github.com/spotify/syslog-redirector
-Logspout - container that connects with docker service and grabs logs from other containers: https://github.com/progrium/logspout
+--since "2021-07-21T11:21:00" 
+# Shows logs from given timestamp
 
----
-
-Hardware limits:
-
-docker run --cpus="0.2" #Limiting container to max 20% of processor
-docker run --cpuset-cpus=0,3 #Container will use only 0 and 3 cores
-docker run --cpu-period="10000000" #Container will take 1/10000000 cpu cycle, default 100us
-docker run --cpu-quota="50000" #50% of cpu usage quota
-
-docker run --memory="200m" #Limiting RAM memory to 200 MiB
-
-docker run --blkio-weight 300 #Limiting in/out disk operations
-docker run --blkio-weight-device "/dev/sda:10" #Limiting io disk operations for given disk
+--until "2021-07-21T21:21:00" 
+# Shows logs to givem timestamo. May be used with since.
+```
+#### Alternatives
+- `Daemon svlogd` - installed inside of container can grab logs from stdout & stderr and send them to remote logging servers using udp.
+- `Syslog redirector` - compiled app that grab stdout and stderr of one process from inside of container: https://github.com/spotify/syslog-redirector
+- `Logspout` - container that connects with docker service and grabs logs from other containers: https://github.com/progrium/logspout
 
 ---
 
-Linking containers:
+### Hardware limits
 
+```sh
+docker run --cpus="0.2" 
+# Limiting container to max 20% of processor
+
+docker run --cpuset-cpus=0,3 
+# Container will use only 0 and 3 cores
+
+docker run --cpu-period="10000000" 
+# Container will take 1/10000000 cpu cycle, default 100us
+
+docker run --cpu-quota="50000" 
+# 50% of cpu usage quota
+
+docker run --memory="200m" 
+# Limiting RAM memory to 200 MiB
+
+docker run --blkio-weight 300 
+# Limiting in/out disk operations
+
+docker run --blkio-weight-device "/dev/sda:10" 
+# Limiting io disk operations for given disk
+```
+
+---
+
+### Linking containers:
+
+```sh
 docker run -dt --name mysql_client --link mysql_server:mysql_client ubuntu
-#will link server`s IP adress in clients /etc/host to communicate with it
+# will link server`s IP address in clients /etc/host to communicate with it
+```
 
 ---
 
-docker:dind
+### docker:dind
+
 Docker-in-Docker, also known as DinD, is just what it says: running Docker inside a Docker container.
 This implies that the Docker instance inside the container would be able to build containers and also run them.
 
 Used in:
-Continuous Integration (CI) pipeline
-Sandboxed Docker environments
+
+- Continuous Integration (CI) pipeline
+- Sandboxed Docker environments
 
 DinD in CI pipelines is the most common use case. It shows up when a Docker container is tasked with building or running Docker containers. For example, in a Jenkins pipeline, the agent may be a Docker container tasked with building or running other Docker containers. This requires Docker in Docker.
 But CI is not the only use case. Another common use case is developers that want to play around with Docker containers in a sandboxed environment, isolated from their host environment where they do real work. In this case Docker-in-Docker is a great solution.
 
 ---
 
-Moving data root path:
+### Moving data root path
 
-Edit the file /etc/docker/daemon.json and add or modfy the “data-root” entry. If you configuration is empty, the file will look like this:
+Edit the file `/etc/docker/daemon.json` and add or modify the “data-root” entry. If you configuration is empty, the file will look like this:
 
-    {
+```json
+{
     “data-root”: “/new/data/root/path”
-    }
+}
+```
 
 Restart the docker daemon!
-
-```
-
-```

@@ -67,3 +67,42 @@ Registry:
 - private images
 
 Docker engine - open source core of Docker (cli, api, daemon).
+
+## Registries
+
+- Dockerhub
+- Github Container Registry (ghcr.io)
+- Google Container Registry (gcr.io)
+- Amazon Elastic Container Registry (ECR)
+- Azure Container Registry (ACR)
+- NExus
+- Harbor...
+
+Docker CLI can use basic auth or leverage credential helpers.
+
+```sh
+echo "FROM scratch" > Dockerfile
+docker build --tag empty-image .
+docker login
+docker tag empty-image hubuser/empty-image:tagname
+docker push hubuser/empty-image
+```
+
+### Docker run options
+
+```sh
+--cap-add, --cap-drop
+--cgroup-parent
+--cpu-shares
+--cpuset-cpus (pin execution to specific CPU cores)
+--device-cgroup-rule,
+--device-read-bps, --device-read-iops, --device-write-bps, --device-write-iops
+--gpus (NVIDIA Only)
+--health-cmd, --health-interval, --health-retries, --health-start-period, --health-timeout
+--memory , -m
+--pid, --pids-limit
+--privileged
+--read-only
+--security-opt
+--userns
+```
