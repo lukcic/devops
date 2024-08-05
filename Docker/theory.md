@@ -88,21 +88,41 @@ docker tag empty-image hubuser/empty-image:tagname
 docker push hubuser/empty-image
 ```
 
-### Docker run options
+### Security
 
-```sh
---cap-add, --cap-drop
---cgroup-parent
---cpu-shares
---cpuset-cpus (pin execution to specific CPU cores)
---device-cgroup-rule,
---device-read-bps, --device-read-iops, --device-write-bps, --device-write-iops
---gpus (NVIDIA Only)
---health-cmd, --health-interval, --health-retries, --health-start-period, --health-timeout
---memory , -m
---pid, --pids-limit
---privileged
---read-only
---security-opt
---userns
-```
+`dockerd --userns-remap`
+
+The best way to prevent privilege-escalation attacks from within a container is to configure your container's
+applications to run as unprivileged users. For containers whose processes must run as the root user within the
+container, you can re-map this user to a less-privileged user on the Docker host. The mapped user is assigned a range of
+UIDs which function within the namespace as normal UIDs from 0 to 65536, but have no privileges on the host machine
+itself.
+
+https://docs.docker.com/engine/security/userns-remap/
+
+#### Image security
+
+- What vulnerabilities exists in the image, that an attacker could exploit.
+  - Keep attack surface area as small as possible:
+  - Use minimal base images (multi-stage builds are a key enabler)
+- Don’t install things you don’t need (don’t install dev deps)
+- Scan images! (sneak, trivy)
+
+- Use users with minimal permissions
+- Keep sensitive info out of images
+- Sign and verify images
+- Use fixed image tags, either:
+  - Pin major.minor (allows patch fixes to be integrated)
+  - Pin specific image hash
+
+#### Runtime security
+
+If an attacker successfully compromises a container, what can they do? How difficult will it be to move laterally to
+compromise the host?
+
+- Use read only filesystem if writes are not needed
+- --cap-drop=all, then --cap-add anything you need
+- Limit cpu and memory --cpus=“0.5” --memory 1024m
+- Use --security-opt
+  - seccomp profiles (https://docs.docker.com/engine/security/seccomp/)
+  - apparmor profiles (https://docs.docker.com/engine/security/apparmor/)

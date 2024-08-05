@@ -62,6 +62,7 @@ docker container run -d -p 8080:80 --name [NAME] [IMAGE_NAME]
 --hostname="VALUE"      # Creating own hostname for container
 --read-only=true        # Read only container - processes inside container cannot write on container filesystem.
 --user [USERNAME]       # Container is working as a given user
+--init                  # for processes that are not designed to run with PID 1 (default in containers), with --init docker will run own initialization script with pid 1, so process that have to run in container will be a subprocess of docker init
 
 docker container run -d -p 3306:3306 --name MyMySQL --env MYSQL_ROOT_PASSWORD=13456 mysql
 --env                                #environment variable
@@ -70,6 +71,25 @@ docker run --entrypoint /bin/bash    #starting container with different first co
 
 docker run --rm -it ubuntu:latest    #Container will be removed after stop working
 docker run --help                    #Help for given command
+```
+
+### Advanced flags:
+
+```sh
+--cap-add, --cap-drop   # add or remove Linux capabilities from the container (security feature) - what is allowable within the context of the container
+--cgroup-parent         # specify which cgroup ID your container should be associated with
+--cpu-shares            # what percentage of the processor should container be able to access
+--cpuset-cpus           # pin execution to specific CPU cores
+--device-cgroup-rule    #
+--device-read-bps, --device-read-iops, --device-write-bps, --device-write-iops
+--gpus                  # use GPU (NVIDIA Only)
+--health-cmd, --health-interval, --health-retries, --health-start-period --health-timeout        # healthcheck options
+--memory                # limit memory, -m
+--pid, --pids-limit     # how many subprocesses container should be allowed to manage
+--privileged            # overrides all limits, gives container all priviledges
+--read-only             # container layer is read only
+--security-opt          # app armor or set comp profiles
+--userns
 ```
 
 ### Stop running container:
@@ -291,33 +311,37 @@ https://docs.docker.com/storage/volumes
 ### Bind-mouted directories
 
 Used for mounting hosts files or directories into container. BM dirs are not managed by docker engine. Needs absolute host path, where volume needs name or empty sign (docker will create volume).
+
 ```sh
-docker run -v [HOST_VOLUME_PATH]:[CONTAINER_VOLUME_PATH] [IMAGE]:[TAG] 
+docker run -v [HOST_VOLUME_PATH]:[CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]
 # -v will create dirs
 
-docker container run -d -p 8080:80 -v $(pwd):/usr/share/nginx/html nginx 
+docker container run -d -p 8080:80 -v $(pwd):/usr/share/nginx/html nginx
 # Host path can be variable
 
 docker run -it --name example --mount type=bind,source="$(pwd)"/test,target=/data_from_host [IMAGE]:[TAG]
 ```
+
 ---
 
 ### Statistics & processes
+
 Docker stats give us information about containers usage of: cpu, mem, hdd io and network.
-```sh
-docker stats 
+
+````sh
+docker stats
 # statistics of all containers
 
-docker container stats [NAME/ID] 
+docker container stats [NAME/ID]
 # statiscics of given container (live)
 
---no-stream 
+--no-stream
 # only from given moment
 
---format "{{}.CPUPerc}" 
+--format "{{}.CPUPerc}"
 # just percentage use of processor (live)
 
-docker container top [NAME/ID] 
+docker container top [NAME/ID]
 # shows processes running in container (the same process id are listed in host ps)
 
 ---
@@ -328,16 +352,16 @@ Docker by default use json-file mechanism to storing container logs. May be chan
 Available plugins: syslog, fluentd, journald, gelf, awslogs, splunk, etwlogs, gcplogs, logentries.
 
 ```sh
-docker run --log-driver=syslog [IMAGE] 
+docker run --log-driver=syslog [IMAGE]
 # creating container with syslog connection, this disable docker logs command
 
---log-opt syslog-address=udp://192.168.42.42:123 
+--log-opt syslog-address=udp://192.168.42.42:123
 # sending logs to remote syslog server
 
---log-driver=none 
+--log-driver=none
 # disabling log mechanism
 
-docker logs [NAME/ID] 
+docker logs [NAME/ID]
 # shows container logs
 
 -t #shows logs with timestamps
@@ -346,13 +370,15 @@ docker logs [NAME/ID]
 
 --tail "10" #Shows last 10 log lines, may be used with -f
 
---since "2021-07-21T11:21:00" 
+--since "2021-07-21T11:21:00"
 # Shows logs from given timestamp
 
---until "2021-07-21T21:21:00" 
+--until "2021-07-21T21:21:00"
 # Shows logs to givem timestamo. May be used with since.
-```
+````
+
 #### Alternatives
+
 - `Daemon svlogd` - installed inside of container can grab logs from stdout & stderr and send them to remote logging servers using udp.
 - `Syslog redirector` - compiled app that grab stdout and stderr of one process from inside of container: https://github.com/spotify/syslog-redirector
 - `Logspout` - container that connects with docker service and grabs logs from other containers: https://github.com/progrium/logspout
@@ -362,25 +388,25 @@ docker logs [NAME/ID]
 ### Hardware limits
 
 ```sh
-docker run --cpus="0.2" 
+docker run --cpus="0.2"
 # Limiting container to max 20% of processor
 
-docker run --cpuset-cpus=0,3 
+docker run --cpuset-cpus=0,3
 # Container will use only 0 and 3 cores
 
-docker run --cpu-period="10000000" 
+docker run --cpu-period="10000000"
 # Container will take 1/10000000 cpu cycle, default 100us
 
-docker run --cpu-quota="50000" 
+docker run --cpu-quota="50000"
 # 50% of cpu usage quota
 
-docker run --memory="200m" 
+docker run --memory="200m"
 # Limiting RAM memory to 200 MiB
 
-docker run --blkio-weight 300 
+docker run --blkio-weight 300
 # Limiting in/out disk operations
 
-docker run --blkio-weight-device "/dev/sda:10" 
+docker run --blkio-weight-device "/dev/sda:10"
 # Limiting io disk operations for given disk
 ```
 
