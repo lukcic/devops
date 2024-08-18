@@ -21,6 +21,9 @@ SNMP is able to change device settings (in rw mode).
 
 OID have names, eg. hostname: 1.3.6.1.2.1.1.5.0 = system.sysName.0
 
+Database;
+http://www.oidview.com/mibs/0/IF-MIB.html
+
 `community string` -password needed to access information.\
 public - for read only information\
 private - for read-write
