@@ -442,7 +442,8 @@ Edit the file `/etc/docker/daemon.json` and add or modify the “data-root” en
 
 ```json
 {
-    “data-root”: “/new/data/root/path”
+    “data-root”: “/new/data/root/path”,
+    "mtu": 1450
 }
 ```
 
