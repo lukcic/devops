@@ -14,7 +14,7 @@ Region pairs - each region has
 ## Availability zone
 
 `Strefa dostępności - fizycznie rozdziel zasoby w regionie`
-VMs are deployed in different AZ across the region. Upgrades SLA to 99,99%.
+VMs are deployed in different AZ across the region. Upgrades SLA to 99,99%. In each region there are 3 AZs?
 
 ## Availability set
 
@@ -24,12 +24,14 @@ Not as good as Availability zone - VMs are in the same AZ, but in different faul
 
 ### Fault domain
 
-Group of virtual machines that share the same switch and power (the same rack?).
+Group of virtual machines that share the same switch and power (the same rack?). For availability set max 3 fault
+domains are available.
 
 ### Update domain
 
 Group of virtual machines that are updated in the same time (the same physical server?). Update domains are maintained
-one after another (not at once).
+one after another (not at once). For availability set max 20 update
+domains are available.
 
 ##
 
