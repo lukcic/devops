@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-test
+spec:
+  ttlSecondsAfterFinished: 10
+  template:
+    metadata:
+      name: job-test
+    spec:
+      containers:
+      - name: count-container
+        image: debian:latest
+        command: 
+        - "/bin/bash"
+        - "-c"
+        - "for i in {1..10000}; do echo $i; done"
+      restartPolicy: Never

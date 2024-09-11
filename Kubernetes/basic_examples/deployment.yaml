@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-test
+spec:
+  replicas: 5
+  selector: 
+    matchLabels:
+      app: nginxapp
+  template: # template of pod that have to run (without apiVersion and kind)
+    metadata:
+      name: nginx-test
+      labels:
+        app: nginxapp
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80

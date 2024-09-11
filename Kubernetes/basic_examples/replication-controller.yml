@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: rc-test
+spec:
+  replicas: 4
+  template: # template of pod that have to run (without apiVersion and kind)
+    metadata:
+      name: nginx-test
+      labels: # optional
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 80

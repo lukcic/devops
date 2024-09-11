@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vol-test
+spec:
+  containers:
+  - name: vol-test
+    image: debian:latest
+    command:
+    - "/bin/bash"
+    - "-c"
+    - "echo test >> /vol/logs"
+    env:
+    - name: test
+      value: test
+    volumeMounts: # mounting volume inside container
+    - mountPath: /vol
+      name: vol-example
+  restartPolicy: Never
+  volumes:  # definition for creating volume
+  - name: vol-example
+    hostPath:
+      path: /srv/test # must exists in minikube container/vm
+      type: Directory
