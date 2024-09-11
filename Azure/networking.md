@@ -30,4 +30,31 @@ To check: is network security group AZ independent?
 
 ## Public IP
 
-Can be set or not.
+Can be set or not. It's assigned to IP load balancer, not to VM.
+
+## Bastion
+
+VM -> Connect -> RDP/SSH/Bastion
+
+Allow connection to VMs which don't have public IP. Connection is made by Azure web portal (HTTPS). Username and
+password must be set (Windows/Linux) or SSH key (Linux). Works similar to TeamViewer or SSM agent (Instance connect).
+
+`AzureBastionSubnet` - reserved name for Bastion's subnet in Virtual Network. Can be created manually, but must be minimum /26.
+
+Pricing - NOT FREE! Around $0,19 per hour for basic + transfer. Can be disabled, enabling takes some time.
+
+Basic - only Azure Web Portal. Single session.
+Standard - multiple sessions, native client (CLI), allows file transfers (host - VM) for RDP.
+
+```sh
+az account set --subscription "Azure subscription1"
+
+# RDP
+az network bastion rdp --name MyBastionHost --resource-group MyResourceGroup --target-resource-id "/subscriptions/[UUID]/resourceGroups/ResourceGroupName/provides/Microsoft.Compute/virtualMachines/vm1"
+
+# SSH (Windows)
+az network bastion tunnel --name MyBastionHost --resource-group MyResourceGroup --target-resource-id "/subscriptions/[UUID]/resourceGroups/ResourceGroupName/provides/Microsoft.Compute/virtualMachines/vm2" --resource-port "22" --port "54321"
+
+ssh user@127.0.0.1 -p 54321
+scp -P 54321 f:\file.txt user@127.0.0.1:c:\testdir
+```

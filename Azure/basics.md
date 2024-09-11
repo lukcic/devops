@@ -33,9 +33,18 @@ Group of virtual machines that are updated in the same time (the same physical s
 one after another (not at once). For availability set max 20 update
 domains are available.
 
-##
+## Scale set
 
 `Zestaw skalowania maszyn wirtualnych - rozpraszaj maszyny wirtualne na wiele stref i domen błędów na duza skale.`
+
+Equivalent of Auto Scaling Groups in AWS.
+
+### Orchestration mode
+
+- uniform - Resource groups will not show existing VMs, just Scale set.
+- flexible -
+
+## Links
 
 https://docs.microsoft.com/pl-pl/learn/certifications/azure-fundamentals/
 
