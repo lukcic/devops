@@ -41,8 +41,16 @@ Equivalent of Auto Scaling Groups in AWS.
 
 ### Orchestration mode
 
-- uniform - Resource groups will not show existing VMs, just Scale set.
-- flexible -
+- uniform (jednolity) - Resource groups will not show existing VMs, just Scale set.
+- flexible (elastyczny) - Resource group allows to see individual VMs created by scale set.
+
+### VM Image types
+
+Gallery - repository for VM images, not obligatory, but allows sharing images in organization.
+
+- Generalized - removes vm and user specific information (id, hostname, admin/root account). Sysprep tool.
+
+- Specialized - copies vm 1:1
 
 ## Links
 
