@@ -135,17 +135,45 @@ Will open pod configuration file (yaml).
 command: ['sleep', 'inf']
 ```
 
+## Top
+
+```sh
+# show resources consumed by pods
+kubectl top pods
+kubectl top pods -n [NAMESPACE_NAME]
+kubectl top pods -n [NAMESPACE_NAME] --use-protocol-buffers
+```
+
+## Metrics server
+
+### Single
+
+```sh
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# add in container args:
+# - --kubelet-insecure-tls
+
+kubectl apply -f components.yaml
+```
+
+### HA
+
+```sh
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
+```
+
 ## Exec
 
 Pod has default container (first by default). Exec will run on default one.
 
 ```sh
-kubectl exec [POD-NAME] [command] # if one container
-kubectl exec nginx ps aux
-kubectl exec -it nginx bash
+kubectl exec [POD-NAME] -- [command] # if one container
+kubectl exec nginx -- ps aux
+kubectl exec -it nginx -- bash
 
-kubectl exec -c [CONTAINER-NAME] -it [POD-NAME] [command]
-kubectl exec -c nginx -it pods-multiple bash
+kubectl exec -c [CONTAINER-NAME] -it [POD-NAME] -- [command]
+kubectl exec -c nginx -it pods-multiple -- bash
 ```
 
 ## Logs
@@ -166,6 +194,62 @@ Pod receives own IP address. All containers share Pod's resources (ram, ip, cpu,
 
 `Rolling updates` - upgrading app version by replacing old version containers one after another while part of old
 containers is still running to host the app.
+
+### Pod Auto Scaler
+
+Will create multiple replicas based on given metric.
+Requires metric server.
+
+`auto.yaml`
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: demo-apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.21.1
+        resources:
+          requests:
+            cpu: "500m"
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-hpa
+  namespace: demo-apps
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment # existing deployment
+    name: nginx-deployment
+  minReplicas: 1
+  maxReplicas: 50
+  targetCPUUtilizationPercentage: 50
+```
+
+Check:
+
+```sh
+$ kubectl get hpa -n demo-apps
+NAME        REFERENCE                     TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+nginx-hpa   Deployment/nginx-deployment   cpu: 0%/50%   1         50        1          48s
+```
+
+```sh
+watch -n 2 'kubectl top pods -n demo-apps --use-protocol-buffers'
+```
 
 ---
 
