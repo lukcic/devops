@@ -47,6 +47,10 @@ one pod per application, each pod got its own IP address (shared between contain
 
 `Service` - IP address of pod, used to communicate (IPs of pods changes) and loadbalancer.
 
+### Dashboard
+
+https://github.com/kubernetes/dashboard
+
 ### Control of Kubernetes:
 
 - cli (kubectl)
