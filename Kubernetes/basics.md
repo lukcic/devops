@@ -121,10 +121,13 @@ kubectl delete -f pod-example.yaml
 Updates in pod config may create new container inside pod, run it and delete old one. Restart parameter of pods will
 change .
 
-## Edit pod
+## kubectl edit
+
+Edit configuration of working workload.
 
 ```sh
 kubectl edit pod [PODNAME]
+kubectl edit service [SERVICE_NAME] -n [NAMESPACE_NAME]
 ```
 
 Will open pod configuration file (yaml).
@@ -526,7 +529,7 @@ Running Deployment in specified Namespace:
 kubectl apply -f [FILENAME] -n [NAMESPACE-NAME]
 ```
 
-Specyfying Namespace in config file:
+Specifying Namespace in config file:
 
 ```yaml
 apiVersion: apps/v1
@@ -692,7 +695,7 @@ kubectl port-forward deployment-test-5897965cdf-7b87z 8080:80
 
 ### Endpoints
 
-Used for mapping service name to IP (dynamic). Allows DNS communication between pods.
+Used for mapping service name to IP (dynamic). Allows DNS communication between pods, inside the cluster, not from outside.
 
 ```sh
 kubectl get endpoints
@@ -700,7 +703,7 @@ kubectl get endpoints
 
 ### NodePort
 
-Forward node's port to service/deployment port. Node ports range is: 30000-32767.
+Forward node's port to service/deployment port. Node ports range is: 30000-32767. Used to access service from outside od cluster.
 
 ```sh
 kubectl expose deployment deployment-test --type=NodePort
