@@ -238,6 +238,8 @@ spec:
 
 ### Volumes
 
+Like Docker's bind mount. Path on host must be assigned.
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -272,6 +274,27 @@ spec:
   hostPath:
     path: /srv/test # will be created if not exists
     type: DirectoryOrCreate
+```
+
+### PersistentVolumeClaim
+
+Like Docker's volume. Managed by Kubernetes, host path is not needed. Can have storage limits.
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+  namespace: demo-wp
+  labels:
+    app: wordpress-mysql
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 100M
 ```
 
 ## Replication Controller
