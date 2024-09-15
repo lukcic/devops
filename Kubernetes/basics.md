@@ -47,11 +47,7 @@ one pod per application, each pod got its own IP address (shared between contain
 
 `Service` - IP address of pod, used to communicate (IPs of pods changes) and loadbalancer.
 
-### Dashboard
-
-https://github.com/kubernetes/dashboard
-
-### Control of Kubernetes:
+## Control of Kubernetes:
 
 - cli (kubectl)
 - UI
@@ -83,7 +79,78 @@ kubectl get pods
 kubectl describe pod nginx2
 ```
 
-## Pod definition
+## Dashboard
+
+https://github.com/kubernetes/dashboard
+
+## Metrics server
+
+### Single
+
+```sh
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+# add in container args:
+# - --kubelet-insecure-tls
+
+kubectl apply -f components.yaml
+```
+
+### HA
+
+```sh
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
+```
+
+# Resource definitions
+
+## Namespace
+
+Isolates pods. The same `Deployment` can be deployed in multiple NameSpaces (for testing).
+
+```sh
+kubectl get ns
+kubectl create ns my-namespace
+```
+
+Namespace can be also created by yaml definition:
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-namespace
+```
+
+Listening pods from specified Namespace:
+
+```sh
+kubectl get pods -n my-namespace
+kubectl get pods --all-namespaces
+```
+
+Running Deployment in specified Namespace:
+
+```sh
+kubectl apply -f [FILENAME] -n [NAMESPACE-NAME]
+```
+
+Specifying Namespace in config file:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-test
+  nameSpace: my-namespace
+spec:
+  replicas: 5
+  selector:
+```
+
+**Deleting Namespace will destroy all Pods inside!!!**
+
+## Pod
 
 Minimal example:
 
@@ -119,35 +186,11 @@ kubectl delete -f pod-example.yaml
 ```
 
 Updates in pod config may create new container inside pod, run it and delete old one. Restart parameter of pods will
-change .
+change.
 
-## kubectl edit
+Pod receives own IP address. All containers share Pod's resources (ram, ip, cpu, open ports).
 
-Edit configuration of working workload.
-
-```sh
-kubectl edit pod [PODNAME]
-kubectl edit service [SERVICE_NAME] -n [NAMESPACE_NAME]
-```
-
-Will open pod configuration file (yaml).
-
-`CrashLoopbackOff` - container has nothing to do, needs command as entrypoint.
-
-```yaml
-command: ['sleep', 'inf']
-```
-
-## kubectl top
-
-```sh
-# show resources consumed by pods
-kubectl top pods
-kubectl top pods -n [NAMESPACE_NAME]
-kubectl top pods -n [NAMESPACE_NAME] --use-protocol-buffers
-```
-
-## Limits
+### Limits
 
 Resources limits for containers.
 
@@ -164,49 +207,7 @@ containers:
         cpu: '500m' # 0,5 processor time, 1/2 of 1000m
 ```
 
-## Metrics server
-
-### Single
-
-```sh
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-
-# add in container args:
-# - --kubelet-insecure-tls
-
-kubectl apply -f components.yaml
-```
-
-### HA
-
-```sh
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
-```
-
-## kubectl exec
-
-Pod has default container (first by default). Exec will run on default one.
-
-```sh
-kubectl exec [POD-NAME] -- [command] # if one container
-kubectl exec nginx -- ps aux
-kubectl exec -it nginx -- bash
-
-kubectl exec -c [CONTAINER-NAME] -it [POD-NAME] -- [command]
-kubectl exec -c nginx -it pods-multiple -- bash
-```
-
-## kubectl logs
-
-```sh
-kubectl logs [POD-NAME] [CONTAINER-NAME]
-```
-
-## Networking
-
-Pod receives own IP address. All containers share Pod's resources (ram, ip, cpu, open ports).
-
-## Scaling and load balancing
+### Scaling and load balancing
 
 `Scaling` - one container in multiple instances.
 
@@ -215,65 +216,65 @@ Pod receives own IP address. All containers share Pod's resources (ram, ip, cpu,
 `Rolling updates` - upgrading app version by replacing old version containers one after another while part of old
 containers is still running to host the app.
 
-### Pod Auto Scaler
-
-Will create multiple replicas based on given metric.
-Requires metric server.
-
-`auto.yaml`
+### Environment variables
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: nginx-deployment
-  namespace: demo-apps
+  name: env-tes
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
-        app: nginx
-    spec:
-      containers:
-      - name: nginx
-        image: nginx:1.21.1
-        resources:
-          requests:
-            cpu: "500m"
-apiVersion: autoscaling/v1
-kind: HorizontalPodAutoscaler
+  containers:
+    - name: envtest
+      image: debian:latest
+      command: ['env']
+      env:
+        - name: test
+          value: true
+        - name: test2
+          value: testtest
+  restartPolicy: Never
+```
+
+### Volumes
+
+```yaml
+apiVersion: v1
+kind: Pod
 metadata:
-  name: nginx-hpa
-  namespace: demo-apps
+  name: vol-test
 spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment # existing deployment
-    name: nginx-deployment
-  minReplicas: 1
-  maxReplicas: 50
-  targetCPUUtilizationPercentage: 50
+  containers:
+    - name: vol-test
+      image: debian:latest
+      command:
+        - '/bin/bash'
+        - '-c'
+        - 'echo test >> /vol/logs'
+      env:
+        - name: test
+          value: test
+      volumeMounts: # mounting volume inside container
+        - mountPath: /vol
+          name: vol-example
+  restartPolicy: Never
+  volumes: # definition for creating volume
+    - name: vol-example
+      hostPath:
+        path: /srv/test # must exists in minikube container/vm: minikube ssh
+        type: Directory
 ```
 
-Check:
+`DirectoryOrCreate` creates directory on K8s host if it not exists:
 
-```sh
-$ kubectl get hpa -n demo-apps
-NAME        REFERENCE                     TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
-nginx-hpa   Deployment/nginx-deployment   cpu: 0%/50%   1         50        1          48s
+```yaml
+- name: vol-example
+  hostPath:
+    path: /srv/test # will be created if not exists
+    type: DirectoryOrCreate
 ```
 
-```sh
-watch -n 2 'kubectl top pods -n demo-apps --use-protocol-buffers'
-```
-
----
-
-### Replication Controller
+## Replication Controller
 
 `Replication Controller` - older object. Monitor health of containers to redeploy it if failed on the same or different
 node if current node fails. Works on pods, but it's one level up in structure.
@@ -326,7 +327,7 @@ rc-test-fm5pl   1/1     Running   0          5m47s
 rc-test-qmhbx   1/1     Running   0          5m47s
 ```
 
-### Replica set
+## Replica set
 
 `Replica sets` - newer object (replaces Replication controller). Both elements works on pods, but they are one level up
 structures. Replica set can have 0 replicas.
@@ -385,7 +386,7 @@ Details:
 kubectl describe replicaset [NAME]
 ```
 
-### Deployment
+## Deployment
 
 Efficient update of containers running inside pod. Uses Relppica Sets for making rolling updates.
 
@@ -417,7 +418,7 @@ NAME                         DESIRED   CURRENT   READY   AGE
 deployment-test-5897965cdf   5         5         5       3m53s
 ```
 
-#### Rolling update
+### Rolling update
 
 Creates new new replica set.
 
@@ -432,12 +433,12 @@ kubectl set image deployment deployment-test nginx=nginx:1.20 --record
 
 `record` saved change details
 
-#### Rolling strategy
+### Rolling strategy
 
 Default: `RollingUpdateStrategy:  25% max unavailable, 25% max surge` - 25% of running pods in every step cannot be
 stopped.
 
-#### Rollout status and history
+### Rollout status and history
 
 ```sh
 kubectl rollout status deployment [DEPLOYMENT-NAME]
@@ -461,7 +462,7 @@ REVISION  CHANGE-CAUSE
 2         kubectl set image deployment deployment-test nginx=nginx:1.20 --record
 ```
 
-#### Rollout undo
+### Rollout undo
 
 Undo rollout one step (in history) backwards.
 
@@ -487,14 +488,14 @@ REVISION  CHANGE-CAUSE
 3         <none>
 ```
 
-#### Changing replicas
+### Changing replicas
 
 ```sh
 kubectl scale --replicas=[NEW-AMOUNT] deployment [DEPLOYMENT-NAME]
 kubectl scale --replicas=10 deployment deployment-test
 ```
 
-### Jobs
+## Jobs
 
 Single run of container. Something similar to batch jobs. Container has to do the job and after that it is deleted.
 Service instead runs all the time.
@@ -514,110 +515,6 @@ spec: # Job spec
 Minikube must be started with flag: `--feature-gates="TTLAfterFinished=true"`.
 
 Deletion Job/CronJob deletes all pods created in Job.
-
-## Namespace
-
-Isolates pods. The same `Deployment` can be deployed in multiple NameSpaces (for testing).
-
-```sh
-kubectl get ns
-kubectl create ns my-namespace
-```
-
-Namespace can be also created by yaml definition:
-
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: my-namespace
-```
-
-Listening pods from specified Namespace:
-
-```sh
-kubectl get pods -n my-namespace
-kubectl get pods --all-namespaces
-```
-
-Running Deployment in specified Namespace:
-
-```sh
-kubectl apply -f [FILENAME] -n [NAMESPACE-NAME]
-```
-
-Specifying Namespace in config file:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: deployment-test
-  nameSpace: my-namespace
-spec:
-  replicas: 5
-  selector:
-```
-
-**Deleting Namespace will destroy all Pods inside!!!**
-
-## Environment variables
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: env-tes
-spec:
-  containers:
-    - name: envtest
-      image: debian:latest
-      command: ['env']
-      env:
-        - name: test
-          value: true
-        - name: test2
-          value: testtest
-  restartPolicy: Never
-```
-
-## Volumes
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: vol-test
-spec:
-  containers:
-    - name: vol-test
-      image: debian:latest
-      command:
-        - '/bin/bash'
-        - '-c'
-        - 'echo test >> /vol/logs'
-      env:
-        - name: test
-          value: test
-      volumeMounts: # mounting volume inside container
-        - mountPath: /vol
-          name: vol-example
-  restartPolicy: Never
-  volumes: # definition for creating volume
-    - name: vol-example
-      hostPath:
-        path: /srv/test # must exists in minikube container/vm: minikube ssh
-        type: Directory
-```
-
-`DirectoryOrCreate` creates directory on K8s host if it not exists:
-
-```yaml
-- name: vol-example
-  hostPath:
-    path: /srv/test # will be created if not exists
-    type: DirectoryOrCreate
-```
 
 ## Secrets
 
@@ -696,9 +593,112 @@ kubectl get svc
 kubectl get services
 ```
 
-### Networking
+## Pod Auto Scaler
 
-### Port forward
+Will create multiple replicas based on given metric.
+Requires metric server.
+
+`auto.yaml`
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: demo-apps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.21.1
+        resources:
+          requests:
+            cpu: "500m"
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-hpa
+  namespace: demo-apps
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment # existing deployment
+    name: nginx-deployment
+  minReplicas: 1
+  maxReplicas: 50
+  targetCPUUtilizationPercentage: 50
+```
+
+Check:
+
+```sh
+$ kubectl get hpa -n demo-apps
+NAME        REFERENCE                     TARGETS       MINPODS   MAXPODS   REPLICAS   AGE
+nginx-hpa   Deployment/nginx-deployment   cpu: 0%/50%   1         50        1          48s
+```
+
+```sh
+watch -n 2 'kubectl top pods -n demo-apps --use-protocol-buffers'
+```
+
+# Commands
+
+## kubectl edit
+
+Edit configuration of working workload.
+
+```sh
+kubectl edit pod [PODNAME]
+kubectl edit service [SERVICE_NAME] -n [NAMESPACE_NAME]
+```
+
+Will open pod configuration file (yaml).
+
+`CrashLoopbackOff` - container has nothing to do, needs command as entrypoint.
+
+```yaml
+command: ['sleep', 'inf']
+```
+
+## kubectl top
+
+```sh
+# show resources consumed by pods
+kubectl top pods
+kubectl top pods -n [NAMESPACE_NAME]
+kubectl top pods -n [NAMESPACE_NAME] --use-protocol-buffers
+```
+
+## kubectl exec
+
+Pod has default container (first by default). Exec will run on default one.
+
+```sh
+kubectl exec [POD-NAME] -- [command] # if one container
+kubectl exec nginx -- ps aux
+kubectl exec -it nginx -- bash
+
+kubectl exec -c [CONTAINER-NAME] -it [POD-NAME] -- [command]
+kubectl exec -c nginx -it pods-multiple -- bash
+```
+
+## kubectl logs
+
+```sh
+kubectl logs [POD-NAME] [CONTAINER-NAME]
+```
+
+# Networking
+
+## Port forward
 
 Container must have `containerPort` declared. Port will be accessible only at `localhost` interface of kubectl host (not
 host where container is deployed). Process is running in foreground.
@@ -708,7 +708,7 @@ host where container is deployed). Process is running in foreground.
 kubectl port-forward deployment-test-5897965cdf-7b87z 8080:80
 ```
 
-### Endpoints
+## Endpoints
 
 Used for mapping service name to IP (dynamic). Allows DNS communication between pods, inside the cluster, not from outside.
 
@@ -716,12 +716,12 @@ Used for mapping service name to IP (dynamic). Allows DNS communication between 
 kubectl get endpoints
 ```
 
-### ClusterIP
+## ClusterIP
 
 `ClusterIP` - basic, ip for deployed pod/service.\
 Used for communication between containers inside Deployment.
 
-### NodePort
+## NodePort
 
 Forward node's port to service/deployment port. Node ports range is: 30000-32767. Used to access service from outside od cluster.
 
@@ -762,7 +762,7 @@ spec:
     app: nginxapp # which pod/deployment
 ```
 
-### LoadBalancer
+## LoadBalancer
 
 ```sh
 kubectl expose deployment deployment-test --type=LoadBalancer
