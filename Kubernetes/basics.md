@@ -138,13 +138,30 @@ Will open pod configuration file (yaml).
 command: ['sleep', 'inf']
 ```
 
-## Top
+## kubectl top
 
 ```sh
 # show resources consumed by pods
 kubectl top pods
 kubectl top pods -n [NAMESPACE_NAME]
 kubectl top pods -n [NAMESPACE_NAME] --use-protocol-buffers
+```
+
+## Limits
+
+Resources limits for containers.
+
+```yaml
+containers:
+  - name: nginx
+    image: nginx:1.21.1
+    resources:
+      requests: # container requests below limits from node
+        memory: '256Mi'
+        cpu: '250m'
+      limits: # container total limit
+        memory: '512Mi'
+        cpu: '500m' # 0,5 processor time, 1/2 of 1000m
 ```
 
 ## Metrics server
@@ -166,7 +183,7 @@ kubectl apply -f components.yaml
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
 ```
 
-## Exec
+## kubectl exec
 
 Pod has default container (first by default). Exec will run on default one.
 
@@ -179,7 +196,7 @@ kubectl exec -c [CONTAINER-NAME] -it [POD-NAME] -- [command]
 kubectl exec -c nginx -it pods-multiple -- bash
 ```
 
-## Logs
+## kubectl logs
 
 ```sh
 kubectl logs [POD-NAME] [CONTAINER-NAME]
@@ -691,8 +708,6 @@ host where container is deployed). Process is running in foreground.
 kubectl port-forward deployment-test-5897965cdf-7b87z 8080:80
 ```
 
-`ClusterIP` - basic, ip for deployed pod/service
-
 ### Endpoints
 
 Used for mapping service name to IP (dynamic). Allows DNS communication between pods, inside the cluster, not from outside.
@@ -700,6 +715,11 @@ Used for mapping service name to IP (dynamic). Allows DNS communication between 
 ```sh
 kubectl get endpoints
 ```
+
+### ClusterIP
+
+`ClusterIP` - basic, ip for deployed pod/service.\
+Used for communication between containers inside Deployment.
 
 ### NodePort
 

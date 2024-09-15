@@ -2,30 +2,44 @@ TODO with k3s!
 
 # MetalLB
 
+## Installation
+
 https://metallb.universe.tf/installation/
 
 ```sh
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.8/config/manifests/metallb-native.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/config/manifests/metallb-native.yaml
+kubectl get pods -n metallb-system
 ```
 
-ConfigMap for load balancer
+## IP address pool
+
+`metallb-config.yaml`
 
 ```yaml
-apiVersion: v1
-kind: ConfigMap
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
 metadata:
+  name: pool
   namespace: metallb-system
-  name: config
-data:
-  config: |
-    address-pools:
-      - name: default
-        protocol: layer2
-        addresses:
-          - 192.168.254.180-192.168.254.183
+spec:
+  addresses:
+    - 192.168.254.180-192.168.254.185
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2-advertisement
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - pool
 ```
 
-Deployment
+```sh
+kubectl apply -f metallb-config.yml
+```
+
+### Test
 
 ```yaml
 apiVersion: apps/v1
@@ -48,11 +62,7 @@ spec:
           image: nginx:1.21.1
           ports:
             - containerPort: 80
-```
-
-Service:
-
-```yaml
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -63,9 +73,11 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - targetPort: 80
-      port: 80
-      nodePort: 30008
+    - port: 8088
+      targetPort: 80
+      protocol: TCP
   selector:
     app: nginxapp
 ```
+
+`kubectl describe svc demo-nginx -n demo-app` should show LoadBalancer Ingress address!

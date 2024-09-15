@@ -36,3 +36,11 @@ sudo systemctl edit --full k3s.service
 
 curl -sfL https://get.k3s.io | K3S_URL=[MASTER_IP]:6443 K3S_TOKEN=[MASTER_TOKEN] sh -
 ```
+
+## Patching
+
+Used to run stuck services
+
+```sh
+kubectl patch service [SERVICE_NAME] -n [NAMESPACE_NAME] -p '{"metadata":{"finalizers":null}}'
+```
