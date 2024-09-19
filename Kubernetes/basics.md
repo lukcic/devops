@@ -599,20 +599,22 @@ Deletion Job/CronJob deletes all pods created in Job.
 
 ### Secrets
 
+Secret in specific (encoded) example of ConfigMap.
+
 ```yaml
 apiVersion: v1
 kind: Secret
 metadata:
   name: secret-test
 data:
-  user: 'cm9vdA==  ' ##"dbadmin" in base 64
-  pass: 'ZGJwYXNzd29yZDEyMyE=' ##"dbpassword123!" in base 64
-stringData: ##plain text data
+  user: 'cm9vdA=='                # "dbadmin" in base 64
+  pass: 'ZGJwYXNzd29yZDEyMyE='    # "dbpassword123!" in base 64
+stringData:                       # plain text data
   dbaddress: 'localhost'
   dbname: 'test'
 ```
 
-Adding the same as other kinds:
+Apply:
 
 ```sh
 kubectl apply -f secrets.yaml
@@ -631,12 +633,12 @@ spec:
     - name: secret-test
       image: mysql:5.7.34
       command: ['env']
-      env: ##secret value as environment variable
+      env:                          # environment variable created based on K8s secret
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
               name: secret-test
-              key: pass
+              key: pass             # secret can have multiple key:value entries
       volumeMounts:
         - mountPath: '/root/secrets'
           name: dbsecrets
@@ -645,6 +647,40 @@ spec:
     - name: dbsecrets
       secret:
         secretName: secret-test
+```
+
+#### Secret types
+
+- opaque - any, arbitrary user-defined data
+- kubernetes.io/basic-auth - credentials for basic authentication
+- kubernetes.io/ssh-auth - credentials for SSH authentication
+...
+
+#### Secret file
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nginx-secret
+type: Opaque
+stringData:
+  server-cert.pem: |
+    -----BEGIN CERTIFICATE-----
+    ...
+    -----END CERTIFICATE-----    
+  server-key.pem: |
+    -----BEGIN PRIVATE KEY-----
+    ...
+    -----END PRIVATE KEY    
+```
+
+#### Editing secrets
+
+Editing shows secret's value (base64 encoded).
+
+```sh
+kubectl edit secret [SECRET_NAME]
 ```
 
 ### Service
