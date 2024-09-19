@@ -1,4 +1,6 @@
-# Container Orchestration
+# Kubernetes
+
+## Container Orchestration
 
 - how to manage running containers?
 - how much resources on host are still available?
@@ -7,11 +9,11 @@
 - how to restart crashed containers?
 - How to remove unused replicas?
 
-# Kubernetes architecture
+## Kubernetes architecture
 
 [ Control plane (Master) ] <-> [ Worker nodes [ pods [ multiple containers ] ] ]
 
-1. Master node (at least 1):
+### Master node (at least 1)
 
 - API server (entrypoint to the k8s cluster). It is a container.
 - controller manager
@@ -19,11 +21,11 @@
 - etcd - key-value storage, handle state of nodes and containers, snapshots may be used
 - virtual network
 
-2. Worker nodes (kubelet process running)
+### Worker nodes (kubelet process running)
 
 - more resources than master to handle containers
 
-## Components (control plane):
+### Components (control plane)
 
 - kube-apiserver (master) - frontend of Kubernetes management layer. Provides contact with Kubernetes cluster. May have multiple instances.
 - etcd (master) - key-value store used to storing all parameters of Kubernetes cluster.
@@ -34,7 +36,7 @@
   - endpoints-controller - provides information to Endpoints objects (connects services and pods)
     -service account & token controllers - creates default account and API access tokens for new namespaces
 
-## Components (nodes)
+### Components (nodes)
 
 - kubelet - agent that works on each node, responsible for running containers in pod, connects to master node to process information
 - kube-proxy - network proxy that works on each cluster node and assists/supports service creation
@@ -47,7 +49,7 @@ one pod per application, each pod got its own IP address (shared between contain
 
 `Service` - IP address of pod, used to communicate (IPs of pods changes) and loadbalancer.
 
-## Control of Kubernetes:
+### Control of Kubernetes
 
 - cli (kubectl)
 - UI
@@ -79,32 +81,32 @@ kubectl get pods
 kubectl describe pod nginx2
 ```
 
-## Dashboard
+### Dashboard
 
-https://github.com/kubernetes/dashboard
+![Kubernetes Dashboard repo](https://github.com/kubernetes/dashboard)
 
-## Metrics server
+### Metrics server
 
-### Single
+#### Single
 
 ```sh
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
-# add in container args:
-# - --kubelet-insecure-tls
+##add in container args:
+##- --kubelet-insecure-tls
 
 kubectl apply -f components.yaml
 ```
 
-### HA
+#### HA
 
 ```sh
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
 ```
 
-# Resource definitions
+## Resource definitions
 
-## Namespace
+### Namespace
 
 Isolates pods. The same `Deployment` can be deployed in multiple NameSpaces (for testing).
 
@@ -150,7 +152,7 @@ spec:
 
 **Deleting Namespace will destroy all Pods inside!!!**
 
-## Pod
+### Pod
 
 Minimal example:
 
@@ -159,7 +161,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: pod-name
-  labels: # optionsl
+  labels: ##optionsl
     app: app-name
     type: front-end
 spec:
@@ -267,7 +269,14 @@ spec:
         type: Directory
 ```
 
-`DirectoryOrCreate` creates directory on K8s host if it not exists:
+#### hostPath
+
+Allows connect file or directory which exist on cluster node that pod is deployed.
+
+- `Directory` - directory must be present on the node
+- `DirectoryOrCreate` - creates directory on K8s host if it not exists
+- `File` - file must be present on the node
+- `FileOrCreate` - creates file on K8s host if it not exists
 
 ```yaml
 - name: vol-example
@@ -297,7 +306,7 @@ spec:
       storage: 100M
 ```
 
-## Replication Controller
+### Replication Controller
 
 `Replication Controller` - older object. Monitor health of containers to redeploy it if failed on the same or different
 node if current node fails. Works on pods, but it's one level up in structure.
@@ -350,7 +359,7 @@ rc-test-fm5pl   1/1     Running   0          5m47s
 rc-test-qmhbx   1/1     Running   0          5m47s
 ```
 
-## Replica set
+### Replica set
 
 `Replica sets` - newer object (replaces Replication controller). Both elements works on pods, but they are one level up
 structures. Replica set can have 0 replicas.
@@ -409,7 +418,7 @@ Details:
 kubectl describe replicaset [NAME]
 ```
 
-## Deployment
+### Deployment
 
 Efficient update of containers running inside pod. Uses Relppica Sets for making rolling updates.
 
@@ -421,7 +430,7 @@ Commands:
 kubectl get deployments
 kubectl describe deployment [DEPLOYMENT-NAME]
 
-kubectl get all # shows all infos about cluster
+kubectl get all ##shows all infos about cluster
 ```
 
 Structure of pod name is:
@@ -441,7 +450,7 @@ NAME                         DESIRED   CURRENT   READY   AGE
 deployment-test-5897965cdf   5         5         5       3m53s
 ```
 
-### Rolling update
+#### Rolling update
 
 Creates new new replica set.
 
@@ -456,17 +465,17 @@ kubectl set image deployment deployment-test nginx=nginx:1.20 --record
 
 `record` saved change details
 
-### Rolling strategy
+#### Rolling strategy
 
 Default: `RollingUpdateStrategy:  25% max unavailable, 25% max surge` - 25% of running pods in every step cannot be
 stopped.
 
-### Rollout status and history
+#### Rollout status and history
 
 ```sh
 kubectl rollout status deployment [DEPLOYMENT-NAME]
 
-###
+#
 
 ❯ kubectl rollout status deployment deployment-test
 deployment "deployment-test" successfully rolled out
@@ -475,7 +484,7 @@ deployment "deployment-test" successfully rolled out
 ```sh
 kubectl rollout history deployment [DEPLOYMENT-NAME]
 
-###
+#
 
 kubectl rollout history deployment deployment-test
 
@@ -485,14 +494,14 @@ REVISION  CHANGE-CAUSE
 2         kubectl set image deployment deployment-test nginx=nginx:1.20 --record
 ```
 
-### Rollout undo
+#### Rollout undo
 
 Undo rollout one step (in history) backwards.
 
 ```sh
 kubectl rollout undo deployment [DEPLOYMENT-NAME]
 
-###
+#
 
 kubectl rollout history deployment deployment-test
 
@@ -511,14 +520,14 @@ REVISION  CHANGE-CAUSE
 3         <none>
 ```
 
-### Changing replicas
+#### Changing replicas
 
 ```sh
 kubectl scale --replicas=[NEW-AMOUNT] deployment [DEPLOYMENT-NAME]
 kubectl scale --replicas=10 deployment deployment-test
 ```
 
-## Jobs
+### Jobs
 
 Single run of container. Something similar to batch jobs. Container has to do the job and after that it is deleted.
 Service instead runs all the time.
@@ -531,7 +540,7 @@ run with different name.
 Delete job after specific time:
 
 ```yaml
-spec: # Job spec
+spec: ##Job spec
   ttlSecondsAfterFinished: 10
 ```
 
@@ -539,7 +548,7 @@ Minikube must be started with flag: `--feature-gates="TTLAfterFinished=true"`.
 
 Deletion Job/CronJob deletes all pods created in Job.
 
-## Secrets
+### Secrets
 
 ```yaml
 apiVersion: v1
@@ -547,9 +556,9 @@ kind: Secret
 metadata:
   name: secret-test
 data:
-  user: 'cm9vdA==  ' # "dbadmin" in base 64
-  pass: 'ZGJwYXNzd29yZDEyMyE=' # "dbpassword123!" in base 64
-stringData: # plain text data
+  user: 'cm9vdA==  ' ##"dbadmin" in base 64
+  pass: 'ZGJwYXNzd29yZDEyMyE=' ##"dbpassword123!" in base 64
+stringData: ##plain text data
   dbaddress: 'localhost'
   dbname: 'test'
 ```
@@ -573,7 +582,7 @@ spec:
     - name: secret-test
       image: mysql:5.7.34
       command: ['env']
-      env: # secret value as environment variable
+      env: ##secret value as environment variable
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -589,7 +598,7 @@ spec:
         secretName: secret-test
 ```
 
-## Service
+### Service
 
 IP of pod inside cluster is dynamic. Service name should be used for communication between pods.
 
@@ -604,7 +613,7 @@ metadata:
     app: nginx
 spec:
   ports:
-    - port: 80 # ClusterIP, must match container/pod port
+    - port: 80 ##ClusterIP, must match container/pod port
       protocol: TCP
   selector:
     matchLabels:
@@ -616,7 +625,7 @@ kubectl get svc
 kubectl get services
 ```
 
-## Pod Auto Scaler
+### Pod Auto Scaler
 
 Will create multiple replicas based on given metric.
 Requires metric server.
@@ -653,7 +662,7 @@ metadata:
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment # existing deployment
+    kind: Deployment ##existing deployment
     name: nginx-deployment
   minReplicas: 1
   maxReplicas: 50
@@ -672,9 +681,9 @@ nginx-hpa   Deployment/nginx-deployment   cpu: 0%/50%   1         50        1   
 watch -n 2 'kubectl top pods -n demo-apps --use-protocol-buffers'
 ```
 
-# Commands
+## Commands
 
-## kubectl edit
+### kubectl edit
 
 Edit configuration of working workload.
 
@@ -691,21 +700,21 @@ Will open pod configuration file (yaml).
 command: ['sleep', 'inf']
 ```
 
-## kubectl top
+### kubectl top
 
 ```sh
-# show resources consumed by pods
+##show resources consumed by pods
 kubectl top pods
 kubectl top pods -n [NAMESPACE_NAME]
 kubectl top pods -n [NAMESPACE_NAME] --use-protocol-buffers
 ```
 
-## kubectl exec
+### kubectl exec
 
 Pod has default container (first by default). Exec will run on default one.
 
 ```sh
-kubectl exec [POD-NAME] -- [command] # if one container
+kubectl exec [POD-NAME] -- [command] ##if one container
 kubectl exec nginx -- ps aux
 kubectl exec -it nginx -- bash
 
@@ -713,15 +722,15 @@ kubectl exec -c [CONTAINER-NAME] -it [POD-NAME] -- [command]
 kubectl exec -c nginx -it pods-multiple -- bash
 ```
 
-## kubectl logs
+### kubectl logs
 
 ```sh
 kubectl logs [POD-NAME] [CONTAINER-NAME]
 ```
 
-# Networking
+## Networking
 
-## Port forward
+### Port forward
 
 Container must have `containerPort` declared. Port will be accessible only at `localhost` interface of kubectl host (not
 host where container is deployed). Process is running in foreground.
@@ -731,7 +740,7 @@ host where container is deployed). Process is running in foreground.
 kubectl port-forward deployment-test-5897965cdf-7b87z 8080:80
 ```
 
-## Endpoints
+### Endpoints
 
 Used for mapping service name to IP (dynamic). Allows DNS communication between pods, inside the cluster, not from outside.
 
@@ -739,19 +748,19 @@ Used for mapping service name to IP (dynamic). Allows DNS communication between 
 kubectl get endpoints
 ```
 
-## ClusterIP
+### ClusterIP
 
 `ClusterIP` - basic, ip for deployed pod/service.\
 Used for communication between containers inside Deployment.
 
-## NodePort
+### NodePort
 
 Forward node's port to service/deployment port. Node ports range is: 30000-32767. Used to access service from outside od cluster.
 
 ```sh
 kubectl expose deployment deployment-test --type=NodePort
-# K8s will choose Node's port randomly. All node IPs in cluster will work.
-# Exposing deployment will create a new service
+##K8s will choose Node's port randomly. All node IPs in cluster will work.
+##Exposing deployment will create a new service
 
 kubectl get svc
 #debian@k8s-controller:~/k8s$ kubectl get svc
@@ -763,9 +772,9 @@ kubectl get svc
 
 Service perspective:
 
-```
-User ----> 3008 [_SVC_] 80 <------> 80 [_POD_]
-          NodePort     Port       targetPort
+```sh
+User ----> [_NODE:3008_] [_SVC:8088_] <------> [ _POD:80_ ]
+              NodePort       Port               targetPort
 ```
 
 If only port is defined, K8s assumes that targetPort and Port have the same value.
@@ -779,13 +788,13 @@ spec:
   type: NodePort
   ports:
     - targetPort: 80
-      port: 80
+      port: 8088
       nodePort: 30008
   selector:
-    app: nginxapp # which pod/deployment
+    app: nginxapp ##which pod/deployment
 ```
 
-## LoadBalancer
+### LoadBalancer
 
 ```sh
 kubectl expose deployment deployment-test --type=LoadBalancer
@@ -796,8 +805,8 @@ the LoadBalancer service.
 
 ```sh
 debian@k8s-controller:~/k8s$ kubectl get svc
-# NAME                    TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-# deployment-test         LoadBalancer   10.233.10.63    <pending>     80:32690/TCP   99s
+##NAME                    TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+##deployment-test         LoadBalancer   10.233.10.63    <pending>     80:32690/TCP   99s
 ```
 
 ```yaml
