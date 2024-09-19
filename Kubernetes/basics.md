@@ -238,9 +238,11 @@ spec:
   restartPolicy: Never
 ```
 
+## Storage
+
 ### Volumes
 
-Like Docker's bind mount. Path on host must be assigned.
+Like Docker's bind mount. Scope od node. Path on host must be assigned.
 
 ```yaml
 apiVersion: v1
@@ -285,25 +287,72 @@ Allows connect file or directory which exist on cluster node that pod is deploye
     type: DirectoryOrCreate
 ```
 
-### PersistentVolumeClaim
+### PersistentVolume (PV)
 
-Like Docker's volume. Managed by Kubernetes, host path is not needed. Can have storage limits.
+Like Docker's volume. Scope of Cluster, defines where shared storage is present. Managed by Kubernetes, host path is not
+needed. Can have storage limits.
+
+Access modes:
+
+- ReadWriteOnce (RWO) - the volume can be mounted as read-write by a single node
+- ReadOnlyMany (ROX) - the volume can be mounted as read-only by many nodes
+- ReadWriteMany (RWX) - the volume can be mounted as read-write by many nodes
+- ReadWriteOncePod (RWOP) - the volume can be mounted as read-write by a single Pod. Use ReadWriteOncePod access mode if you want to ensure that only one pod across the whole cluster can read that PVC or write to it
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs
+spec:
+  capacity:
+    storage: 500Mi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs
+  nfs:
+    server: 192.168.1.1
+    path: "volume1/test"
+```
+
+#### PersistentVolumeClaim
+
+Claim - *PL: roszczenie*. Allows pod storing data on Persistent Volume.
 
 ```yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mysql-pv-claim
-  namespace: demo-wp
-  labels:
-    app: wordpress-mysql
+  name: nfs
 spec:
   accessModes:
-    - ReadWriteOnce
-  storageClassName: local-path
+    # - ReadWriteOnce
+    - ReadWriteMany
+  # storageClassName: local-path
+  storageClassName: nfs
   resources:
     requests:
-      storage: 100M
+      storage: 100Mi
+```
+
+Mounting:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vol-test
+spec:
+  containers:
+    - name: vol-test
+      image: nginx:latest
+      volumeMounts:
+        - name: volume1
+          mountPath: /usr/share/nginx/html
+  volumes:
+    - name: volume1
+      persistentVolumeClaim:
+        claimName: nfs
 ```
 
 ### Replication Controller
@@ -822,4 +871,77 @@ spec:
       nodePort: 30008
   selector:
     app: nginxapp
+```
+
+## ConfigMap
+
+Allows providing/setting up environment variables or config files to containers.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-cm
+data:
+  # key: value
+  # filename: |
+  #   content
+  # ---
+  nginx.conf: |
+    user nginx;
+    worker_processes 1;
+    events {
+      worker_connections  1024;
+    }
+    http {
+      server {
+        listen 80;
+        server_name example.com;
+        location / {
+          root   /usr/share/nginx/html;
+          index  index.html index.htm index.php;
+        }
+        location /test {
+          return 401;
+        }
+      }
+    }    
+```
+
+Usage example:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:.
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - name: web
+          containerPort: 80
+        volumeMounts:
+        - name: nginx-cm # name of config map volume
+          mountPath: /etc/nginx # path where config map (config file) will be mounted
+        - name: wolumin1
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: nginx-cm
+        configMap: # volume based on config map
+          name: nginx-cm
+      - name: wolumin1
+        hostPath:
+          path: /var/nginx
+          type: DirectoryOrCreate
 ```
