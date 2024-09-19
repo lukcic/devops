@@ -1,3 +1,5 @@
+# Github Multiple accounts
+
 ## Multiple SSH Keys settings for different github account
 
 Modify the ssh config:
@@ -8,11 +10,11 @@ vim ~/.ssh/config
 
 add:
 
-```
+```sh
 Host github.com-lukcic
-	HostName github.com
-	User git
-	IdentityFile ~/.ssh/id_ed25519.pem
+ HostName github.com
+ User git
+ IdentityFile ~/.ssh/id_ed25519.pem
 ```
 
 Modify repo settings:
@@ -23,64 +25,51 @@ vim .git/config
 
 add:
 
-```
+```toml
 [remote "origin"]
-	url = git@github.com-lukcic:lukcic/terraform-moduels.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
+    url = git@github.com-lukcic:lukcic/terraform-moduels.git
+    fetch = +refs/heads/*:refs/remotes/origin/*
 
 [user]
-	name = lukcic
-	email = lukcic@email.pl
+    name = lukcic
+    email = lukcic@email.pl
 ```
 
-Host must be the same as in `~/.ssh/config` file!
+Host must be the same as in `$HOME/.ssh/config` file!
 And username defined in config must be added to url (after colon)!
 
 Cloning repo from second account:
 
-```sh
-GIT_SSH_COMMAND="ssh -i ~/.ssh/id_ed25519.pem" git clone git@github.com:lukcic/scripts.git
-```
-
-# Using .gitconfig
-
-`~/.gitconfig`
-
 ```toml
-[includeIf "gitdir:~/lukcic/projects/"]
-    path = ~/lukcic/projects/.gitconfig-lukcic
-
-[includeIf "gitdir:~/projects/"]
-    path = ~/projects/.gitconfig-work
-
-[filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
+GIT_SSH_COMMAND="ssh -i $HOME/.ssh/id_ed25519.pem" git clone git@github.com:lukcic/scripts.git
 ```
 
-`~/projects/.gitconfig-work`
+## Using .gitconfig
+
+`$HOME/.gitconfig`
 
 ```toml
 [user]
-	name = Name
-	email = company@email.com
+    name = Łukasz Cichecki
+    email = lukasz.cichecki@work-email.com
 
 [credential]
     username = lukcic-work
+
+[includeIf "gitdir:~/lukcic/projects/"]
+    path = ~/lukcic/projects/.gitconfig-lukcic
 ```
 
 `.gitconfig-lukcic`
 
 ```toml
 [user]
-	name = lukcic
-	email = lukcic@mail.pl
+    name = lukcic
+    email = lukcic@mail.pl
 
 [credential]
     username = lukcic
 
 [core]
-  sshCommand = "ssh -F /dev/null -i ~/.ssh/id_ed25519.pem"
+  sshCommand = "ssh -F /dev/null -i $HOME/.ssh/id_ed25519.pem"
 ```

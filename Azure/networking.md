@@ -58,3 +58,13 @@ az network bastion tunnel --name MyBastionHost --resource-group MyResourceGroup 
 ssh user@127.0.0.1 -p 54321
 scp -P 54321 f:\file.txt user@127.0.0.1:c:\testdir
 ```
+
+## DNS
+
+### Private zones
+
+'Łącza sieci prywatnej` - przyłączenie strefy do określonej sieci wirtualnej.
+
+Enforce virtual networks use of created private DNS zone.
+`Enable automatic registration` - vm instances created in virtual network will automatically create FQDN DNS entry in
+private DNS zone based on vm instance name.
