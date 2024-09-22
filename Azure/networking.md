@@ -68,3 +68,25 @@ scp -P 54321 f:\file.txt user@127.0.0.1:c:\testdir
 Enforce virtual networks use of created private DNS zone.
 `Enable automatic registration` - vm instances created in virtual network will automatically create FQDN DNS entry in
 private DNS zone based on vm instance name.
+
+## Load balancer
+
+### Basic load0balancer
+
+- free?
+- vms in the backend pool have to be in availability set or scale set
+- health probes - TCP, HTTP
+- no SLA
+- no availability zones
+
+### Standard load0balancer
+
+- paid per hour
+- vms can be individual (standalone), must be connected to the same virtual network
+- health probes also with HTTPS
+- availability zones
+- SLA: 99,99%
+
+### Gateway
+
+- advanced
