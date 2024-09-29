@@ -1113,3 +1113,117 @@ helm rollback [LABEL_NAME] [REVISION_NUMBER]
 # rollback package to previous version
 # rollback creates new revision
 ```
+
+## Multi-master
+
+HA Control-Plane.
+
+Virtual IP - 10.0.0.100
+Master1 - 10.0.0.10
+Master2 - 10.0.0.11
+Master3 - 10.0.0.12
+
+LB1 - HaProxy1 + KeepAliveD
+LB2 - HaProxy2 + KeepAliveD
+
+### LB Installation
+
+```sh
+sudo apt install keepalived haproxy -y
+```
+
+### Check script
+
+Keepalived checks if K8s API is available and responds (via HaProxy address).
+
+Change `localhost` to Virtual IP address.
+
+```sh
+#!/bin/sh
+
+errorExit() {
+  echo "*** $@" 1>&2
+  exit 1
+}
+
+curl --silent --max-time 2 --insecure https://localhost:6443/ -o /dev/null || errorExit "Error GET https://localhost:6443/"
+if ip addr | grep -q 192.168.101.111; then
+  curl --silent --max-time 2 --insecure https://192.168.101.111:6443/ -o /dev/null || errorExit "Error GET https://172.16.16.100:6443/"
+fi
+```
+
+### `keepalived.conf`
+
+```pwsh
+vrrp_script checkapi {
+  script "/etc/keepalived/checkapi.sh"    # above script
+  interval 2                              # run script every 2s
+  timeout 5                               # wait 5s before mark failure
+  fall 3                                  # return FAULT when script returns non-zero 3x
+  rise 3                                  # return SUCCESS when script returns zero 3x
+  weight -10                              # if FAULT set priority -10
+}
+
+vrrp_instance VI_1 {
+    state ACTIVE        # ACTIVE for master, BACKUP for slave
+    interface enp0s3    # NIC id
+    virtual_router_id 1
+    priority 101        # 100 for BACKUP (slave)
+    advert_int 2
+    authentication {
+        auth_type PASS
+        auth_pass mypass  # authentication
+    }
+    virtual_ipaddress {
+        192.168.101.111   # Virtual IP
+    }
+    track_script {
+        checkapi
+    }
+}
+```
+
+### `haproxy.cfg`
+
+```ini
+frontend kubernetes-frontend
+  bind *:6443
+  mode tcp
+  option tcplog
+  default_backend kubernetes-backend
+
+backend kubernetes-backend
+  option httpchk GET /healthz
+  http-check expect status 200
+  mode tcp
+  option ssl-hello-chk
+  balance roundrobin
+    server kmaster1 10.0.0.11:6443 check fall 3 rise 2
+    server kmaster2 10.0.0.12:6443 check fall 3 rise 2
+    server kmaster3 10.0.0.11:6443 check fall 3 rise 2
+```
+
+Enable and restart services.
+
+### K3s installation
+
+If masters have `etcd` role, then odd amount of masters must be set (non-even).
+
+First master:
+
+```sh
+swapoff -a; sed -i '/swap/d' /etc/fstab
+curl -sfL https://get.k3s.io | sh -s server --cluster-init --token "xxx"
+```
+
+Next masters:
+
+```sh
+curl -sfL https://get.k3s.io | K3S_TOKEN="xxx" sh -s server --server https://[FIRST-MASTER-IP]:6443
+```
+
+Workers:
+
+```sh
+curl -sfL https://get.k3s.io | K3S_URL=https://[VIRTUAL-IP]:6443 K3S_TOKEN="xxx" sh -
+```

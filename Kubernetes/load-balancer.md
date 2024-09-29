@@ -1,4 +1,6 @@
-# MetalLB
+# Load Balancers
+
+## MetalLB
 
 TODO with k3s!
 
@@ -11,7 +13,7 @@ kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/config/m
 kubectl get pods -n metallb-system
 ```
 
-## IP address pool
+### IP address pool
 
 `metallb-config.yaml`
 
@@ -39,7 +41,7 @@ spec:
 kubectl apply -f metallb-config.yml
 ```
 
-### Test
+#### Test
 
 ```yaml
 apiVersion: apps/v1
@@ -81,3 +83,42 @@ spec:
 ```
 
 `kubectl describe svc demo-nginx -n demo-app` should show LoadBalancer Ingress address!
+
+## Traefik
+
+### Weighted Round Robin
+
+```yaml
+apiVersion: traefik.containo.us/v1alpha1
+kind: TraefikService
+metadata:
+  name: nginx-wrr
+  namespace: default
+spec:
+  weighted:
+    services:
+     - name: nginx-deploy-test1 # disabled
+       port: 80
+       weight: 0
+     - name: nginx-deploy-test2
+       port: 80
+       weight: 3
+     - name: nginx-deploy-test3
+       port: 80
+       weight: 1
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`nginx.example.com`)
+      kind: Rule
+      services:
+        - name: nginx-wrr
+          kind: TraefikService
+```
