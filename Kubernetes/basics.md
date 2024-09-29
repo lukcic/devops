@@ -81,6 +81,8 @@ kubectl get pods
 kubectl describe pod nginx2
 ```
 
+[Commands](https://dev.to/prodevopsguytech/kubernetes-commands-for-devops-engineers-124o)
+
 ### Dashboard
 
 ![Kubernetes Dashboard repo](https://github.com/kubernetes/dashboard)
@@ -909,9 +911,64 @@ spec:
     app: nginxapp
 ```
 
+## Ingress controller
+
+User --> LoadBalancer --> Node --> Ingress Controller Pod --> Service (ClusterIP) --> Pod
+
+`IngressController` - ReverseProxy deployed in Cluster (in form of a Pod). LoadBalancer with public IP forwards
+connection to IngressController which forwards traffic to the specific Service (Pod) based on `Host` header.
+
+[K8s docs](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/)
+
+### Ingress Manifest
+
+```yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  labels:
+    app: nginx
+spec:
+  type: ClusterIP # default!
+  ports:
+    - port: 80
+      protocol: TCP
+  selector:
+    app: nginx
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  annotations: # custom parameters
+    traefik.ingress.kubernetes.io/router.entrypoints: web # HTTP only
+spec:
+  rules:
+    - host: nginx.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-service
+                port:
+                  number: 80
+```
+
 ## ConfigMap
 
 Allows providing/setting up environment variables or config files to containers.
+
+Creating ConfigMap from file:
+
+```sh
+kubectl create configmap [NAME] --from-file [FILENAME]
+```
+
+## Manifest
 
 ```yaml
 apiVersion: v1
@@ -980,4 +1037,79 @@ spec:
         hostPath:
           path: /var/nginx
           type: DirectoryOrCreate
+```
+
+## Helm
+
+Package manager for K8s.
+
+### Installation
+
+[https://helm.sh/docs/intro/install/](https://helm.sh/docs/intro/install/)
+
+```sh
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+```
+
+### Charts
+
+[Charts repository](https://artifacthub.io/)
+
+### Use
+
+First repo must be added where package is hosted.
+
+Repos
+
+```sh
+helm repo ls
+# listing repos
+
+helm repo add [REPO_NAME] [REPO_URL]
+# adding repo
+
+helm repo remove [REPO_NAME] [REPO_URL]
+# removing repo
+
+helm search repo [PACKAGE_NAME]
+# searching for chart in the installed repos
+```
+
+Packages
+
+```sh
+helm ls
+# show installed packages
+
+helm install [LABEL_NAME] [PACKAGE_NAME]
+# installing package using helm
+
+helm uninstall [LABEL_NAME] [PACKAGE_NAME]
+# uninstalling package using helm
+```
+
+Templates
+
+Charts have templates for customizing deployments. Default variables values can be overridden using yaml config. See
+`default values` for the chart to get list of all variables, then create config file to override what you need.
+
+```sh
+helm install [LABEL_NAME] [PACKAGE_NAME] --values=/path/to/the/yaml
+# installation with overriding default values
+```
+
+Upgrades & Rollbacks
+
+```sh
+helm upgrade [LABEL_NAME] [PACKAGE_NAME] --values=/path/to/file
+# upgrading package using helm
+
+helm history [LABEL_NAME]
+# list package history
+
+helm rollback [LABEL_NAME] [REVISION_NUMBER]
+# rollback package to previous version
+# rollback creates new revision
 ```

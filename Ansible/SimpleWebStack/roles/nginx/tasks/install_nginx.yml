@@ -1,3 +1,0 @@
-- name: Installing nginx
-  apt: name=nginx state=present
-  tags: installation_tag
