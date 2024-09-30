@@ -1118,12 +1118,12 @@ helm rollback [LABEL_NAME] [REVISION_NUMBER]
 
 HA Control-Plane.
 
-Virtual IP - 10.0.0.100
-Master1 - 10.0.0.10
-Master2 - 10.0.0.11
+Virtual IP - 10.0.0.100\
+Master1 - 10.0.0.10\
+Master2 - 10.0.0.11\
 Master3 - 10.0.0.12
 
-LB1 - HaProxy1 + KeepAliveD
+LB1 - HaProxy1 + KeepAliveD\
 LB2 - HaProxy2 + KeepAliveD
 
 ### LB Installation
