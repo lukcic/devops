@@ -13,41 +13,62 @@
 
 [ Control plane (Master) ] <-> [ Worker nodes [ pods [ multiple containers ] ] ]
 
-### Master node (at least 1)
+### Control plane
 
-- API server (entrypoint to the k8s cluster). It is a container.
+Master node:
+
+- API server (entrypoint to the k8s cluster). Pod.
 - controller manager
 - scheduler - decided where to deploy container
-- etcd - key-value storage, handle state of nodes and containers, snapshots may be used
+- etcd - key-value storage, handle state of nodes and containers, handles secrets,  snapshots may be used
 - virtual network
 
-### Worker nodes (kubelet process running)
+#### HA Control plane
+
+Minimum 3 master nodes. One master is always `Leader` and other are `Followers`. Amount of master nodes must be odd (3, 5, 7...).
+
+It is caused by fact that `etcd` database must have `Quorum` - (n/2)+1 nodes.  
+
+For cluster with 3 nodes Quorum: (3 / 2) + 1 = 1 + 1 = 2
+
+With 4 masters, when network problem appears, then we have a `deadlock` - cannot say which site of
+cluster should take Leadership.
+
+### Data plane
+
+Worker nodes (kubelet process running).
 
 - more resources than master to handle containers
 
-### Components (control plane)
+### Components (master node)
 
-- kube-apiserver (master) - frontend of Kubernetes management layer. Provides contact with Kubernetes cluster. May have multiple instances.
-- etcd (master) - key-value store used to storing all parameters of Kubernetes cluster.
-- kube-scheduler (master) - follows creation of new pods and assign them nodes for running. Decides where to run given container.
-- kube-controller-manager - (master) responsible for starting containers. Single binary contains multiple logical elements (contorollers):
-  - node-controller - detects and reacts for situations when node doesn't work properly
-  - replication-controller - responsible for maintaining proper amount of pods for each ReplicationController object
-  - endpoints-controller - provides information to Endpoints objects (connects services and pods)
-    -service account & token controllers - creates default account and API access tokens for new namespaces
+- `apiserver` (master) - frontend of Kubernetes management layer. Provides contact with Kubernetes cluster. May have multiple instances.
+- `etcd` (master) - key-value store used to storing all parameters of Kubernetes cluster.
+- `scheduler` (master) - follows creation of new pods and assign them nodes for running. Decides where to run given container.
+- `controller-manager` - (master) responsible for starting containers. Single binary contains multiple logical elements
+  (controllers). Works as a loop, checking cluster state (via api) and trying to ensure desired state of cluster.
+  - `node-controller` - detects and reacts for situations when node doesn't work properly
+  - `replication-controller` - responsible for maintaining proper amount of pods for each ReplicationController object
+  - `endpoints-controller` - provides information to Endpoints objects (connects services and pods)
+  - `service account & token controllers` - creates default account and API access tokens for new namespaces
+- `cloud-controller-manager` - responsible for managing cloud provider resources. Specific for given provider.
 
-### Components (nodes)
+### Components (worker node)
 
-- kubelet - agent that works on each node, responsible for running containers in pod, connects to master node to process information
-- kube-proxy - network proxy that works on each cluster node and assists/supports service creation
-- container runtime - software which runs containers (Docker, Containerd, CRI-O and others)
-- add-ons
+- `kubelet` - agent that works on each worker node, responsible for running containers in pod, connects to master node to process information
+- `kube-proxy` - network proxy that works on each cluster node and assists/supports service creation
+- `container runtime` - software which runs containers (Docker, Containerd, CRI-O and others)
+- `add-ons`
 
 `POD` (kadłub) - the wrapper (opakowanie) of the container (one or more). The smallest unit to configure and interact with. Usually
 one pod per application, each pod got its own IP address (shared between containers inside pod). Pods communicate each other using internal network
 (auto-configured). Pods are empheral, can be deleted as a containers.
 
 `Service` - IP address of pod, used to communicate (IPs of pods changes) and loadbalancer.
+
+`coredns` - internal (Cluster) DNS system used for pods communication.
+
+`metrics-server` - collets CPU and memory usage. Necessary for auto-scalling and top.
 
 ### Control of Kubernetes
 
@@ -94,7 +115,7 @@ kubectl describe pod nginx2
 ```sh
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
-##add in container args:
+## add in container args:
 ##- --kubelet-insecure-tls
 
 kubectl apply -f components.yaml
@@ -413,7 +434,7 @@ rc-test-qmhbx   1/1     Running   0          5m47s
 ### Replica set
 
 `Replica sets` - newer object (replaces Replication controller). Both elements works on pods, but they are one level up
-structures. Replica set can have 0 replicas.
+structures. Replica set can have 0 replicas. RS if barely used directly - `Deployment` is used instead.
 
 Replica set requires (in compare to Replication Controller):
 
@@ -471,7 +492,9 @@ kubectl describe replicaset [NAME]
 
 ### Deployment
 
-Efficient update of containers running inside pod. Uses Relppica Sets for making rolling updates.
+Main role of Deployment is efficient update of containers running inside pod. Uses Replica Sets for making rolling updates.
+
+`[Deployment [Replica set [Pod]]]`
 
 Comparing to Replica Set only one difference in config file is `kind: Deployment`.
 
@@ -503,7 +526,10 @@ deployment-test-5897965cdf   5         5         5       3m53s
 
 #### Rolling update
 
-Creates new new replica set.
+While updating app (`kubectl apply -f` or `helm update`) K8s creates new new replica set. Both RS works and each is
+managing own app version. Pods with old version are gradually replaced by these with new version. Internal load balancer
+is responsible for managing incoming traffic. Old replica set ins not deleted, it's replica counter is set to 0 to make possible
+instant rollback.
 
 Downgrade app (older tag):
 
@@ -817,6 +843,25 @@ kubectl logs [POD-NAME] [CONTAINER-NAME]
 
 ## Networking
 
+### CNI - Container Network Interface
+
+Every node within cluster can communicate with other nodes. Every pod within cluster can communicate with other pods.
+Every pod have own unique IP.
+
+Kubernetes does not manage network communication. It is managed by external services - `CNI Plugins`. They are created based
+on CNI plugins specification and libraries. Thanks of that we separate running containers from networking. By default
+Pod does not have network interface. NIC is created/deleted and addressed by CNI plugin. It also manages network
+communication between Pods.
+
+CNI Plugins:
+
+- kubenet - simple plugin for Linux
+- Calico
+- Weave
+- Azure CNI
+- Amazon CNI
+- and many more
+
 ### Port forward
 
 Container must have `containerPort` declared. Port will be accessible only at `localhost` interface of kubectl host (not
@@ -879,6 +924,33 @@ spec:
       nodePort: 30008
   selector:
     app: nginxapp ##which pod/deployment
+```
+
+### Network policies
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-nginx
+  namespace: my-namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: nginx
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+```
+
+Apply:
+
+```sh
+kubectl apply -f network-policy.yaml
 ```
 
 ### LoadBalancer
@@ -1037,6 +1109,265 @@ spec:
         hostPath:
           path: /var/nginx
           type: DirectoryOrCreate
+```
+
+## DeamonSet and StatefulSet
+
+Alternatives to the deployment.
+
+### StatefulSet
+
+Used for databases. Pod (in the scope of Node) must have unique and persistent name and must be attached to specific
+Persistent Volume. StatefulSet creates replicated pod names with increasing numbers instead random suffix like
+Deployment.
+
+StatefulSet uses `Volume Claim templates` to assign and persistently link pods to their Persistent Volumes.
+
+Volumes:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nfs-pv0
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: 192.168.100.179
+    path: "/kubenfs/pv0"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nfs-pv1
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 200Mi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: 192.168.100.179
+    path: "/kubenfs/pv1"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nfs-pv2
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 200Mi
+  accessModes:
+    - ReadWriteOnce
+  nfs:
+    server: 192.168.100.179
+    path: "/kubenfs/pv2"
+```
+
+StatefulSet:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-sts-service
+  labels:
+    run: nginx-sts
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    run: nginx-sts
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-sts
+spec:
+  serviceName: "nginx-sts-service"
+  replicas: 3
+  podManagementPolicy: Parallel # how to run pods, parallel- run all at once
+  selector:                     # by default pods start ony after another
+    matchLabels:
+      run: nginx-sts
+  template:
+    metadata:
+      labels:
+        run: nginx-sts
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        volumeMounts:
+        - name: www
+          mountPath: /var/www/
+  volumeClaimTemplates:
+  - metadata:
+      name: www
+    spec:
+      storageClassName: manual
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Mi
+```
+
+StatefulSet requires `Headless` service - `clusterIP: None`.
+
+#### STS Commands
+
+```sh
+kubectl delete sts [STS_NAME]
+# will delete all pods WITHOUT StatefulSet and volumes 
+
+kubectl scale sts [STS_NAME] --replicas=0
+# scale to 0 if delete command doesn't work
+```
+
+### DaemonSet
+
+Run `Pod` automatically on every node of the cluster. Used for services like Traefik.
+
+```yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-daemonset
+spec:
+  selector:
+    matchLabels:
+      app: nginx-daemonset-app
+  template:
+    metadata:
+      labels:
+        app: nginx-daemonset-app
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+```
+
+#### DaemonSet commands
+
+```sh
+kubectl get daemonset
+```
+
+Restrictions:
+
+```yaml
+...
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+  nodeSelector:
+    withGpu: true   # label
+```
+
+```sh
+kubectl label node k3s1 withGpu=true
+kubectl get nodes -l withGpu=true
+```
+
+## Resource quotas and limits
+
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-resources
+  namespace: my-namespace
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "4"
+    requests.memory: 16Gi
+    limits.cpu: "10"
+    limits.memory: 32Gi
+```
+
+Apply:
+
+```sh
+kubectl apply -f quota.yaml
+```
+
+## CustomResources and CRDs
+
+### Custom resource definition
+
+```yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: crontabs.stable.example.com
+spec:
+  group: stable.example.com
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                cronSpec:
+                  type: string
+                image:
+                  type: string
+                replicas:
+                  type: integer
+  scope: Namespaced
+  names:
+    plural: crontabs
+    singular: crontab
+    kind: CronTab
+    shortNames:
+    - ct
+```
+
+Apply:
+
+```sh
+kubectl apply -f crd.yaml
+```
+
+### Custom resource
+
+```yaml
+apiVersion: stable.example.com/v1
+kind: CronTab
+metadata:
+  name: my-new-cron-object
+  namespace: my-namespace
+spec:
+  cronSpec: "* * * * */5"
+  image: my-cron-image
+  replicas: 3
+```
+
+Apply:
+
+```sh
+kubectl apply -f custom-resource.yaml
 ```
 
 ## Helm
