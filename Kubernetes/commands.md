@@ -80,7 +80,7 @@ kubectl uncordon NODE1
 
 # Drain node - safely evicts all pods from a node before maintenance
 kubectl drain NODE1
-kubectl drain NODE1 --igonore-daemonsets
+kubectl drain NODE1 --ignore-daemonsets
 
 # Helm
 helm list

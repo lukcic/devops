@@ -137,3 +137,4 @@ The most essential patterns in this group are:
 ## Schema
 
 ![Cloud Design Patterns](./cloud-design%20-patterns.png)
+[Cloud Security](https://www.datadoghq.com/state-of-cloud-security/?utm_source=unknownews)

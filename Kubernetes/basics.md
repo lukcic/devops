@@ -127,6 +127,31 @@ kubectl apply -f components.yaml
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/high-availability.yaml
 ```
 
+### Principles
+
+1. Never use single pod or replica set (except debugging). Use Deployments and StatefulSets - single pods can be killed
+   by controller.
+2. Clearly separate stateful and stateless resources.
+3. Separate secrets and non secret data (ConfigMaps).
+4. Enable automatic scaling to ensure capacity management - Horizontal Pod Auto-scaler (HPA). For StatefulSets disable
+   automatic scaling down process.
+5. Define PostStart and PreStop hooks to carry out inform the other components of the new existence of an instance or of
+   its impending termination.
+6. Configure Liveness, Readiness and Startup Probes.
+7. Set up Pod resource requests and limits to use with Horizontal Pod Autoscaler and Cluster Autoscaler.
+8. Reserve capacity and prioritize Pods, use namespace resource quotas and reserved compute resources.
+9. Force co-location of or spreading out Pods. Pod Topology Spread Constraints as well as affinity and anti-affinity
+   rules are a great way to express whether you want to co-locate Pods (for network traffic efficiency) or spread them
+   out (for redundancy) across your cloud region and availability zones.
+10. Pod Disruption Budget specifies how many of a set of Pods (e.g. in a Deployment) are allowed to be voluntarily
+    disrupted (i.e., due to a command of yours, not failures), at a time. Helps with maintenance of cluster nodes.
+11. Choose blue/green or canary deployments over stop-the-world deployments. Use tools like ArgoCD.
+12. Run your containers as a non-root user. Only use the root in your container build process to install dependencies,
+    then make a non-root user and have that run your application.
+13. Set and enforce the strictest Pod Security Policy or Pod Security Standard.
+14. Use Network Policies to limit what other Pods your Pod can connect to. The default free-for-all network traffic in Kubernetes is a security nightmare, because then, an attacker just needs to get into one Pod to have direct access to all others.
+15. Disable the default service account from being exposed to your application. Unless you specifically need to interact with the Kubernetes API, you should not have the default service account token mounted into it.
+
 ## Resource definitions
 
 ### Namespace
