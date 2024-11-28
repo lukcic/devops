@@ -36,7 +36,7 @@ cluster should take Leadership.
 
 ### Data plane
 
-Worker nodes (kubelet process running).
+Worker nodes (`kubelet` process running).
 
 - more resources than master to handle containers
 
@@ -92,7 +92,9 @@ kubectl get services nginx
 ```
 
 ```sh
-kubectl run -it --image=busybox busybox
+kubectl run -it --image=busybox --restart=Never busybox 
+# restart flag is used to avoid creation of Deployment
+
 kubectl attach busybox -c busybox -it
 ```
 
@@ -102,11 +104,9 @@ kubectl get pods
 kubectl describe pod nginx2
 ```
 
-[Commands](https://dev.to/prodevopsguytech/kubernetes-commands-for-devops-engineers-124o)
-
 ### Dashboard
 
-![Kubernetes Dashboard repo](https://github.com/kubernetes/dashboard)
+[Kubernetes Dashboard repo](https://github.com/kubernetes/dashboard)
 
 ### Metrics server
 
@@ -151,6 +151,21 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 13. Set and enforce the strictest Pod Security Policy or Pod Security Standard.
 14. Use Network Policies to limit what other Pods your Pod can connect to. The default free-for-all network traffic in Kubernetes is a security nightmare, because then, an attacker just needs to get into one Pod to have direct access to all others.
 15. Disable the default service account from being exposed to your application. Unless you specifically need to interact with the Kubernetes API, you should not have the default service account token mounted into it.
+
+## kubectl
+
+### Config file
+
+```sh
+# Location
+~/.kube/config
+```
+
+### Environment variable `KUBECONFIG`
+
+```sh
+export KUBECONFIG=/path/to/the/file
+```
 
 ## Resource definitions
 
@@ -209,13 +224,14 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: pod-name
-  labels: ##optionsl
+  labels: # optional
     app: app-name
     type: front-end
 spec:
   containers:
     - name: nginx1
       image: nginx
+      # command: ["sleep", "inf"] # for images without entrypoint
 ```
 
 Running:
@@ -248,6 +264,8 @@ Resources limits for containers.
 containers:
   - name: nginx
     image: nginx:1.21.1
+    command: ["/bin/sh", "-c"]
+    args: ["sleep 10"]
     resources:
       requests: # container requests below limits from node
         memory: '256Mi'
@@ -405,7 +423,7 @@ spec:
 
 ### Replication Controller
 
-`Replication Controller` - older object. Monitor health of containers to redeploy it if failed on the same or different
+`Replication Controller` - older object (historical). Shouldn't be used. Monitor health of containers to redeploy it if failed on the same or different
 node if current node fails. Works on pods, but it's one level up in structure.
 
 Using kind of `ReplicationController` minimal configuration needed is amount of replicas and template of pods to create (the same
@@ -429,7 +447,7 @@ spec:
             - containerPort: 80
 ```
 
-List Repliction Controllers:
+List Replication Controllers:
 
 ```sh
 kubectl get rc
@@ -458,7 +476,7 @@ rc-test-qmhbx   1/1     Running   0          5m47s
 
 ### Replica set
 
-`Replica sets` - newer object (replaces Replication controller). Both elements works on pods, but they are one level up
+`Replica sets` - newer object (replaces Replication Controller). Both elements works on pods, but they are one level up
 structures. Replica set can have 0 replicas. RS if barely used directly - `Deployment` is used instead.
 
 Replica set requires (in compare to Replication Controller):
@@ -517,11 +535,39 @@ kubectl describe replicaset [NAME]
 
 ### Deployment
 
-Main role of Deployment is efficient update of containers running inside pod. Uses Replica Sets for making rolling updates.
+Main role of Deployment is efficient update of containers running inside pod. Use Replica Sets for making rolling updates.
 
 `[Deployment [Replica set [Pod]]]`
 
 Comparing to Replica Set only one difference in config file is `kind: Deployment`.
+
+Example:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-dep
+  labels:
+    app: httpd-app
+spec:
+  # maxSurge: 90%
+  # maxUnavailable: 90%
+  replicas: 5
+  selector:
+    matchLabels:
+      app: httpd-app
+  template:
+    metadata:
+      labels:
+        app: httpd-app
+    spec:
+      containers:
+        - name: httpd
+          image: httpd
+          ports:
+            - containerPort: 80
+```
 
 Commands:
 
@@ -529,7 +575,7 @@ Commands:
 kubectl get deployments
 kubectl describe deployment [DEPLOYMENT-NAME]
 
-kubectl get all ##shows all infos about cluster
+kubectl get all # shows all infos about cluster
 ```
 
 Structure of pod name is:
@@ -551,12 +597,12 @@ deployment-test-5897965cdf   5         5         5       3m53s
 
 #### Rolling update
 
-While updating app (`kubectl apply -f` or `helm update`) K8s creates new new replica set. Both RS works and each is
+While updating app (`kubectl apply -f` or `helm update`) K8s creates new Replica Set. Both RS' work and each one is
 managing own app version. Pods with old version are gradually replaced by these with new version. Internal load balancer
-is responsible for managing incoming traffic. Old replica set ins not deleted, it's replica counter is set to 0 to make possible
-instant rollback.
+is responsible for managing incoming traffic. Old replica set is not deleted, it's replica counter is set to 0 to
+make possible instant rollback.
 
-Downgrade app (older tag):
+Update process:
 
 By CLI:
 
@@ -576,18 +622,18 @@ stopped.
 
 ```sh
 kubectl rollout status deployment [DEPLOYMENT-NAME]
+```
 
-#
-
-❯ kubectl rollout status deployment deployment-test
+```sh
+kubectl rollout status deployment deployment-test
 deployment "deployment-test" successfully rolled out
 ```
 
 ```sh
 kubectl rollout history deployment [DEPLOYMENT-NAME]
+```
 
-#
-
+```sh
 kubectl rollout history deployment deployment-test
 
 deployment.apps/deployment-test
@@ -602,19 +648,23 @@ Undo rollout one step (in history) backwards.
 
 ```sh
 kubectl rollout undo deployment [DEPLOYMENT-NAME]
+```
 
-#
-
+```sh
 kubectl rollout history deployment deployment-test
 
 deployment.apps/deployment-test
 REVISION  CHANGE-CAUSE
 1         <none>
 2         kubectl set image deployment deployment-test nginx=nginx:1.20 --record
+```
 
-❯ kubectl rollout undo deployment deployment-test
+```sh
+kubectl rollout undo deployment deployment-test
 deployment.apps/deployment-test rolled back
+```
 
+```sh
 kubectl rollout history deployment deployment-test
 deployment.apps/deployment-test
 REVISION  CHANGE-CAUSE
@@ -634,21 +684,52 @@ kubectl scale --replicas=10 deployment deployment-test
 Single run of container. Something similar to batch jobs. Container has to do the job and after that it is deleted.
 Service instead runs all the time.
 
-Cron job - job running recursively.
-
-Job creates pod in backgroud. Completed job cannot be run again with the same spec (file). Must be deleted or it must
+Job creates pod in background. Completed job cannot be run again with the same spec (file). Must be deleted or it must
 run with different name.
 
-Delete job after specific time:
+Delete Job pod after specific time (to clean up):
 
 ```yaml
-spec: ##Job spec
+spec: # Job spec
   ttlSecondsAfterFinished: 10
 ```
 
 Minikube must be started with flag: `--feature-gates="TTLAfterFinished=true"`.
 
 Deletion Job/CronJob deletes all pods created in Job.
+
+#### CronJobs
+
+CronJob - job running recursively.
+
+Example:
+
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cron-job-test
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec: 
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: count-container
+              image: debian:latest
+              command: 
+                - "/bin/bash"
+                - "-c"
+                - "apt-get update; apt-get install curl -y; curl -s http://wttr.in/Wroclaw"
+```
+
+Listing:
+
+```sh
+kubectl get cj
+```
 
 ### Secrets
 

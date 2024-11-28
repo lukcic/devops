@@ -2,7 +2,7 @@
 
 Alternative to Kubespray. Simplified installation of Kubernetes.
 
-# Installation
+## Installation
 
 One-node cluster:
 

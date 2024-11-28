@@ -1,4 +1,4 @@
-## Minikube
+# Minikube
 
 VM or container that runs Kubernetes cluster on the one host.
 
@@ -57,4 +57,12 @@ users:
     user:
       client-certificate: /home/lukcic/.minikube/profiles/minikube/client.crt
       client-key: /home/lukcic/.minikube/profiles/minikube/client.key
+```
+
+## Feature Gates
+
+Additional features in testing can be enabled.
+
+```sh
+minikube start --feature-gates="TTLAfterFinished=true"
 ```

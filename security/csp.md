@@ -18,17 +18,17 @@ CSP adjusts elements like:
 
 ## Usage
 
-CSP can be deployed using `Content-Security-Policy` HTTP header:
+CSP can be deployed using Content-Security-Policy `HTTP header
 
 The most simple example:
 
-```
+```javascript
 Content-Security-Policy: default-src https://example.com
 ```
 
 or directly in HTML code as a part of <meta> section:
 
-```
+```html
 <meta http-equiv="Content-Security-Policy" content="default-src https://example.com">
 ```
 
@@ -50,17 +50,17 @@ Browser will also block any inline scripts defined directly in HTML code. This m
 directive-name value1 value2 'keyword' ; directive-name2 [...]
 ```
 
-- full directives are separated by `;`
-- elements inside directive are separated by [space]
-- values:
-  ** protocol name only, ex. `https`
-  ** domain name only like `example.com` without defining protocol
-  ** domain name with protocol, ex. `https://example.com`
-  ** domain name with wildcard, ex. `https://*.example.com` for subdomains, not include APEX!
-  ** path to catalog, ex `https://example.com/scripts/` - trailing `/` gives information that resource is a catalog
-  ** path to the file, ex. `https://example.com/script.js`
-  ** same domain, like: `'self'` - must include apostrophe
-  ** keyword `'none'`, which means external resource type will not be loaded
+* full directives are separated by `;`
+* elements inside directive are separated by [space]
+* values:
+  * protocol name only, ex. `https`
+  * domain name only like `example.com` without defining protocol
+  * domain name with protocol, ex. `https://example.com`
+  * domain name with wildcard, ex. `https://*.example.com` for subdomains, not include APEX!
+  * path to catalog, ex `https://example.com/scripts/` - trailing `/` gives information that resource is a catalog
+  * path to the file, ex. `https://example.com/script.js`
+  * same domain, like: `'self'` - must include apostrophe!
+  * keyword `'none'`, which means external resource type will not be loaded
 
 ### Syntax examples
 
@@ -106,7 +106,7 @@ Can be used with web apps which uses few external scripts with unchangeable code
 
 1. Generating hash
 
-```
+```sh
 echo -n 'someJSCode()' | openssl dgst -sha256 -binary | openssl base64
 # dfpDHU1n...eoI=
 
@@ -114,13 +114,13 @@ echo -n 'someJSCode()' | openssl dgst -sha256 -binary | openssl base64
 
 2. Setting up header
 
-```
+```javascript
 Content-Security-Policy: script-src 'dfpDHU1n...eoI='
 ```
 
 3. Adding code to HTML
 
-```
+```html
 <script>someJSCode()</script>
 ```
 
@@ -131,23 +131,23 @@ Adding it will make that script tag in the page is only executed if the nonce va
 
 Most widgets or things you load dynamically source other JS files (load other JS modules). If you have full control of the library you could manually propagate nonce to the dynamically created script. External scripts like GMaps doesn't have this feature. It will provide static script to use, so you can't use nonces with external scripts.
 
-```
+```js
 default-scr 'self';
 script-src 'self' 'nonce-ihUB6ng5VRUny79rhit8tn8rtO';
 report-uri /csp_violation_logger;
 ```
 
-```
+```html
 <script nonce="ihUB6ng5VRUny79rhit8tn8rtO" src="//example.com/script.js"
 ```
 
 All mentioned methods can be mixed if it is needed:
 
-```
+```js
 Content-Security-Policy: script-scr https://example.com 'dfpDHU1n...eoI=' 'nonce-ihUB6ng5VRUny79rhit8tn8rtO'
 ```
 
-### strict-dynamic source expression
+### `strict-dynamic` source expression
 
 Problems:
 
@@ -156,10 +156,11 @@ Problems:
 
 Solution - `strict-dynamic` value. It adds trust propagation mechanism, which means that we trust inline script with nonce value which can load external script (parser-inserted) from non-whitelisted origin. Because `<script>` tag is trusted, external script loaded by it will also be trusted:
 
-`Content-Security-Policy: script-src 'nonce-ihUB6ng5VRUny79rhit8tn8rtO' 'strict-dynamic'
-`
-
 ```js
+Content-Security-Policy: script-src 'nonce-ihUB6ng5VRUny79rhit8tn8rtO' 'strict-dynamic'
+```
+
+```html
 <script 'nonce-ihUB6ng5VRUny79rhit8tn8rtO'>
 	var sc = document.createElement('script');
 	sc.src = 'https://example.com/script.js';
@@ -169,7 +170,7 @@ Solution - `strict-dynamic` value. It adds trust propagation mechanism, which me
 
 `strict-dynamic` drops existing whitelists and `unsafe-inline` keyword!
 
-To maintain backward compatibility with older browsers (before 2016) `script-src` should include whitelisted domains and 'unsafe-inline' keyword.
+To maintain backward compatibility with older browsers (before 2016) `script-src` should include whitelisted domains and `unsafe-inline` keyword.
 
 `strict-dynamic` aims to make CSP simpler to deploy for existing applications which have a high degrees of confidence in the scripts their load directly, but low confidence in the possibility to provide a secure whitelist.
 
@@ -188,7 +189,7 @@ https://csp-evaluator.withgoogle.com/
 
 Example:
 
-```
+```html
 <script src="/user_upload/evil_cat.jpg.js">
 ```
 
@@ -201,14 +202,14 @@ Ex. `https://ajax.googleapis.com` - it hosts JSONP endpoints
 
 Policy:
 
-```
+```js
 script-src 'self' https://whitelisted.com
 object-scr 'none'
 ```
 
 Bypass:
 
-```
+```html
 <script src="https://whitelisted.com/jsonp/callback=alert">
 ```
 
@@ -223,7 +224,7 @@ https://book.hacktricks.xyz/pentesting-web/content-security-policy-csp-bypass
 
 3. Path relaxation due to open redirect in whitelist.
 
-```
+```js
 script-src https://whitelisted.com/totally/secure.js https://some.website.with.openredirect.com
 object-src 'none'
 ```
