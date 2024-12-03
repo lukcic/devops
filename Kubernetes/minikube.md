@@ -11,8 +11,10 @@ minikube start
 minikube status
 minikube pause
 minikube stop
+minikube ip # shows ip of minikube vm
 
 minikube ssh # connect kubernetes vm/container via ssh
+minikube ssh-key # shows path of ssh key
 ```
 
 ```sh

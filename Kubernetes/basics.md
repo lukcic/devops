@@ -256,6 +256,54 @@ change.
 
 Pod receives own IP address. All containers share Pod's resources (ram, ip, cpu, open ports).
 
+#### Init containers
+
+Containers that runs before main container starts. Used for: initializing main container, prepare data for container -
+download it from resource that need authentication, wait for another resource, etc. Changes in main container will
+re-run init containers. If errors, all pod will try to redeploy - all init containers will run again.
+
+Example:
+
+```yaml
+spec:
+  initContainers:
+    - name: clean-and-download
+      image: cirrusci/wget
+      command: ["sh", "-c", "rm -rf /www/* && wget https://example.com/example-file.png -O /www/example.png"]
+      volumeMounts: 
+        - name: http-content
+          mountPath: /www
+  containers:
+    - name: nginx
+      image: nginx
+      volumeMounts: 
+        - name: http-content
+          mountPath: /usr/share/nginx/html/
+```
+
+### Labels and selectors
+
+#### Labeling nodes
+
+```sh
+kubectl label node k3s1 withGpu=true
+kubectl get nodes --selector withGpu=true
+kubectl get nodes -l withGpu=true
+kubectl get nodes --show-labels
+```
+
+#### Node selector
+
+```yaml
+...
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+  nodeSelector:
+    withGpu: true   # label
+```
+
 ### Limits
 
 Resources limits for containers.
@@ -293,14 +341,16 @@ metadata:
   name: env-tes
 spec:
   containers:
-    - name: envtest
+    - name: env-test
       image: debian:latest
       command: ['env']
       env:
         - name: test
           value: true
         - name: test2
-          value: testtest
+          value: test-test
+        - name: test3
+          value: "2" # Number must be presented as string
   restartPolicy: Never
 ```
 
@@ -308,7 +358,7 @@ spec:
 
 ### Volumes
 
-Like Docker's bind mount. Scope od node. Path on host must be assigned.
+Like Docker's bind mount. Path on host must be assigned. Scope of node - shouldn't be used with multi-node environment.
 
 ```yaml
 apiVersion: v1
@@ -333,7 +383,7 @@ spec:
   volumes: # definition for creating volume
     - name: vol-example
       hostPath:
-        path: /srv/test # must exists in minikube container/vm: minikube ssh
+        path: /srv/test # must exist in minikube container/vm
         type: Directory
 ```
 
@@ -740,12 +790,19 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: secret-test
-data:
+data:                             # encoded
   user: 'cm9vdA=='                # "dbadmin" in base 64
   pass: 'ZGJwYXNzd29yZDEyMyE='    # "dbpassword123!" in base 64
 stringData:                       # plain text data
   dbaddress: 'localhost'
   dbname: 'test'
+```
+
+Encoding:
+
+```sh
+echo -n 'dbpassword123!' | base64
+ZGJwYXNzd29yZDEyMyE=
 ```
 
 Apply:
@@ -755,7 +812,28 @@ kubectl apply -f secrets.yaml
 kubectl get secrets
 ```
 
-Referencing secrets as envs:
+Secrets can be referenced in Pods in 2 ways: as environment variable and as volume.
+
+Referencing secret as env:
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: database
+spec:
+  containers:
+    - name: db
+      image: mysql:5.7.34
+      env: # environment variable created based on K8s secret
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secret-test
+              key: pass # secret can have multiple key:value entries
+```
+
+Referencing secret as volume:
 
 ```yaml
 apiVersion: v1
@@ -767,12 +845,6 @@ spec:
     - name: secret-test
       image: mysql:5.7.34
       command: ['env']
-      env:                          # environment variable created based on K8s secret
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: secret-test
-              key: pass             # secret can have multiple key:value entries
       volumeMounts:
         - mountPath: '/root/secrets'
           name: dbsecrets
@@ -782,6 +854,8 @@ spec:
       secret:
         secretName: secret-test
 ```
+
+MySQL container must know path to password file (env).
 
 #### Secret types
 
@@ -1346,7 +1420,7 @@ kubectl scale sts [STS_NAME] --replicas=0
 
 ### DaemonSet
 
-Run `Pod` automatically on every node of the cluster. Used for services like Traefik.
+Run `Pod` automatically on every node of the cluster. Used for services like Traefik. Works only in multi-node environment.
 
 ```yaml
 apiVersion: apps/v1
@@ -1371,23 +1445,6 @@ spec:
 
 ```sh
 kubectl get daemonset
-```
-
-Restrictions:
-
-```yaml
-...
-spec:
-  containers:
-  - image: nginx
-    name: nginx
-  nodeSelector:
-    withGpu: true   # label
-```
-
-```sh
-kubectl label node k3s1 withGpu=true
-kubectl get nodes -l withGpu=true
 ```
 
 ## Resource quotas and limits

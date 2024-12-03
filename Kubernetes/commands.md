@@ -4,6 +4,13 @@
 # Cluster
 kubectl cluster-info
 
+# Resources list
+kubectl api-resources
+kubectl api-version
+
+# Explain - help
+kubectl explain pod
+
 # Nodes
 kubectl get nodes
 kubectl describe node NODE1
@@ -21,6 +28,7 @@ kubectl delete namespace TEST_NAMESPACE
 
 # Pods
 kubectl get pods
+kubectl get pods -o wide # additional info
 kubectl get pods --namespace TEST_NAMESPACE
 kubectl get pods -n TEST_NAMESPACE
 kubectl describe pod TEST_POD
@@ -54,8 +62,9 @@ kubectl delete secret TEST_SECRET
 # Scaling apps
 kubectl scale deployment TEST_DEPLOYMENT --replicas=3
 
-# Updating apps
-kubectl set image deployment/TEST_DEPLOYMENT nginx=nginx:1.19.1
+# Copying data
+kubectl cp index.html httpd-test-1112233:/usr/local/apache2/htdocs/
+kubectl cp namespace/container-name:/usr/local/apache2/logs/ . -c http
 
 # Rollout status
 kubectl rollout status deployment/TEST_DEPLOYMENT
@@ -63,6 +72,11 @@ kubectl rollout status deployment/TEST_DEPLOYMENT
 # Rollback deployment
 kubectl rollout undo deployment/TEST_DEPLOYMENT
 kubectl rollout status deployment/TEST_DEPLOYMENT
+
+# Editing
+kubectl edit deployment test
+kubectl set image deployment/TEST_DEPLOYMENT nginx=nginx:1.19.1
+kubectl set env deployment/test -c ubuntu EXIT_CODE=0
 
 # Logs
 kubectl logs TEST_POD
@@ -88,4 +102,9 @@ helm repo add stable https://charts.helm.sh/stable
 helm install TEST_RELEASE stable/nginx
 helm upgrade TEST_RELEASE stable/nginx
 helm uninstall my-release
+
+# Autocompletion [Tab]
+kubectl completion -h
+source <(kubectl completion zsh)
+# paste it to .zshrc
 ```
