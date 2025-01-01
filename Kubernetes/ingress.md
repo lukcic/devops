@@ -359,3 +359,34 @@ spec:
 ```
 
 DNS challenge is necessary for wildcard certificates.
+
+## Nginx ingress controller
+
+Installation with Kubespray requires enabling nginx in group_vars.
+
+### Ingress
+
+To verify apiVersion!
+
+```yaml
+apiVersion: extension/v1beta1 # ???
+kind: Ingress
+metadata:
+  name: apps.example.com
+  annotation:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/issuer: "letsencrypt-staging" # letsencrypt-prod
+spec:
+  tls: # Issuer needed
+    - hosts:
+      - app1.example.com
+      secretName: app1.example.com # cert will be stored here
+  rules:
+    - host: app1.example.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: mynginx1
+              servicePort: 80
+```

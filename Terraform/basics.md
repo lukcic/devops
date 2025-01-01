@@ -103,6 +103,9 @@ export AWS_PROFILE=lukcic
 * terraform apply -auto-approve
   * will skip the confirmation
 
+* terraform apply -replace="aws_instance.example"
+  * will recreate given resource
+
 * terraform apply -var-file example.tfvars
   * apply changes with overriding variable file
 

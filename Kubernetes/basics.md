@@ -308,7 +308,14 @@ spec:
 
 Resources limits for containers.
 
+`Requests` informs master node how many resources given Pod needs and can allocate Pod on
+the node that has sufficient ones. If there's no sufficient resources, task will be waiting in the queue.
+
+Each container must have own requests and limits definitions. While starting Pod all requests and limits are summarized.
+Pods with memory usage under limits will be killed (OOMKilled status).
+
 ```yaml
+...
 containers:
   - name: nginx
     image: nginx:1.21.1
@@ -320,8 +327,10 @@ containers:
         cpu: '250m'
       limits: # container total limit
         memory: '512Mi'
-        cpu: '500m' # 0,5 processor time, 1/2 of 1000m
+        cpu: '500m' # 0,5 processor time, 1/2 of 1000m (milicores)
 ```
+
+Limits can also be set on `Namespaces`.
 
 ### Scaling and load balancing
 
@@ -893,7 +902,8 @@ kubectl edit secret [SECRET_NAME]
 
 ### Service
 
-IP of pod inside cluster is dynamic. Service name should be used for communication between pods.
+IP of pod inside cluster is dynamic. Service name should be used for communication between pods. Similar to Docker
+internal DNS. Service creation deploys Endpoint.
 
 Service must know which port it has to be connected (selector).
 
@@ -906,10 +916,10 @@ metadata:
     app: nginx
 spec:
   ports:
-    - port: 80 ##ClusterIP, must match container/pod port
+    - port: 80 # ClusterIP, must match container/pod port
       protocol: TCP
   selector:
-    matchLabels:
+    matchLabels: # connect service with Deployment
       app: nginxapp
 ```
 
@@ -1042,10 +1052,10 @@ CNI Plugins:
 - Amazon CNI
 - and many more
 
-### Port forward
+### Port forward - temporary
 
 Container must have `containerPort` declared. Port will be accessible only at `localhost` interface of kubectl host (not
-host where container is deployed). Process is running in foreground.
+host where container is deployed). Forwarding process is running in foreground.
 
 ```sh
 #kubectl port-forward [CONTAINER_NAME] [HOST_PORT]:[CONTAINER_PORT]
@@ -1054,25 +1064,38 @@ kubectl port-forward deployment-test-5897965cdf-7b87z 8080:80
 
 ### Endpoints
 
-Used for mapping service name to IP (dynamic). Allows DNS communication between pods, inside the cluster, not from outside.
+Used for mapping service name to IP (dynamic). Allows DNS communication between Pods, inside the cluster, not from outside.
 
 ```sh
 kubectl get endpoints
 ```
 
+| Type | External access | Public clusters | Private clusters |
+|------|-----------------|-----------------|------------------|
+| ClusterIP | no | yes | yes |
+| NodePort | yes | yes | yes |
+| LoadBalancer | yes| yes | no |
+| ExternalName | no | yes | yes |
+
+! Private clusters - Metallb, info can be obsolete.
+
+`ExternalName` - DNS entry in the Cluster resolver.
+
 ### ClusterIP
 
-`ClusterIP` - basic, ip for deployed pod/service.\
+`ClusterIP` - basic, ip for deployed pod/service.
+
 Used for communication between containers inside Deployment.
 
 ### NodePort
 
-Forward node's port to service/deployment port. Node ports range is: 30000-32767. Used to access service from outside od cluster.
+Forward node's port to service/deployment port. Node ports range is: 30000-32767. Range must be opened on firewall. Used
+to access service from outside od cluster. Node port is available on all nodes in cluster, even if Deployment has only 1 replica.
 
 ```sh
 kubectl expose deployment deployment-test --type=NodePort
-##K8s will choose Node's port randomly. All node IPs in cluster will work.
-##Exposing deployment will create a new service
+# K8s will choose Node's port randomly. All node IPs in cluster will work.
+# Exposing deployment will create a new service
 
 kubectl get svc
 #debian@k8s-controller:~/k8s$ kubectl get svc
@@ -1537,6 +1560,8 @@ kubectl apply -f custom-resource.yaml
 
 Package manager for K8s.
 
+`Tiller` - Helm app working on worker node as pod.
+
 ### Installation
 
 [https://helm.sh/docs/intro/install/](https://helm.sh/docs/intro/install/)
@@ -1576,6 +1601,9 @@ Packages
 ```sh
 helm ls
 # show installed packages
+
+helm list --deleted
+# show deleted packages
 
 helm install [LABEL_NAME] [PACKAGE_NAME]
 # installing package using helm
