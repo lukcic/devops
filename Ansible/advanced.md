@@ -98,8 +98,8 @@ path: '{{ "http://user:password@www.acme.com:9000/dir/index.html?query=term#frag
 ## Project structure
 
 - environments
- - stage
- - prod
+  - stage
+  - prod
 - ansible.cfg
 - requirements.yml
 - service_app.yml
@@ -108,25 +108,30 @@ path: '{{ "http://user:password@www.acme.com:9000/dir/index.html?query=term#frag
 `group-vars` - environment variables for groups, like app version
 `host-vars` - definitions how to access hosts from inventory file, like username and ssh key location
 
-### Roles:
+### Roles
 
 - role-name
- - README.md
- - defaults (vars that should be overridden by site like versions, default credentials etc)
- - handlers
- - meta (dependencies, author info)
- - tasks
-  - configure.yml
-  - install.yml
-  - main.yml
- - templates
- - tests
-  - Vagrantfile
-  - ansible.cfg
-  - inventory.yml
-  - main.yml
-  - requirements.yml (Ansible Galaxy)
- - vars (vars that shouldn't be overridden)
+  - README.md
+  - defaults (vars that should be overridden by site like versions, default credentials etc)
+  - handlers
+  - meta (dependencies, author info)
+  - tasks
+    - configure.yml
+    - install.yml
+    - main.yml
+  - templates
+  - tests
+    - Vagrantfile
+    - ansible.cfg
+    - inventory.yml
+    - main.yml
+    - requirements.yml (Ansible Galaxy)
+  - vars (vars that shouldn't be overridden)
+  - README.md
+  - .ansible-lint
+  - .yamllint
+  - .gitignore
+  - LICENSE
 
 ### Inventory
 
@@ -163,8 +168,6 @@ Running a playbook in Navigator
 ansible-navigator run main.yml
 ```
 
-Artifacts - saved output from run. Can be used to `replay`. 
-
 --mode stdout|interactive - interactive prodeces artifacts
 
 --ee
@@ -176,13 +179,48 @@ Artifacts - saved output from run. Can be used to `replay`.
 --pp
 --pull-policy always|missing|never|tag
 
+--enable promtps
+Prompts won't work in interactive mode, enabling them swithces to std_output mode and disables artifacts creation.
+
+#### Artifacts 
+
+Saved output from run in json format. Can be used with `replay` to review play history. 
+
+```
+ansible-navigator --ee=false replay log.json --mode=stdout
+```
+
 ### ansible-builder
 
-Tool for building EE.
+Tool for building EE. By default uses RHEL distributions so, for Debian some changes must be done. 
+
+`execution-environment.yml` - config file for image
+
+- source image
+- python version
+- ansible-core version
+- ansible-runner version
+- collections with version tags
+- distro pakages
+- pip modules
+- addtional elements by hooks and additonal_build_steps
+
+```sh
+ansible-builder build --file execution-environment.yml
+# builds image
+
+ansible-builder create --file execution-environment.yml
+# only creates docker/podman file to add changes
+```
 
 ### ansible-doc
 
+https://www.educba.com/ansible-doc/
+
 ```sh
+ansible-doc $module_name
+ansible-doc uri
+
 ansible-doc -t $type -l
 # list specific type docs
 
@@ -198,7 +236,16 @@ ansible-doc -t keyword when
 
 ### ansible-runner
 
-Send content for external resource for running.
+Run Ansible automations (playbooks and roles) on remote hosts. CLI and python interface. 
+
+```sh
+ansible-runner transmit . -p main.yml | pv | ssh 192.168.1.100 /home/user/.local/bin/ansible-runner worker --private-data-dir /tmp/Ansible/ | ansible-runner process .
+
+```
+
+more details:
+https://www.youtube.com/watch?v=C4zg3mSeQEg
+https://dariusz.puchalak.net/Ansible/
 
 ### ansible-debugger
 
@@ -260,4 +307,3 @@ ansible-galaxy collection list
 ```sh
 ansible-galaxy install --role-file=requirements.yml --roles-path=roles
 ```
-

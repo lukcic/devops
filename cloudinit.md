@@ -1,0 +1,1 @@
+https://cloudinit.readthedocs.io/en/latest/reference/yaml_examples/update_etc_hosts.html

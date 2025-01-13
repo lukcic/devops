@@ -243,6 +243,8 @@ kubectl create -f pod-example.yaml
 kubectl apply -f pod-example.yaml
 # Apply changes in environment based of changes in file (will create if not exists)
 
+kubectl apply -f .
+# Apply all files in folder
 ```
 
 Delete pod based on config
@@ -1314,6 +1316,22 @@ spec:
           type: DirectoryOrCreate
 ```
 
+### podAntiAffinity
+
+Spread the same type of pods across different nodes.
+
+```yaml
+podAntiAffinity:
+  requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+      matchExpressions:
+        - key: role
+          operator: In
+          values:
+            - {{ .name }}
+    topologyKey: "kubernetes.io/hostname"
+```
+
 ## DeamonSet and StatefulSet
 
 Alternatives to the deployment.
@@ -1726,26 +1744,3 @@ backend kubernetes-backend
 ```
 
 Enable and restart services.
-
-### K3s installation
-
-If masters have `etcd` role, then odd amount of masters must be set (non-even).
-
-First master:
-
-```sh
-swapoff -a; sed -i '/swap/d' /etc/fstab
-curl -sfL https://get.k3s.io | sh -s server --cluster-init --token "xxx"
-```
-
-Next masters:
-
-```sh
-curl -sfL https://get.k3s.io | K3S_TOKEN="xxx" sh -s server --server https://[FIRST-MASTER-IP]:6443
-```
-
-Workers:
-
-```sh
-curl -sfL https://get.k3s.io | K3S_URL=https://[VIRTUAL-IP]:6443 K3S_TOKEN="xxx" sh -
-```

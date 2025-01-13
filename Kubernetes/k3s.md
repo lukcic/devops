@@ -44,3 +44,27 @@ Used to run stuck services
 ```sh
 kubectl patch service [SERVICE_NAME] -n [NAMESPACE_NAME] -p '{"metadata":{"finalizers":null}}'
 ```
+---
+
+### K3s installation # to review
+
+If masters have `etcd` role, then odd amount of masters must be set (non-even).
+
+First master:
+
+```sh
+swapoff -a; sed -i '/swap/d' /etc/fstab
+curl -sfL https://get.k3s.io | sh -s server --cluster-init --token "xxx"
+```
+
+Next masters:
+
+```sh
+curl -sfL https://get.k3s.io | K3S_TOKEN="xxx" sh -s server --server https://[FIRST-MASTER-IP]:6443
+```
+
+Workers:
+
+```sh
+curl -sfL https://get.k3s.io | K3S_URL=https://[VIRTUAL-IP]:6443 K3S_TOKEN="xxx" sh -
+```

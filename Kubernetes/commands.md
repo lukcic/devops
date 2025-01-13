@@ -96,6 +96,10 @@ kubectl uncordon NODE1
 kubectl drain NODE1
 kubectl drain NODE1 --ignore-daemonsets
 
+# SSL certificates
+kubectl get certificaterequests
+kubectl describe certificaterequest TEST
+
 # Helm
 helm list
 helm repo add stable https://charts.helm.sh/stable
@@ -107,4 +111,14 @@ helm uninstall my-release
 kubectl completion -h
 source <(kubectl completion zsh)
 # paste it to .zshrc
+```
+
+## Renew certificates
+
+```sh
+kubeadm certs check-expiration
+kubeadm certs renew all
+
+# export admin certs 
+# restart cluster to reload new certificates
 ```
