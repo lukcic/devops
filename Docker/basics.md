@@ -16,14 +16,16 @@ docker info
 # Infos about server
 ```
 
-### Listing running containers:
+## Basic usage
 
-```
+### Listing running containers
+
+```sh
 docker ps
 docker container ls
 ```
 
-### Listing all containers:
+### Listing all containers
 
 ```sh
 docker ps -a
@@ -36,7 +38,7 @@ docker port [NAME/ID]
 # Will show container ports redirection
 ```
 
-### Running containers:
+### Running containers
 
 `docker run` = `docker create` + `docker start`
 
@@ -73,7 +75,7 @@ docker run --rm -it ubuntu:latest    #Container will be removed after stop worki
 docker run --help                    #Help for given command
 ```
 
-### Advanced flags:
+### Advanced flags
 
 ```sh
 --cap-add, --cap-drop   # add or remove Linux capabilities from the container (security feature) - what is allowable within the context of the container
@@ -92,7 +94,7 @@ docker run --help                    #Help for given command
 --userns
 ```
 
-### Stop running container:
+### Stop running container
 
 ```sh
 docker container stop [NAME/ID]
@@ -108,7 +110,7 @@ docker pause [NAME/ID]
 docker unpause [NAME/ID]
 ```
 
-### Starting not-running container:
+### Starting not-running container
 
 ```sh
 docker container start [NAME/ID]
@@ -117,23 +119,32 @@ docker container start [NAME/ID]
 ### Restarting container
 
 ```sh
-docker restart [NAME/ID] #restarting container
+docker restart [NAME/ID]
 ```
 
-### Attaching detached (running) container:
+### Attaching detached (running) container
+
+Stdout will show the logs:
+
+```sh
+docker attach [NAME/ID]
+# to quit use ^P or ^Q
+```
+
+Attach to container shell:
 
 ```sh
 docker container exec [-it] [NAME/ID] bash
 ```
 
-### Removing container:
+### Removing container
 
 ```sh
 docker container rm [-f] [NAME/ID]
 -f (forced)
 ```
 
-## Cleaning host:
+## Cleaning host
 
 ```sh
 docker rm -f $(docker ps -aq)
@@ -149,7 +160,7 @@ docker rm -f $(docker ps -aq) && docker volume rm $(docker volume ls -q)
 docker rm -f $(docker ps -aq) && docker volume rm $(docker volume ls -q) && docker network prune -f
 ```
 
-## Cleaning images:
+## Cleaning images
 
 Dangling images are layers that have no relationship to any tagged images. They no longer serve a purpose and consume disk space.
 
@@ -158,9 +169,9 @@ docker images -f dangling=true
 docker image prune
 ```
 
-https://bulldogjob.pl/readme/jak-odzyskac-przestrzen-dyskowa-zajeta-przez-dockera
+<https://bulldogjob.pl/readme/jak-odzyskac-przestrzen-dyskowa-zajeta-przez-dockera>
 
-### Updating containers:
+### Updating containers
 
 ```sh
 docker container update
@@ -172,7 +183,7 @@ docker run --restart="VALUE" [NAME]:[TAG]
 
 ---
 
-### Getting container information:
+### Getting container information
 
 ```sh
 docker inspect [NAME/TAG] #Show detailed info about container, works with containers, images, volumens and networks.
@@ -183,7 +194,7 @@ docker inspect --format='{{.LogPath}}' my-app
 
 ---
 
-### Interaction with running container:
+### Interaction with running container
 
 Docker exec:
 
@@ -274,28 +285,48 @@ docker run --tmpfs [CONTAINER_VOLUME_PATH] [IMAGE]:[TAG]
 # Creating temporary volume (files deleted while closing container), can be used with --read-only
 ```
 
-#### Plugins
+### Plugins
 
 ```sh
 docker container run --name [NAME] --mount type=volume,volume-driver=[DRIVER_FULL_NAME],source=[VOLUME_NAME],destination=[PATH_IN_CONTAINER] [IMAGE]:[TAG]
 # creating container with creation volume using plugin
 ```
 
-#### Backup volumes data
+### Export
+
+Exporting container to file (entire filesystem backup):
+
+```sh
+docker export CONTAINER_NAME  > archive.tar
+
+tar -tf archive.tar
+# will test archive for errors
+
+docker export CONTAINER_NAME | gzip > archive.tar
+# with compression
+```
+
+Exporting docker image to file (to access layered filesystem):
+
+```sh
+docker save -o archive.tar image:tag
+```
+
+### Backup volumes data
 
 ```sh
 docker run --rm --volumes-from portainer -v $(pwd):/backup busybox tar cvf /backup/backup-poratiner-data.tar /data
 ```
 
-https://github.com/xcad2k/cheat-sheets/blob/main/infrastructure/docker.md
+<https://github.com/xcad2k/cheat-sheets/blob/main/infrastructure/docker.md>
 
-#### Restore
+### Restore
 
 ```sh
 docker run --rm --volumes-from [CONTAINER] -v $(pwd):/backup busybox bash -c "cd [CONTAINERPATH] && tar xvf /backup/backup.tar --strip 1"
 ```
 
-#### NFS volumes
+### NFS volumes
 
 ```sh
 docker volume create --driver local --opt type=nfs --opt o=addr=192.168.254.100,rw --opt device=:/tubearchivist ta-nfs
@@ -304,11 +335,11 @@ docker run -it --mount
 debian:latest
 ```
 
-https://docs.docker.com/storage/volumes
+<https://docs.docker.com/storage/volumes>
 
 ---
 
-### Bind-mouted directories
+### Bind-mounted directories
 
 Used for mounting hosts files or directories into container. BM dirs are not managed by docker engine. Needs absolute host path, where volume needs name or empty sign (docker will create volume).
 
@@ -324,11 +355,11 @@ docker run -it --name example --mount type=bind,source="$(pwd)"/test,target=/dat
 
 ---
 
-### Statistics & processes
+## Statistics & processes
 
 Docker stats give us information about containers usage of: cpu, mem, hdd io and network.
 
-````sh
+```sh
 docker stats
 # statistics of all containers
 
@@ -343,8 +374,7 @@ docker container stats [NAME/ID]
 
 docker container top [NAME/ID]
 # shows processes running in container (the same process id are listed in host ps)
-
----
+```
 
 ### Logs
 
@@ -375,17 +405,17 @@ docker logs [NAME/ID]
 
 --until "2021-07-21T21:21:00"
 # Shows logs to givem timestamo. May be used with since.
-````
+```
 
-#### Alternatives
+### Alternatives
 
 - `Daemon svlogd` - installed inside of container can grab logs from stdout & stderr and send them to remote logging servers using udp.
-- `Syslog redirector` - compiled app that grab stdout and stderr of one process from inside of container: https://github.com/spotify/syslog-redirector
-- `Logspout` - container that connects with docker service and grabs logs from other containers: https://github.com/progrium/logspout
+- `Syslog redirector` - compiled app that grab stdout and stderr of one process from inside of container: <https://github.com/spotify/syslog-redirector>
+- `Logspout` - container that connects with docker service and grabs logs from other containers: <https://github.com/progrium/logspout>
 
 ---
 
-### Hardware limits
+## Hardware limits
 
 ```sh
 docker run --cpus="0.2"
@@ -412,7 +442,7 @@ docker run --blkio-weight-device "/dev/sda:10"
 
 ---
 
-### Linking containers:
+## Linking containers
 
 ```sh
 docker run -dt --name mysql_client --link mysql_server:mysql_client ubuntu
@@ -421,7 +451,7 @@ docker run -dt --name mysql_client --link mysql_server:mysql_client ubuntu
 
 ---
 
-### docker:dind
+## docker:dind
 
 Docker-in-Docker, also known as DinD, is just what it says: running Docker inside a Docker container.
 This implies that the Docker instance inside the container would be able to build containers and also run them.
@@ -436,7 +466,7 @@ But CI is not the only use case. Another common use case is developers that want
 
 ---
 
-### Moving data root path
+## Moving data root path
 
 Edit the file `/etc/docker/daemon.json` and add or modify the “data-root” entry. If you configuration is empty, the file will look like this:
 
