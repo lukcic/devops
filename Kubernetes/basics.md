@@ -217,6 +217,10 @@ spec:
 
 ### Pod
 
+All container within a pod shares the same network namespace,this allows them communicate each other with `localhost`.
+Pods inside container also shares IPC namespace - memory (segments, semaphores and queues), but they have isolated
+process tree. To enable process tree sharing, flag `shareProcessNamespace` should be set.
+
 Minimal example:
 
 ```yaml

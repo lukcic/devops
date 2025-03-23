@@ -466,6 +466,15 @@ But CI is not the only use case. Another common use case is developers that want
 
 ---
 
+## Pod-like containers
+
+Both containers must share the same network namespace and the same IPC (memory) namespace:
+
+```sh
+docker run -d --name web-app-ctr httpd:latest
+docker run -d --name sync-ctr --network container:web-app-ctr --ipc container:web-ap-ctr git:latest
+```
+
 ## Moving data root path
 
 Edit the file `/etc/docker/daemon.json` and add or modify the “data-root” entry. If you configuration is empty, the file will look like this:

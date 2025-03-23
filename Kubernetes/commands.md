@@ -16,6 +16,9 @@ kubectl get nodes
 kubectl describe node NODE1
 kubectl label nodes k3s-node1 disktype=ssd
 
+# Apply all yaml files
+kubectl apply -f .
+
 # All
 kubectl get all
 kubectl get all -n TEST_NAMESPACE
@@ -25,6 +28,8 @@ kubectl get ns
 kubectl get namespaces
 kubectl create namespace TEST_NAMESPACE
 kubectl delete namespace TEST_NAMESPACE
+
+kubectl config set-context --current --namespace=namaespace_name
 
 # Pods
 kubectl get pods
@@ -66,6 +71,9 @@ kubectl scale deployment TEST_DEPLOYMENT --replicas=3
 kubectl cp index.html httpd-test-1112233:/usr/local/apache2/htdocs/
 kubectl cp namespace/container-name:/usr/local/apache2/logs/ . -c http
 
+# Rollout restart
+kubectl rollout restart deployment TEST_DEPLOYMENT
+
 # Rollout status
 kubectl rollout status deployment/TEST_DEPLOYMENT
 
@@ -103,8 +111,11 @@ kubectl describe certificaterequest TEST
 # Helm
 helm list
 helm repo add stable https://charts.helm.sh/stable
+helm search repo -l prometheus-community/kube-prometheus-stack
 helm install TEST_RELEASE stable/nginx
 helm upgrade TEST_RELEASE stable/nginx
+helm show values prometheus-community/kube-prometheus-stack > values.yml
+helm upgrade --install --namespace prometheus-stack --create-namespace --atomic --debug --timeout 300s --values values.yml prometheus-stack prometheus-community/kube-prometheus-stack
 helm uninstall my-release
 
 # Autocompletion [Tab]

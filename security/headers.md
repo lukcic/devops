@@ -4,7 +4,7 @@ Missing security headers doesn't necessarily create a vulnerability, app context
 
 Some headers will weaken security if added, like CORS (disables SOP). Mostly they will strengthen security if added, like X-Frame-Options, CSP, HSTS, HTTPOnly Cookie.
 
-## HTTP Strict-Transport-Security
+## HTTP Strict-Transport-Security (HSTS)
 
 Header forces use of HTTPS transmission. In case of certificate error it disallows user to enter the site.
 First request may use HTTP without TLS if there's no HTTPS redirect on server side. If webpage is accessed via HTTP browser ignores HSTS header, because in that case attacker is able to modify headers using MITM attack. Remedy can be `preload` parameter. Most modern browsers have feature to avoid HTTP requests.
@@ -32,7 +32,7 @@ Params:
 * strict-origin-when-cross-origin - full path only if the same origin, in other cases the same behavior like `strict-origin`
 * unsafe-url - send full path always, even if protocol downgrade
 
-### X-Content-Type-Options
+## X-Content-Type-Options
 
 Browser will read `Content-Type` header and it will not try to interpret file using own mechanism (disabling MIME sniffing).
 
@@ -40,7 +40,7 @@ Params:
 
 * nosniff
 
-### Permissions-Policy (aka Feature-Policy)
+## Permissions-Policy (aka Feature-Policy)
 
 Enable/disable/edit some features of browsers API like camera, microphone, auto-play, full-screen, etc. Works for given site and for content loaded by `iFrame`.
 
@@ -50,7 +50,7 @@ Example:
 Permissions-Policy: geolocation 'none'; camera 'none'
 ```
 
-### X-Frame-Options
+## X-Frame-Options
 
 Indicate if browser can be allowed to render the page inside iframe (`<iframe>, <frame>, <embed>, <object>`). Protects against Click-jacking attacks - ex. clicking in hidden FB's like. Make sense only if page has functionality which can be impacted by clickjacking (site handles critical users actions). Doesn't make sense if rendering page inside iframe is desired (ex. embedding youtube video on the page).
 
@@ -62,7 +62,7 @@ Params:
 
 The same result can be achieved using `Content-Security-Policy` directive called `frame-ancestors`.
 
-### Set-Cookie
+## Set-Cookie
 
 Be aware that existing XSS cannot steal protected cookies using JS, but it's able to send request which will be authenticated with cookie. Next thing is only session cookies should be protected, typical information stored as cookies usually shouldn't.
 
@@ -71,7 +71,7 @@ Params:
 * Secure - browser will send cookies only with encrypted transmission (HTTPS).
 * HTTPONLY - browser will not allow JS scripts to access cookies
 
-### X-XSS-Protection
+## X-XSS-Protection
 
 Tell browser to not run data from outside.
 
@@ -80,3 +80,17 @@ Params:
 * 0 - disables XSS filtering
 * 1 - enables XSS filtering (default for most browsers), if attack is detected the browser will sanitize the page (remove the unsafe parts)
 * 1; mode-block - enables XSS filtering, if attack is detected the browser will prevent the page from rendering
+
+## Access-Control-Allow-Origin
+
+By default, websites are protected by SOP (Same Origin Policy), which restricts sharing of resources between different
+origins. `Access-Control-Allow-Origin` header allows for relaxing this control in specific situations. 
+
+```nginx
+Access-Controll-Allow-Origin: *
+```
+
+This response header value permits code from any origin to access a specific resource.
+
+
+https://www.darkrelay.com/post/http-security-headers

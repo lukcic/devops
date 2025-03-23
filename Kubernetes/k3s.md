@@ -68,3 +68,54 @@ Workers:
 ```sh
 curl -sfL https://get.k3s.io | K3S_URL=https://[VIRTUAL-IP]:6443 K3S_TOKEN="xxx" sh -
 ```
+
+## lxc
+
+Host:
+
+```sh
+# Ensure these modules are loaded
+cat /proc/sys/net/bridge/bridge-nf-call-iptables
+
+# Disable swap
+sysctl vm.swappiness=0
+swapoff -a
+
+# Enable IP Forwarding
+echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
+sysctl --system
+```
+
+Create `PRIVILEGED` container.
+
+```sh
+# add settings to container config:
+#/etc/pve/lxc/$ID.conf
+
+lxc.apparmor.profile: unconfined
+lxc.cgroup.devices.allow: a
+lxc.cap.drop:
+lxc.mount.auto: "proc:rw sys:rw"
+```
+
+In the container:
+
+```sh
+# /etc/rc.local
+
+#!/bin/sh -e
+
+if [ ! -e /dev/kmsg ]; then
+    ln -s /dev/console /dev/kmsg
+fi
+mount --make-rshared /
+```
+
+Make script executable:
+
+```sh
+chmod +x /etc/rc.local
+reboot
+```
+
+Install k3s.
