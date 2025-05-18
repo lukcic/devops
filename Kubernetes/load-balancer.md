@@ -2,11 +2,36 @@
 
 ## MetalLB
 
-TODO with k3s!
+Load Balancer in Layer2 mode is used to forward traffic from specific IP (resolved by DNS) to one of the nodes. Works like keep-alived, sending ARP reply by the leader to the client. This way traffic goes to the one of the multiple nodes. Then Ingress controller forwards traffic to the service on the node.
 
 ## Installation
 
-![MetalLB installation](https://metallb.universe.tf/installation/)
+```sh
+edit configmap -n kube-system kube-proxy
+```
+
+Edit `mode: ipvs` and `strictARP: true`.
+
+```yaml
+    kind: KubeProxyConfiguration
+    logging:
+      flushFrequency: 0
+      options:
+        json:
+          infoBufferSize: "0"
+        text:
+          infoBufferSize: "0"
+      verbosity: 0
+    metricsBindAddress: 127.0.0.1:10249
+    mode: ipvs
+---
+    ipvs:
+      excludeCIDRs: []
+      minSyncPeriod: 0s
+      scheduler: rr
+      strictARP: true
+```
+
 
 ```sh
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/main/config/manifests/metallb-native.yaml
@@ -14,6 +39,8 @@ kubectl get pods -n metallb-system
 ```
 
 ### IP address pool
+
+Configure Layer2 mode:
 
 `metallb-config.yaml`
 

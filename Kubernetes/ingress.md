@@ -1,5 +1,26 @@
 # Ingress controller
 
+## Nginx
+
+### Installation
+
+```sh
+helm upgrade --debug --install ingress-nginx ingress-nginx \
+  --repo https://kubernetes.github.io/ingress-nginx \
+  --namespace ingress-nginx --create-namespace
+```
+
+Check:
+
+```sh
+k -n ingress-nginx get svc
+NAME                                 TYPE           CLUSTER-IP     EXTERNAL-IP       PORT(S)                      AGE
+ingress-nginx-controller             LoadBalancer   10.233.37.61   192.168.254.180   80:30287/TCP,443:30186/TCP   67s
+ingress-nginx-controller-admission   ClusterIP      10.233.56.93   <none>            443/TCP                      67s
+```
+
+External IP should appear with LoadBalancer type service.
+
 ## Traefik
 
 Traefik installed as k8s service, should be type of `LoadBalancer`.

@@ -104,10 +104,6 @@ kubectl get pods
 kubectl describe pod nginx2
 ```
 
-### Dashboard
-
-[Kubernetes Dashboard repo](https://github.com/kubernetes/dashboard)
-
 ### Metrics server
 
 #### Single
