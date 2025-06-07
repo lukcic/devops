@@ -174,7 +174,7 @@ CMD ["-h","0.0.0.0","-p","80"]
 # arguments send to ENTRYPOINT if: ENTRYPOINT ["flask", "run"]
 
 ADD [URL] [PATH_IN_CONTAINER]
-# Downloading files from internet. Can unzip archives too.
+# Downloading files from internet. Can unzip archives too. Shouldn't be used
 ```
 
 ### Build
@@ -360,6 +360,36 @@ CMD ["/app-name"]
 - Install only production dependencies [🔒 🏎️ 👁️]
 - Avoid leaking sensitive information [🔒]
 - Leverage multi-stage builds [🔒 🏎️]
+
+---
+
+### Container Image Creation Best Practices
+
+- Low Image Size
+Use Minimal Base Images: Start with a minimal base image, such as alpine or distroless, to reduce the overall image size.
+
+- Multi-stage Builds: Use multi-stage builds to separate the build environment from the runtime environment. This helps in keeping the final image lightweight by excluding unnecessary build tools and dependencies.
+
+- Remove Unnecessary Files: Clean up temporary files, cache, and other unnecessary files during the image build process.
+
+- Less/No Vulnerable Images
+Regular Updates: Regularly update the base images and dependencies to include the latest security patches and updates.
+
+- Security Scanning: Use tools like Trivy or Clair to scan images for known vulnerabilities before deploying them.
+
+- Minimal Permissions: Ensure that the application runs with the least privileges necessary to reduce potential attack surfaces.
+
+- Be Cautious in Opening Ports
+Limit Exposed Ports: Only expose the ports that are necessary for the application to function. Avoid exposing unnecessary ports to reduce the attack surface.
+
+- Use Non-standard Ports: When possible, use non-standard ports to make it harder for attackers to find and exploit open services.
+
+- Follow Security Best Practices
+Use Non-root Users: Run applications as non-root users within the container to minimize the impact of a potential security breach.
+
+- Environment Variables: Avoid hardcoding sensitive information in the image. Use environment variables to pass sensitive data at runtime.
+
+- Network Policies: Implement network policies to control the traffic between containers, enhancing security within the containerized environment.
 
 #### Parser directives
 
