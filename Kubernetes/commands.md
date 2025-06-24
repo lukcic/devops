@@ -114,6 +114,17 @@ source <(kubectl completion zsh)
 # paste it to .zshrc
 ```
 
+## Merging contexts
+
+```sh
+KUBECONFIG=~/.kube/k3s.conf:~/.kube/k8s-dev.conf kubectl config view --flatten > ~/.kube/config
+
+kubectl config get-contexts
+kubectl config rename-context default k3s
+
+kubectl config use-context k8s-dev
+```
+
 ## Renew certificates
 
 ```sh

@@ -126,3 +126,26 @@ compromise the host?
 - Use --security-opt
   - seccomp profiles (https://docs.docker.com/engine/security/seccomp/)
   - apparmor profiles (https://docs.docker.com/engine/security/apparmor/)
+
+## Troubleshooting
+
+### Containers are processes
+
+```sh
+ps -fC nginx
+# list all nginx processes
+
+pf -ef --forest
+# list all processes grouped in hierarchy
+
+Processes with parent /usr/bin/containerd-shim-runc-v2 runs inside containers
+```
+
+You can edit files inside the container by accessing the container’s root filesystem from the /proc directory on the host. Navigating to /proc/[PID]/root will give you the directory listing of the contained process that has that PID.
+
+#### ENV of containers
+
+```sh
+cat /proc/[PID]/environ
+# will list all ENVs from container
+```
