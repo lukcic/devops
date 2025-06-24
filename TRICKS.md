@@ -37,11 +37,12 @@ sudo -u postgres psql
 
 ```sql
 CREATE DATABASE name;
-CREATE USER username WITH PASSWOD 'mypassword';
+CREATE USER username WITH PASSWORD 'mypassword';
 ALTER DATABASE database OWNER TO username;
 \connect database;
 GRANT CREATE ON SCHEMA public TO username;
 \q
+exit
 ```
 
 ## redis
