@@ -4,7 +4,7 @@ Connecting many containers in service (Wordpress + mySQL). Making local develope
 
 https://docs.docker.com/compose
 
-## Installation:
+## Installation
 
 pip3 install docker-compose
 
@@ -105,3 +105,16 @@ Why not to use Docker-compose in production:
 - Historical reasons:
   - no health-checks
   - Docker-compose was a separate binary
+
+## Watch
+
+Use docker compose watch for live-reload in local dev
+Use bind-mounted volumes + hot reload for fast iteration
+Use .dockerignore + caching for minimal rebuilds
+
+```yaml
+develop:
+  watch:
+    - path: .
+      action: rebuild
+```
